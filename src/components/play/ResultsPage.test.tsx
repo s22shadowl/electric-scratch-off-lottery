@@ -4,6 +4,11 @@ import { useGameStore, REVEAL_THRESHOLD } from "@/stores/gameStore";
 import ResultsPage from "./ResultsPage";
 import type { GameConfig } from "@/types";
 
+// mock captureAndShare（避免 html2canvas 在 jsdom 報錯）
+vi.mock("@/utils/screenshot", () => ({
+  captureAndShare: vi.fn().mockResolvedValue(undefined),
+}));
+
 // canvas mock
 HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
 vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
@@ -148,5 +153,31 @@ describe("ResultsPage", () => {
     render(<ResultsPage />);
     const winnings = screen.getByTestId("total-winnings");
     expect(winnings.textContent).toContain("500");
+  });
+
+  it("應顯示「截圖結果」按鈕且可點擊", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    const btn = screen.getByTestId("capture-summary-btn");
+    expect(btn).toBeInTheDocument();
+    expect(btn).not.toBeDisabled();
+  });
+
+  it("點擊「截圖結果」應呼叫 captureAndShare", async () => {
+    const { captureAndShare } = await import("@/utils/screenshot");
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    fireEvent.click(screen.getByTestId("capture-summary-btn"));
+    // 非同步，等 microtask
+    await Promise.resolve();
+    expect(captureAndShare).toHaveBeenCalled();
+  });
+
+  it("Modal 中應顯示「截圖此張」按鈕", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    const selectedIds = useGameStore.getState().selectedCardIds;
+    fireEvent.click(screen.getByTestId(`result-card-${selectedIds[0]}`));
+    expect(screen.getByTestId("capture-card-btn")).toBeInTheDocument();
   });
 });

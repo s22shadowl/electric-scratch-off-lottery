@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useGameStore } from "@/stores/gameStore";
+import { captureAndShare } from "@/utils/screenshot";
 import ScratchCard from "./ScratchCard";
 
 export default function ResultsPage() {
   const selectedCardIds = useGameStore((s) => s.selectedCardIds);
   const cards = useGameStore((s) => s.cards);
   const [detailCardId, setDetailCardId] = useState<string | null>(null);
+  const [summaryCapturing, setSummaryCapturing] = useState(false);
+  const [cardCapturing, setCardCapturing] = useState(false);
+
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const selectedCards = selectedCardIds
     .map((id) => cards.find((c) => c.id === id))
@@ -17,63 +23,102 @@ export default function ResultsPage() {
     0,
   );
 
+  const handleCaptureSummary = async () => {
+    if (!summaryRef.current || summaryCapturing) return;
+    setSummaryCapturing(true);
+    try {
+      await captureAndShare(summaryRef.current, "scratch-results.png");
+    } catch {
+      // 忽略截圖失敗
+    } finally {
+      setSummaryCapturing(false);
+    }
+  };
+
+  const handleCaptureCard = async () => {
+    if (!cardRef.current || cardCapturing) return;
+    setCardCapturing(true);
+    try {
+      await captureAndShare(
+        cardRef.current,
+        `scratch-card-${detailCardId}.png`,
+      );
+    } catch {
+      // 忽略截圖失敗
+    } finally {
+      setCardCapturing(false);
+    }
+  };
+
   return (
     <div data-testid="results-page" className="min-h-screen bg-gradient-to-br from-red-800 to-red-950 text-white py-8 px-4">
-      {/* 結果匯總標題 */}
-      <section
-        data-testid="results-summary"
-        className="text-center mb-8"
-      >
-        <h2 className="text-3xl font-black text-yellow-400 drop-shadow-lg mb-2">
-          🎊 刮刮結果
-        </h2>
-        <p className="text-red-200 text-sm mb-1">
-          中獎 {winningCards.length} / {selectedCards.length} 張
-        </p>
-        <div
-          data-testid="total-winnings"
-          className={[
-            "inline-block px-6 py-2 rounded-xl font-black text-lg mt-2",
-            totalWinnings > 0
-              ? "bg-yellow-400 text-red-900"
-              : "bg-red-900/60 text-red-300 border border-red-600",
-          ].join(" ")}
+      {/* 截圖範圍：結果匯總 + 卡片摘要格 */}
+      <div ref={summaryRef} className="pb-4">
+        {/* 結果匯總標題 */}
+        <section
+          data-testid="results-summary"
+          className="text-center mb-8"
         >
-          {totalWinnings > 0
-            ? `💰 總計中獎 $${totalWinnings} 元`
-            : "謝謝參與，下次好運！"}
-        </div>
-      </section>
-
-      {/* 卡片摘要格 */}
-      <div className="flex flex-wrap justify-center gap-3 mb-8 max-w-2xl mx-auto">
-        {selectedCards.map((card) => (
-          <button
-            key={card.id}
-            data-testid={`result-card-${card.id}`}
-            onClick={() => setDetailCardId(card.id)}
+          <h2 className="text-3xl font-black text-yellow-400 drop-shadow-lg mb-2">
+            🎊 刮刮結果
+          </h2>
+          <p className="text-red-200 text-sm mb-1">
+            中獎 {winningCards.length} / {selectedCards.length} 張
+          </p>
+          <div
+            data-testid="total-winnings"
             className={[
-              "px-4 py-3 rounded-xl text-sm font-bold border-2 transition-transform hover:scale-105 cursor-pointer",
-              card.totalWinnings > 0
-                ? "bg-yellow-400/20 border-yellow-400 text-yellow-300"
-                : "bg-red-900/40 border-red-700 text-red-300",
+              "inline-block px-6 py-2 rounded-xl font-black text-lg mt-2",
+              totalWinnings > 0
+                ? "bg-yellow-400 text-red-900"
+                : "bg-red-900/60 text-red-300 border border-red-600",
             ].join(" ")}
           >
-            <div className="text-xs opacity-70 mb-0.5">{card.id.slice(0, 8)}</div>
-            {card.totalWinnings > 0
-              ? `🎉 $${card.totalWinnings} 元`
-              : "謝謝參與"}
-          </button>
-        ))}
+            {totalWinnings > 0
+              ? `💰 總計中獎 $${totalWinnings} 元`
+              : "謝謝參與，下次好運！"}
+          </div>
+        </section>
+
+        {/* 卡片摘要格 */}
+        <div className="flex flex-wrap justify-center gap-3 mb-8 max-w-2xl mx-auto">
+          {selectedCards.map((card) => (
+            <button
+              key={card.id}
+              data-testid={`result-card-${card.id}`}
+              onClick={() => setDetailCardId(card.id)}
+              className={[
+                "px-4 py-3 rounded-xl text-sm font-bold border-2 transition-transform hover:scale-105 cursor-pointer",
+                card.totalWinnings > 0
+                  ? "bg-yellow-400/20 border-yellow-400 text-yellow-300"
+                  : "bg-red-900/40 border-red-700 text-red-300",
+              ].join(" ")}
+            >
+              <div className="text-xs font-mono opacity-70 mb-0.5">
+                {card.serialNumber}
+              </div>
+              {card.totalWinnings > 0
+                ? `🎉 $${card.totalWinnings} 元`
+                : "謝謝參與"}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* 截圖按鈕（placeholder） */}
-      <div className="text-center">
+      {/* 截圖結果按鈕 */}
+      <div className="text-center mb-8">
         <button
-          disabled
-          className="px-6 py-2 rounded-xl bg-red-700/50 text-red-400 font-bold text-sm cursor-not-allowed border border-red-600/50"
+          data-testid="capture-summary-btn"
+          onClick={handleCaptureSummary}
+          disabled={summaryCapturing}
+          className={[
+            "px-6 py-2 rounded-xl font-bold text-sm border transition-all",
+            summaryCapturing
+              ? "bg-red-700/50 text-red-400 border-red-600/50 cursor-wait"
+              : "bg-yellow-400/10 text-yellow-300 border-yellow-500/50 hover:bg-yellow-400/20 cursor-pointer",
+          ].join(" ")}
         >
-          📷 截圖分享（即將推出）
+          {summaryCapturing ? "截圖中…" : "📷 截圖結果"}
         </button>
       </div>
 
@@ -85,9 +130,10 @@ export default function ResultsPage() {
         >
           <div
             data-testid="card-detail-modal"
-            className="relative max-w-sm w-full"
+            className="relative max-w-sm w-full flex flex-col items-center gap-3"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* 關閉按鈕 */}
             <button
               aria-label="關閉"
               onClick={() => setDetailCardId(null)}
@@ -95,7 +141,26 @@ export default function ResultsPage() {
             >
               ✕
             </button>
-            <ScratchCard cardId={detailCardId} />
+
+            {/* 截圖範圍：單張卡片 */}
+            <div ref={cardRef}>
+              <ScratchCard cardId={detailCardId} />
+            </div>
+
+            {/* 截圖此張按鈕 */}
+            <button
+              data-testid="capture-card-btn"
+              onClick={handleCaptureCard}
+              disabled={cardCapturing}
+              className={[
+                "px-5 py-2 rounded-xl font-bold text-sm border transition-all",
+                cardCapturing
+                  ? "bg-red-700/50 text-red-400 border-red-600/50 cursor-wait"
+                  : "bg-yellow-400/10 text-yellow-300 border-yellow-500/50 hover:bg-yellow-400/20 cursor-pointer",
+              ].join(" ")}
+            >
+              {cardCapturing ? "截圖中…" : "📷 截圖此張"}
+            </button>
           </div>
         </div>
       )}
