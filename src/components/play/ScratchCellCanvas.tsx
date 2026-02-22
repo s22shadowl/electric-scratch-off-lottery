@@ -1,51 +1,54 @@
-import { useRef, useEffect, useCallback } from 'react'
-import { useScratch } from '@/hooks/useScratch'
-import { useGameStore } from '@/stores/gameStore'
-import type { ScratchCell } from '@/types'
+import { useRef, useEffect, useCallback } from "react";
+import { useScratch } from "@/hooks/useScratch";
+import { useGameStore } from "@/stores/gameStore";
+import type { ScratchCell } from "@/types";
 
 interface Props {
-  cell: ScratchCell
-  cardId: string
+  cell: ScratchCell;
+  cardId: string;
 }
 
 export default function ScratchCellCanvas({ cell, cardId }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const updateCellProgress = useGameStore(s => s.updateCellProgress)
-  const effectsEnabled     = useGameStore(s => s.effectsEnabled)
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const updateCellProgress = useGameStore((s) => s.updateCellProgress);
+  const effectsEnabled = useGameStore((s) => s.effectsEnabled);
 
-  const handleProgress = useCallback((progress: number) => {
-    updateCellProgress(cardId, cell.id, progress)
-  }, [cardId, cell.id, updateCellProgress])
+  const handleProgress = useCallback(
+    (progress: number) => {
+      updateCellProgress(cardId, cell.id, progress);
+    },
+    [cardId, cell.id, updateCellProgress],
+  );
 
   const { handlePointerDown, handlePointerMove, handlePointerUp, initCanvas } =
-    useScratch(canvasRef, { onProgress: handleProgress })
+    useScratch(canvasRef, { onProgress: handleProgress });
 
   // 元件掛載後繪製銀色遮罩
   useEffect(() => {
-    if (!cell.isRevealed) initCanvas()
-  }, [cell.isRevealed, initCanvas])
+    if (!cell.isRevealed) initCanvas();
+  }, [cell.isRevealed, initCanvas]);
 
-  const isWin = cell.prize.isWin
+  const isWin = cell.prize.isWin;
 
   return (
     <div
       data-testid={`scratch-cell-${cell.id}`}
-      className="relative w-[110px] h-[70px] rounded-lg overflow-hidden select-none"
+      className="relative w-[130px] h-[80px] rounded-lg overflow-hidden select-none"
     >
       {/* 底層：獎項內容 */}
       <div
         className={[
-          'absolute inset-0 flex flex-col items-center justify-center rounded-lg',
+          "absolute inset-0 flex flex-col items-center justify-center rounded-lg",
           isWin
-            ? 'bg-gradient-to-br from-yellow-700 to-yellow-900'
-            : 'bg-gradient-to-br from-red-900 to-red-950',
-        ].join(' ')}
+            ? "bg-gradient-to-br from-yellow-700 to-yellow-900"
+            : "bg-gradient-to-br from-red-900 to-red-950",
+        ].join(" ")}
       >
         <span
           className={[
-            'text-lg font-black leading-none',
-            isWin ? 'text-yellow-300' : 'text-red-400',
-          ].join(' ')}
+            "text-lg font-black leading-none",
+            isWin ? "text-yellow-300" : "text-red-400",
+          ].join(" ")}
         >
           {cell.prize.label}
         </span>
@@ -60,15 +63,19 @@ export default function ScratchCellCanvas({ cell, cardId }: Props) {
       {!cell.isRevealed && (
         <canvas
           ref={canvasRef}
-          width={110}
-          height={70}
           aria-label={`刮除格 ${cell.id}`}
           className={[
-            'absolute inset-0 cursor-crosshair touch-none transition-opacity duration-500',
-            effectsEnabled ? 'cursor-[url(/brush.png),crosshair]' : 'cursor-crosshair',
-          ].join(' ')}
-          onPointerDown={handlePointerDown as unknown as React.PointerEventHandler}
-          onPointerMove={handlePointerMove as unknown as React.PointerEventHandler}
+            "absolute inset-0 w-full h-full touch-none transition-opacity duration-500",
+            effectsEnabled
+              ? "cursor-[url(/brush.png),crosshair]"
+              : "cursor-crosshair",
+          ].join(" ")}
+          onPointerDown={
+            handlePointerDown as unknown as React.PointerEventHandler
+          }
+          onPointerMove={
+            handlePointerMove as unknown as React.PointerEventHandler
+          }
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
         />
@@ -83,5 +90,5 @@ export default function ScratchCellCanvas({ cell, cardId }: Props) {
         />
       )}
     </div>
-  )
+  );
 }

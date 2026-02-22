@@ -5,11 +5,13 @@ import {
   drawSilverMask,
   calculateRevealedRatio,
   BRUSH_RADIUS,
+  TOUCH_BRUSH_RADIUS,
 } from "@/utils/canvas-utils";
 
 interface UseScratchOptions {
   onProgress: (progress: number) => void;
   brushRadius?: number;
+  touchBrushRadius?: number;
 }
 
 interface UseScratchReturn {
@@ -22,7 +24,11 @@ interface UseScratchReturn {
 
 export function useScratch(
   canvasRef: RefObject<HTMLCanvasElement | null>,
-  { onProgress, brushRadius = BRUSH_RADIUS }: UseScratchOptions,
+  {
+    onProgress,
+    brushRadius = BRUSH_RADIUS,
+    touchBrushRadius = TOUCH_BRUSH_RADIUS,
+  }: UseScratchOptions,
 ): UseScratchReturn {
   const [isScratching, setIsScratching] = useState(false);
   const scratchingRef = useRef(false); // ref 版本供事件處理器使用（避免閉包問題）
@@ -37,21 +43,29 @@ export function useScratch(
     const canvas = canvasRef.current;
     const ctx = getCtx();
     if (!canvas || !ctx) return;
-    drawSilverMask(ctx, canvas.width, canvas.height);
+    // DPR-aware 設定：讓高密度螢幕渲染清晰
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.offsetWidth || 110;
+    const cssH = canvas.offsetHeight || 70;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    ctx.scale(dpr, dpr);
+    drawSilverMask(ctx, cssW, cssH); // CSS px 尺寸（非實體像素）
   }, [canvasRef, getCtx]);
 
   const handlePointerDown = useCallback(
     (e: PointerEvent) => {
-      scratchingRef.current = true;
-      setIsScratching(true);
-      // 立即繪製落點
       const canvas = canvasRef.current;
       const ctx = getCtx();
       if (!canvas || !ctx) return;
+      canvas.setPointerCapture(e.pointerId); // 手指移出 canvas 仍繼續刮
+      scratchingRef.current = true;
+      setIsScratching(true);
+      const r = e.pointerType === "touch" ? touchBrushRadius : brushRadius;
       const rect = canvas.getBoundingClientRect?.() ?? { left: 0, top: 0 };
-      drawErase(ctx, e.clientX - rect.left, e.clientY - rect.top, brushRadius);
+      drawErase(ctx, e.clientX - rect.left, e.clientY - rect.top, r);
     },
-    [canvasRef, getCtx, brushRadius],
+    [canvasRef, getCtx, brushRadius, touchBrushRadius],
   );
 
   const handlePointerMove = useCallback(
@@ -60,14 +74,16 @@ export function useScratch(
       const canvas = canvasRef.current;
       const ctx = getCtx();
       if (!canvas || !ctx) return;
+      const r = e.pointerType === "touch" ? touchBrushRadius : brushRadius;
       const target = e.currentTarget as Element | null;
-      const rect = target?.getBoundingClientRect?.() ??
+      const rect =
+        target?.getBoundingClientRect?.() ??
         canvas.getBoundingClientRect?.() ?? { left: 0, top: 0 };
-      drawErase(ctx, e.clientX - rect.left, e.clientY - rect.top, brushRadius);
+      drawErase(ctx, e.clientX - rect.left, e.clientY - rect.top, r);
       const progress = calculateRevealedRatio(ctx, canvas.width, canvas.height);
       onProgress(Math.min(1, progress));
     },
-    [canvasRef, getCtx, brushRadius, onProgress],
+    [canvasRef, getCtx, brushRadius, touchBrushRadius, onProgress],
   );
 
   const handlePointerUp = useCallback(() => {

@@ -54,7 +54,7 @@ export default function PlayPage() {
       {/* 階段視圖 */}
       {phase === "pile" && <CardPile />}
       {phase === "scratching" && (
-        <section className="flex flex-wrap justify-center gap-6 py-8 px-4">
+        <section className="flex flex-wrap justify-center gap-4 sm:gap-6 py-6 px-3 sm:py-8 sm:px-4">
           {selectedCardIds.map((id) => (
             <ScratchCard key={id} cardId={id} />
           ))}

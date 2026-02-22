@@ -42,7 +42,10 @@ export default function CardPile() {
 
       {/* 選牌狀態列 */}
       {selectedCount > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-10">
+        <div
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-10"
+          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        >
           <span className="text-yellow-200 text-sm font-medium bg-red-900/80 backdrop-blur px-4 py-2 rounded-full border border-yellow-500/50">
             已選 {selectedCount} 張
           </span>
