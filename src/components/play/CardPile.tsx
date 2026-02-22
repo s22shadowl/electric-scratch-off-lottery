@@ -1,28 +1,22 @@
-import { useGameStore } from '@/stores/gameStore'
-import CardThumbnail from './CardThumbnail'
-
-// 基於 index 產生確定性散落旋轉角度（-12 ~ +12 度）
-function getRotation(index: number): number {
-  const seed = ((index * 2654435761) >>> 0) % 1000
-  return (seed / 1000) * 24 - 12
-}
+import { useGameStore } from "@/stores/gameStore";
+import CardThumbnail from "./CardThumbnail";
 
 export default function CardPile() {
-  const cards          = useGameStore(s => s.cards)
-  const selectedIds    = useGameStore(s => s.selectedCardIds)
-  const selectCard     = useGameStore(s => s.selectCard)
-  const deselectCard   = useGameStore(s => s.deselectCard)
-  const startScratching = useGameStore(s => s.startScratching)
+  const cards = useGameStore((s) => s.cards);
+  const selectedIds = useGameStore((s) => s.selectedCardIds);
+  const selectCard = useGameStore((s) => s.selectCard);
+  const deselectCard = useGameStore((s) => s.deselectCard);
+  const startScratching = useGameStore((s) => s.startScratching);
 
-  const selectedCount = selectedIds.length
+  const selectedCount = selectedIds.length;
 
   const handleToggle = (cardId: string) => {
     if (selectedIds.includes(cardId)) {
-      deselectCard(cardId)
+      deselectCard(cardId);
     } else {
-      selectCard(cardId)
+      selectCard(cardId);
     }
-  }
+  };
 
   return (
     <section className="flex flex-col items-center gap-8 py-8 px-4">
@@ -42,7 +36,6 @@ export default function CardPile() {
             card={card}
             isSelected={selectedIds.includes(card.id)}
             onToggle={handleToggle}
-            rotationDeg={getRotation(index)}
           />
         ))}
       </div>
@@ -65,5 +58,5 @@ export default function CardPile() {
         </div>
       )}
     </section>
-  )
+  );
 }
