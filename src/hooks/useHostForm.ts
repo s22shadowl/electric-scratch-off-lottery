@@ -1,0 +1,147 @@
+import { useState, useEffect, useCallback } from 'react'
+import { buildPlayUrl, generateQRCode, encodeConfig } from '@/utils/config-codec'
+import type { GameConfig, Prize } from '@/types'
+
+// ── 表單內部用的草稿型別（字串便於 input 綁定）─────────────────
+
+export interface PrizeDraft {
+  uid: string     // React key，本地使用
+  label: string
+  amount: string  // input 字串，提交時轉 number
+  weight: string  // 相對權重，提交時轉 number
+}
+
+export interface HostFormState {
+  sessionTitle: string
+  prizes: PrizeDraft[]
+  cardCount: string
+  cellsPerZone: string
+  effectsEnabled: boolean
+}
+
+// ── 草稿 → GameConfig 轉換（失敗時回傳 null）─────────────────
+
+export function draftToConfig(form: HostFormState): GameConfig | null {
+  if (!form.sessionTitle.trim()) return null
+
+  const cardCount = parseInt(form.cardCount, 10)
+  const cellsPerZone = parseInt(form.cellsPerZone, 10)
+  if (!cardCount || cardCount < 1) return null
+  if (!cellsPerZone || cellsPerZone < 1 || cellsPerZone > 9) return null
+
+  const prizes: Prize[] = form.prizes
+    .map((p, i) => ({
+      id: `prize-${i}`,
+      label: p.label.trim(),
+      amount: Math.max(0, parseInt(p.amount, 10) || 0),
+      probability: Math.max(0, parseFloat(p.weight) || 0),
+      isWin: (parseInt(p.amount, 10) || 0) > 0,
+    }))
+    .filter(p => p.label && p.probability > 0)
+
+  if (prizes.length === 0) return null
+
+  return {
+    sessionTitle: form.sessionTitle.trim(),
+    cardCount,
+    prizes,
+    cellsPerZone,
+    themeId: 'wealth-god',
+    effectsEnabled: form.effectsEnabled,
+  }
+}
+
+// ── 預設初始表單 ──────────────────────────────────────────────
+
+function newPrize(uid: string, label: string, amount: string, weight: string): PrizeDraft {
+  return { uid, label, amount, weight }
+}
+
+const defaultForm: HostFormState = {
+  sessionTitle: '',
+  prizes: [
+    newPrize('uid-0', '謝謝參與', '0', '60'),
+    newPrize('uid-1', '$100', '100', '30'),
+    newPrize('uid-2', '$500', '500', '10'),
+  ],
+  cardCount: '10',
+  cellsPerZone: '6',
+  effectsEnabled: true,
+}
+
+// ── Hook ─────────────────────────────────────────────────────
+
+let uidCounter = 10
+
+export function useHostForm(baseUrl: string) {
+  const [form, setForm] = useState<HostFormState>(defaultForm)
+  const [playUrl, setPlayUrl] = useState<string>('')
+  const [qrCode, setQrCode] = useState<string>('')
+  const [copied, setCopied] = useState(false)
+
+  // 表單合法時自動更新 URL 與 QR Code
+  useEffect(() => {
+    const config = draftToConfig(form)
+    if (!config) {
+      setPlayUrl('')
+      setQrCode('')
+      return
+    }
+    const url = buildPlayUrl(config, baseUrl)
+    setPlayUrl(url)
+    generateQRCode(url).then(setQrCode).catch(() => setQrCode(''))
+  }, [form, baseUrl])
+
+  const setTitle = useCallback((title: string) => {
+    setForm(f => ({ ...f, sessionTitle: title }))
+  }, [])
+
+  const updatePrize = useCallback((uid: string, field: keyof Omit<PrizeDraft, 'uid'>, value: string) => {
+    setForm(f => ({
+      ...f,
+      prizes: f.prizes.map(p => p.uid === uid ? { ...p, [field]: value } : p),
+    }))
+  }, [])
+
+  const addPrize = useCallback(() => {
+    const uid = `uid-${++uidCounter}`
+    setForm(f => ({
+      ...f,
+      prizes: [...f.prizes, newPrize(uid, '', '0', '10')],
+    }))
+  }, [])
+
+  const removePrize = useCallback((uid: string) => {
+    setForm(f => ({ ...f, prizes: f.prizes.filter(p => p.uid !== uid) }))
+  }, [])
+
+  const setCardCount = useCallback((v: string) => {
+    setForm(f => ({ ...f, cardCount: v }))
+  }, [])
+
+  const setCellsPerZone = useCallback((v: string) => {
+    setForm(f => ({ ...f, cellsPerZone: v }))
+  }, [])
+
+  const toggleEffects = useCallback(() => {
+    setForm(f => ({ ...f, effectsEnabled: !f.effectsEnabled }))
+  }, [])
+
+  const copyUrl = useCallback(async () => {
+    if (!playUrl) return
+    await navigator.clipboard.writeText(playUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [playUrl])
+
+  const config = draftToConfig(form)
+  const isValid = config !== null
+
+  return {
+    form, isValid, playUrl, qrCode, copied, config,
+    setTitle, updatePrize, addPrize, removePrize,
+    setCardCount, setCellsPerZone, toggleEffects, copyUrl,
+  }
+}
+
+export { encodeConfig }
