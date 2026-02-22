@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { decodeConfig } from "@/utils/config-codec";
 import { useGameStore } from "@/stores/gameStore";
 import CardPile from "@/components/play/CardPile";
+import ScratchCard from "@/components/play/ScratchCard";
 import type { GameConfig } from "@/types";
 
 export default function PlayPage() {
@@ -11,6 +12,7 @@ export default function PlayPage() {
   const [config, setConfig] = useState<GameConfig | null>(null);
   const initGame = useGameStore((s) => s.initGame);
   const phase = useGameStore((s) => s.phase);
+  const selectedCardIds = useGameStore((s) => s.selectedCardIds);
 
   useEffect(() => {
     const encoded = searchParams.get("config");
@@ -52,7 +54,11 @@ export default function PlayPage() {
       {/* 階段視圖 */}
       {phase === "pile" && <CardPile />}
       {phase === "scratching" && (
-        <div className="text-center py-20 text-red-300">（刮除介面開發中）</div>
+        <section className="flex flex-wrap justify-center gap-6 py-8 px-4">
+          {selectedCardIds.map((id) => (
+            <ScratchCard key={id} cardId={id} />
+          ))}
+        </section>
       )}
     </main>
   );
