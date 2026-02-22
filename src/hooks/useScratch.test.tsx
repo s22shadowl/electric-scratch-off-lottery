@@ -40,12 +40,15 @@ beforeEach(() => vi.restoreAllMocks());
 
 // ── 測試用 Wrapper ────────────────────────────────────────
 
-function renderScratchHook(onProgress = vi.fn()) {
+function renderScratchHook(
+  onProgress = vi.fn(),
+  onScratch?: (x: number, y: number) => void,
+) {
   return renderHook(() => {
     const canvasRef = useRef<HTMLCanvasElement>(
       document.createElement("canvas"),
     );
-    return useScratch(canvasRef, { onProgress });
+    return useScratch(canvasRef, { onProgress, onScratch });
   });
 }
 
@@ -122,6 +125,41 @@ describe("useScratch", () => {
     const progress = onProgress.mock.calls[0]![0] as number;
     expect(progress).toBeGreaterThanOrEqual(0);
     expect(progress).toBeLessThanOrEqual(1);
+  });
+
+  it("pointerdown 時應呼叫 onScratch 並傳入座標", () => {
+    setupCanvasMock();
+    const onScratch = vi.fn();
+    const { result } = renderScratchHook(vi.fn(), onScratch);
+    act(() =>
+      result.current.handlePointerDown({
+        clientX: 10,
+        clientY: 20,
+        pointerId: 1,
+      } as PointerEvent),
+    );
+    expect(onScratch).toHaveBeenCalledWith(10, 20);
+  });
+
+  it("pointermove（刮除中）時應呼叫 onScratch 並傳入座標", () => {
+    setupCanvasMock();
+    const onScratch = vi.fn();
+    const { result } = renderScratchHook(vi.fn(), onScratch);
+    act(() =>
+      result.current.handlePointerDown({
+        clientX: 0,
+        clientY: 0,
+        pointerId: 1,
+      } as PointerEvent),
+    );
+    act(() =>
+      result.current.handlePointerMove({
+        clientX: 30,
+        clientY: 40,
+        currentTarget: { getBoundingClientRect: () => ({ left: 0, top: 0 }) },
+      } as unknown as PointerEvent),
+    );
+    expect(onScratch).toHaveBeenLastCalledWith(30, 40);
   });
 
   it("非刮除狀態下 pointermove 不應呼叫 onProgress", () => {

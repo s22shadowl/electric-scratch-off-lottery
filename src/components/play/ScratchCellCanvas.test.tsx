@@ -24,7 +24,13 @@ vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
 function makeCell(overrides: Partial<ScratchCell> = {}): ScratchCell {
   return {
     id: "cell-1",
-    prize: { id: "p-lose", label: "謝謝", amount: 0, probability: 1, isWin: false },
+    prize: {
+      id: "p-lose",
+      label: "謝謝",
+      amount: 0,
+      probability: 1,
+      isWin: false,
+    },
     scratchProgress: 0,
     isRevealed: false,
     ...overrides,
@@ -51,7 +57,13 @@ describe("ScratchCellCanvas", () => {
   it("level 0：未中獎揭曉後不應有 win-flash", () => {
     const cell = makeCell({
       isRevealed: true,
-      prize: { id: "p-lose", label: "謝謝", amount: 0, probability: 1, isWin: false },
+      prize: {
+        id: "p-lose",
+        label: "謝謝",
+        amount: 0,
+        probability: 1,
+        isWin: false,
+      },
     });
     render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
     expect(screen.queryByTestId("win-flash")).not.toBeInTheDocument();
@@ -61,7 +73,13 @@ describe("ScratchCellCanvas", () => {
     // amount=50, maxPrize=1000 → ratio=0.05 → level 1
     const cell = makeCell({
       isRevealed: true,
-      prize: { id: "p-small", label: "$50", amount: 50, probability: 1, isWin: true },
+      prize: {
+        id: "p-small",
+        label: "$50",
+        amount: 50,
+        probability: 1,
+        isWin: true,
+      },
     });
     render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
     expect(screen.getByTestId("win-flash")).toBeInTheDocument();
@@ -71,7 +89,13 @@ describe("ScratchCellCanvas", () => {
     // amount=200, maxPrize=1000 → ratio=0.2 → level 2
     const cell = makeCell({
       isRevealed: true,
-      prize: { id: "p-mid", label: "$200", amount: 200, probability: 1, isWin: true },
+      prize: {
+        id: "p-mid",
+        label: "$200",
+        amount: 200,
+        probability: 1,
+        isWin: true,
+      },
     });
     render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
     expect(screen.getByTestId("win-flash")).toBeInTheDocument();
@@ -81,7 +105,13 @@ describe("ScratchCellCanvas", () => {
     // amount=800, maxPrize=1000 → ratio=0.8 → level 3
     const cell = makeCell({
       isRevealed: true,
-      prize: { id: "p-big", label: "$800", amount: 800, probability: 1, isWin: true },
+      prize: {
+        id: "p-big",
+        label: "$800",
+        amount: 800,
+        probability: 1,
+        isWin: true,
+      },
     });
     render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
     expect(screen.getByTestId("win-flash")).toBeInTheDocument();
@@ -90,9 +120,23 @@ describe("ScratchCellCanvas", () => {
   it("maxPrize 為 0 時，中獎格 level 應為 0（無 win-flash）", () => {
     const cell = makeCell({
       isRevealed: true,
-      prize: { id: "p-win", label: "$100", amount: 100, probability: 1, isWin: true },
+      prize: {
+        id: "p-win",
+        label: "$100",
+        amount: 100,
+        probability: 1,
+        isWin: true,
+      },
     });
     render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={0} />);
     expect(screen.queryByTestId("win-flash")).not.toBeInTheDocument();
+  });
+
+  it("應渲染粒子 canvas overlay", () => {
+    const cell = makeCell();
+    render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
+    expect(
+      screen.getByTestId(`particle-canvas-${cell.id}`),
+    ).toBeInTheDocument();
   });
 });

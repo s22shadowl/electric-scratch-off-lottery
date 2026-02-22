@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback } from "react";
 import { useScratch } from "@/hooks/useScratch";
+import { useParticles } from "@/hooks/useParticles";
 import { useGameStore } from "@/stores/gameStore";
 import type { ScratchCell } from "@/types";
 
@@ -19,8 +20,11 @@ function getWinLevel(amount: number, maxPrize: number): 0 | 1 | 2 | 3 {
 
 export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleCanvasRef = useRef<HTMLCanvasElement>(null);
   const updateCellProgress = useGameStore((s) => s.updateCellProgress);
   const effectsEnabled = useGameStore((s) => s.effectsEnabled);
+
+  const { emit } = useParticles(particleCanvasRef, effectsEnabled);
 
   const handleProgress = useCallback(
     (progress: number) => {
@@ -30,7 +34,7 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
   );
 
   const { handlePointerDown, handlePointerMove, handlePointerUp, initCanvas } =
-    useScratch(canvasRef, { onProgress: handleProgress });
+    useScratch(canvasRef, { onProgress: handleProgress, onScratch: emit });
 
   // 元件掛載後繪製銀色遮罩
   useEffect(() => {
@@ -38,9 +42,8 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
   }, [cell.isRevealed, initCanvas]);
 
   const isWin = cell.prize.isWin;
-  const winLevel = cell.isRevealed && isWin
-    ? getWinLevel(cell.prize.amount, maxPrize)
-    : 0;
+  const winLevel =
+    cell.isRevealed && isWin ? getWinLevel(cell.prize.amount, maxPrize) : 0;
 
   return (
     <div
@@ -93,6 +96,14 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
           onPointerLeave={handlePointerUp}
         />
       )}
+
+      {/* 粒子特效層（始終存在供動畫播放，pointer-events-none 不攔截操作） */}
+      <canvas
+        ref={particleCanvasRef}
+        data-testid={`particle-canvas-${cell.id}`}
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full pointer-events-none"
+      />
 
       {/* 揭曉動畫：依等級分級閃光 */}
       {cell.isRevealed && (

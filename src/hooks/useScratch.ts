@@ -10,6 +10,7 @@ import {
 
 interface UseScratchOptions {
   onProgress: (progress: number) => void;
+  onScratch?: (x: number, y: number) => void;
   brushRadius?: number;
   touchBrushRadius?: number;
 }
@@ -26,6 +27,7 @@ export function useScratch(
   canvasRef: RefObject<HTMLCanvasElement | null>,
   {
     onProgress,
+    onScratch,
     brushRadius = BRUSH_RADIUS,
     touchBrushRadius = TOUCH_BRUSH_RADIUS,
   }: UseScratchOptions,
@@ -63,9 +65,12 @@ export function useScratch(
       setIsScratching(true);
       const r = e.pointerType === "touch" ? touchBrushRadius : brushRadius;
       const rect = canvas.getBoundingClientRect?.() ?? { left: 0, top: 0 };
-      drawErase(ctx, e.clientX - rect.left, e.clientY - rect.top, r);
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      drawErase(ctx, x, y, r);
+      onScratch?.(x, y);
     },
-    [canvasRef, getCtx, brushRadius, touchBrushRadius],
+    [canvasRef, getCtx, brushRadius, touchBrushRadius, onScratch],
   );
 
   const handlePointerMove = useCallback(
@@ -76,14 +81,16 @@ export function useScratch(
       if (!canvas || !ctx) return;
       const r = e.pointerType === "touch" ? touchBrushRadius : brushRadius;
       const target = e.currentTarget as Element | null;
-      const rect =
-        target?.getBoundingClientRect?.() ??
+      const rect = target?.getBoundingClientRect?.() ??
         canvas.getBoundingClientRect?.() ?? { left: 0, top: 0 };
-      drawErase(ctx, e.clientX - rect.left, e.clientY - rect.top, r);
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      drawErase(ctx, x, y, r);
       const progress = calculateRevealedRatio(ctx, canvas.width, canvas.height);
       onProgress(Math.min(1, progress));
+      onScratch?.(x, y);
     },
-    [canvasRef, getCtx, brushRadius, touchBrushRadius, onProgress],
+    [canvasRef, getCtx, brushRadius, touchBrushRadius, onProgress, onScratch],
   );
 
   const handlePointerUp = useCallback(() => {
