@@ -10,51 +10,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 核心功能範圍
 
-- **主持人設定頁** `/host`：設定獎項名稱、機率、卡片數量與外觀
-- **玩家遊玩頁** `/play`：從牌堆中挑選並刮開卡片，揭曉結果
-- **無後端**：設定以 URL query params 編碼傳遞，同時生成 QR Code 供掃碼進入
-- **結果分享**：支援截圖分享；長遠規劃保留列印支援空間（`@media print`）
-- **視覺基準**：參考台灣彩券近年實體刮刮樂的版面、色彩與質感設計
+- **主持人設定頁** `/host`：設定玩法、難度預設、獎項、卡片數量、外觀
+- **玩家遊玩頁** `/play`：從牌堆挑選編號卡片，刮開揭曉，全部完成後跳轉結果頁
+- **無後端**：設定以 base64url URL query params 編碼傳遞，同時生成 QR Code
+- **預先決定結果**：仿真實彩券，先決定整批獎項分布，再逆向生成圖案
+- **結果分享**：`html2canvas` 截圖分享（結果頁 + 單張卡片）
 
 ## 技術棧
 
 - **語言**：TypeScript（strict 模式）
-- **框架**：React + Vite（純前端 SPA，無需 SSR）
-- **套件管理**：npm（或 bun，以專案內 lockfile 為準）
-- **樣式**：TailwindCSS
-- **狀態管理**：Zustand
+- **框架**：React 19 + Vite 6（純前端 SPA）
+- **套件管理**：npm
+- **樣式**：TailwindCSS 4
+- **狀態管理**：Zustand 5
 - **刮除效果**：原生 `<canvas>` API（`destination-out` composite operation）
-- **截圖**：`html2canvas` 或 `dom-to-image`
-- **QR Code**：`qrcode` 套件生成，嵌入主持人頁面
+- **截圖**：`html2canvas`
+- **QR Code**：`qrcode`
 
 ## 常用指令
 
 ```bash
-# 安裝依賴
 npm install
-
-# 啟動開發伺服器（熱重載）
-npm run dev
-
-# 建置正式版本
+npm run dev           # 開發伺服器 http://localhost:5173
 npm run build
-
-# 預覽正式建置結果
 npm run preview
-
-# 執行型別檢查
-npm run typecheck   # 或 npx tsc --noEmit
-
-# 執行 Lint
-npm run lint        # eslint
-
-# 執行測試
-npm test            # vitest（推薦）
-
-# 執行單一測試檔案
-npx vitest run src/components/ScratchCard.test.tsx
-
-# 查看測試覆蓋率
+npm run typecheck     # npx tsc --noEmit
+npm run lint
+npm test              # vitest
+npx vitest run src/path/to/file.test.ts   # 單一測試檔
 npx vitest run --coverage
 ```
 
@@ -62,59 +45,126 @@ npx vitest run --coverage
 
 ```
 src/
-├── components/          # UI 元件
-│   ├── ScratchCard/     # 核心刮刮樂卡片（含 Canvas 刮除邏輯）
-│   └── RewardDisplay/   # 獎項展示元件
-├── hooks/               # 自訂 React hooks
-│   └── useScratch.ts    # 刮除進度、完成判斷邏輯
-├── stores/              # 狀態管理（Zustand 推薦）
-│   └── gameStore.ts     # 遊戲狀態：獎項池、已刮張數等
-├── utils/               # 純函式工具
-│   └── lottery.ts       # 抽獎邏輯、獎項機率計算
-├── types/               # TypeScript 型別定義
-└── assets/              # 靜態資源（圖片、音效）
+├── types/index.ts           # 全專案型別定義（SDD 規格錨點）
+├── utils/
+│   ├── lottery.ts           # 抽獎邏輯、buildDeck（predetermined outcome 架構）
+│   ├── canvas-utils.ts      # drawErase / drawSilverMask / calculateRevealedRatio
+│   └── config-codec.ts      # encodeConfig / decodeConfig / buildPlayUrl / generateQRCode
+├── stores/gameStore.ts      # Zustand 狀態機（REVEAL_THRESHOLD = 0.7）
+├── hooks/
+│   ├── useScratch.ts        # Canvas 刮除事件（willReadFrequently: true）
+│   └── useHostForm.ts       # 主持人表單邏輯
+├── pages/
+│   ├── HostPage.tsx         # /host
+│   └── PlayPage.tsx         # /play?config=
+└── components/play/
+    ├── CardPile.tsx
+    ├── CardThumbnail.tsx
+    ├── ScratchCard.tsx
+    └── ScratchCellCanvas.tsx
 ```
 
 ### 核心刮除機制
 
-刮除效果以 HTML `<canvas>` 實作：
-- 在 canvas 上繪製遮罩層（灰色或紋理圖）
-- 監聽 `pointermove` 事件，使用 `destination-out` composite operation 清除遮罩
-- 計算已清除像素比例（`getImageData` 取樣），達到門檻（如 70%）後判定刮完
-- 刮完後顯示底層獎項（DOM 元素或圖片）
+- Canvas 覆蓋銀色遮罩層，`pointermove` 以 `destination-out` 清除
+- `getImageData` 取樣計算已刮比例，達 **70%（REVEAL_THRESHOLD）** 自動揭曉
+- `getContext('2d', { willReadFrequently: true })` 避免瀏覽器效能警告
 
-### 狀態流程
+### Predetermined Outcome 架構（v1 簡化版，v2 完整）
 
 ```
-使用者刮卡 → useScratch hook 更新刮除進度
-    → 進度 ≥ 門檻 → gameStore 記錄結果
-    → RewardDisplay 動畫展示獎項
+buildDeck(config)
+  → 每張卡先 drawPrize() 決定獎項結果
+  → 再 buildCard(result) 產生符合結果的圖案
 ```
+
+v2 擴充後：`allocatePrizes(整批)` → 各玩法依結果逆向生成符號/數字/賓果格
+
+### GamePhase 狀態流
+
+```
+pile → scratching → results
+```
+
+### v2 目標架構（勿提早動）
+
+```typescript
+// v2 GameConfig 重構方向（目前仍為單一 cardType）
+interface CardTypeConfig {
+  mechanic: 'symbol' | 'triple' | 'compare' | 'bingo'
+  prizes: Prize[]
+  count: number
+  themeId: string
+  difficultyPreset: 'generous' | 'standard' | 'conservative' | 'realistic'
+  mechanicOptions: SymbolOptions | TripleOptions | CompareOptions | BingoOptions
+}
+interface GameConfig {
+  sessionTitle: string
+  cardTypes: CardTypeConfig[]
+  effectsEnabled: boolean
+}
+```
+
+## 玩法規格
+
+### v1（已實作）：刮出特定符號
+- 單一刮除區，刮開對照中獎表
+- 符號池 10 種（v2 三同時一起實作）
+
+### v2a：三同（Triple Match）
+- 3 個刮除區，全同即中
+- 符號池 10 種，無「再刮一次」特殊符號
+
+### v2b：比大小（High-Low）
+- 結果預先決定，平手算輸
+
+### v2c：賓果（Bingo）
+- 3×3 ～ 6×6 正方形可設定
+- 可重複中獎（多條線多重獎）
+
+## 難度預設（主持人介面選擇）
+
+| 預設 | 賺錢率 | 適用 |
+|---|---|---|
+| 慷慨 | 高（期望值正）| 兒童活動 |
+| 標準 | 約持平 | 一般聚會 |
+| 保守 | 小負 | 競爭感 |
+| 真實難度 | 負（仿台灣彩券 3–18% 賺錢率）| 最貼近真實 |
+
+## 開獎動畫等級
+
+以「佔本場最高獎金比例」自動分級：
+
+| 等級 | 條件 | 動畫 |
+|---|---|---|
+| 0 | 未中獎 | 灰暗淡出 |
+| 1 | 小獎 ＜ 10% | 閃光 + 少量金幣 |
+| 2 | 中獎 10–50% | 爆炸金幣 + 光束 |
+| 3 | 大獎 ＞ 50% | 全螢幕爆炸 + 煙火 |
+
+## 卡片編號
+
+- 主持人選擇：**序列號**（`A001`、`A002`...，可設起始）或**隨機碼**（6 碼英數）
+- 顯示在牌堆卡片正面（讓玩家挑「幸運號碼」，仿真實彩券迷信心理）
+- 純顯示，無遊戲機制連動
 
 ## 視覺設計語言（參考台灣彩券實體刮刮樂）
 
-### 版面
-- 卡片一律**橫式**（landscape）
-- 每張卡 1–2 個**不規則有機形刮除區**（雲朵/生肖輪廓），不用方形格
-
-### 色彩
 | 用途 | 描述 |
-|------|------|
+|---|---|
 | 背景 | 漸層紅橘（`#CC0000 → #FF6600`）+ 放射狀金色光暈 |
 | 標題字 | 金色漸層（`#FFD700 → #FFA500`）+ 黑色描邊 |
-| 刮除層（刮前） | 銀灰金屬質感（`#C0C0C0`，高光模擬） |
-| 刮後顯示 | 深色底 + 金/白 Serif 字體金額 |
-| 第一版主題 | 財神（粉紅洋紅輔色，財神爺角色） |
+| 刮除層 | 銀灰金屬質感（`#C0C0C0`，高光模擬） |
+| 刮後顯示 | 深色底 + 金/白 Serif 字體 |
+| v1 主題 | 財神（粉紅洋紅輔色）|
 
-### 特效
-- 粒子特效於**刮除過程中**持續觸發（星星、金幣飛散）
-- 提供全域**特效開關**（`effectsEnabled`），可由主持人設定或玩家自行關閉
-- 中獎揭曉時額外觸發爆發特效
+- 卡片一律**橫式**（landscape）
+- 粒子特效於刮除過程觸發，提供全域開關（`effectsEnabled`）
 
 ## 開發慣例
 
-- **不可變資料**：獎項池、抽獎結果一律回傳新物件，不修改原始陣列
-- **元件大小**：單一元件檔案不超過 400 行；Canvas 邏輯抽離至 `useScratch` hook
-- **機率設定**：獎項機率在 `utils/lottery.ts` 集中管理，方便調整
-- **無障礙**：刮刮樂卡片提供鍵盤替代操作（空白鍵 / Enter 直接揭曉）
-- **開發流程**：SDD 主導（TypeScript 介面即規格）+ TDD 輔助（介面確認後補測試）
+- **不可變資料**：所有 store action、utility 函式一律回傳新物件
+- **SDD 主導**：`types/index.ts` 是規格錨點，介面確認後再實作
+- **TDD 輔助**：每個 utility / hook / store action 均有對應測試，覆蓋率維持 80%+
+- **元件大小**：單一檔案不超過 400 行，Canvas 邏輯抽離至 hook
+- **卡片旋轉**：已移除（需求取消），勿重新加入
