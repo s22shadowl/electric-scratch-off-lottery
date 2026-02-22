@@ -6,9 +6,18 @@ import type { ScratchCell } from "@/types";
 interface Props {
   cell: ScratchCell;
   cardId: string;
+  maxPrize: number;
 }
 
-export default function ScratchCellCanvas({ cell, cardId }: Props) {
+function getWinLevel(amount: number, maxPrize: number): 0 | 1 | 2 | 3 {
+  if (amount === 0 || maxPrize === 0) return 0;
+  const ratio = amount / maxPrize;
+  if (ratio > 0.5) return 3;
+  if (ratio > 0.1) return 2;
+  return 1;
+}
+
+export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const updateCellProgress = useGameStore((s) => s.updateCellProgress);
   const effectsEnabled = useGameStore((s) => s.effectsEnabled);
@@ -29,6 +38,9 @@ export default function ScratchCellCanvas({ cell, cardId }: Props) {
   }, [cell.isRevealed, initCanvas]);
 
   const isWin = cell.prize.isWin;
+  const winLevel = cell.isRevealed && isWin
+    ? getWinLevel(cell.prize.amount, maxPrize)
+    : 0;
 
   return (
     <div
@@ -48,6 +60,7 @@ export default function ScratchCellCanvas({ cell, cardId }: Props) {
           className={[
             "text-lg font-black leading-none",
             isWin ? "text-yellow-300" : "text-red-400",
+            winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
           ].join(" ")}
         >
           {cell.prize.label}
@@ -81,13 +94,47 @@ export default function ScratchCellCanvas({ cell, cardId }: Props) {
         />
       )}
 
-      {/* 揭曉動畫：中獎閃光 */}
-      {cell.isRevealed && isWin && (
-        <div
-          data-testid="win-flash"
-          className="absolute inset-0 animate-ping rounded-lg bg-yellow-400/20 pointer-events-none"
-          style={{ animationIterationCount: 1 }}
-        />
+      {/* 揭曉動畫：依等級分級閃光 */}
+      {cell.isRevealed && (
+        <>
+          {winLevel === 1 && (
+            <div
+              data-testid="win-flash"
+              className="absolute inset-0 animate-ping rounded-lg bg-yellow-400/20 pointer-events-none"
+              style={{ animationIterationCount: 1 }}
+            />
+          )}
+          {winLevel === 2 && (
+            <>
+              <div
+                data-testid="win-flash"
+                className="absolute inset-0 animate-ping rounded-lg bg-yellow-400/40 pointer-events-none"
+                style={{ animationIterationCount: 2 }}
+              />
+              <div
+                className="absolute inset-[-3px] animate-ping rounded-lg bg-yellow-300/20 pointer-events-none"
+                style={{ animationIterationCount: 1, animationDelay: "200ms" }}
+              />
+            </>
+          )}
+          {winLevel === 3 && (
+            <>
+              <div
+                data-testid="win-flash"
+                className="absolute inset-0 animate-ping rounded-lg bg-yellow-400/60 pointer-events-none"
+                style={{ animationIterationCount: 3 }}
+              />
+              <div
+                className="absolute inset-[-4px] animate-ping rounded-lg bg-yellow-300/40 pointer-events-none"
+                style={{ animationIterationCount: 2, animationDelay: "150ms" }}
+              />
+              <div
+                className="absolute inset-[-8px] animate-ping rounded-lg bg-yellow-200/20 pointer-events-none"
+                style={{ animationIterationCount: 1, animationDelay: "300ms" }}
+              />
+            </>
+          )}
+        </>
       )}
     </div>
   );

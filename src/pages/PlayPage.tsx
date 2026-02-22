@@ -4,6 +4,7 @@ import { decodeConfig } from "@/utils/config-codec";
 import { useGameStore } from "@/stores/gameStore";
 import CardPile from "@/components/play/CardPile";
 import ScratchCard from "@/components/play/ScratchCard";
+import ResultsPage from "@/components/play/ResultsPage";
 import type { GameConfig } from "@/types";
 
 export default function PlayPage() {
@@ -60,6 +61,7 @@ export default function PlayPage() {
           ))}
         </section>
       )}
+      {phase === "results" && <ResultsPage />}
     </main>
   );
 }

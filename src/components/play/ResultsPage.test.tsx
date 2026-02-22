@@ -1,0 +1,152 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { useGameStore, REVEAL_THRESHOLD } from "@/stores/gameStore";
+import ResultsPage from "./ResultsPage";
+import type { GameConfig } from "@/types";
+
+// canvas mock
+HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
+vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+  globalCompositeOperation: "source-over",
+  fillStyle: "",
+  beginPath: vi.fn(),
+  arc: vi.fn(),
+  fill: vi.fn(),
+  fillRect: vi.fn(),
+  scale: vi.fn(),
+  createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+  getImageData: vi.fn(() => ({
+    data: new Uint8ClampedArray(16 * 4).fill(255),
+  })),
+} as unknown as CanvasRenderingContext2D);
+
+const config: GameConfig = {
+  sessionTitle: "測試活動",
+  cardCount: 3,
+  prizes: [
+    { id: "p-lose", label: "謝謝", amount: 0, probability: 0.5, isWin: false },
+    { id: "p-win", label: "$500", amount: 500, probability: 0.5, isWin: true },
+  ],
+  cellsPerZone: 2,
+  themeId: "wealth-god",
+  effectsEnabled: true,
+};
+
+/** 初始化遊戲並讓前 n 張牌進入 results 階段 */
+function setupResultsPhase(winCardCount = 1) {
+  useGameStore.getState().initGame(config);
+  const cards = useGameStore.getState().cards;
+  const [card0, card1] = cards;
+  useGameStore.getState().selectCard(card0!.id);
+  useGameStore.getState().selectCard(card1!.id);
+  useGameStore.getState().startScratching();
+
+  // 讓所有格子揭曉（直接用 store 操作）
+  [card0!, card1!].forEach((card, idx) => {
+    card.zone.cells.forEach((cell) => {
+      useGameStore
+        .getState()
+        .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+    });
+    // 每張卡都強制設定 totalWinnings，避免隨機 prize 影響結果
+    const shouldWin = idx < winCardCount;
+    const updatedCards = useGameStore.getState().cards.map((c) =>
+      c.id === card.id
+        ? {
+            ...c,
+            totalWinnings: shouldWin ? 500 : 0,
+            zone: shouldWin
+              ? {
+                  ...c.zone,
+                  cells: c.zone.cells.map((cell, i) =>
+                    i === 0
+                      ? {
+                          ...cell,
+                          isRevealed: true,
+                          prize: {
+                            ...cell.prize,
+                            isWin: true,
+                            amount: 500,
+                          },
+                        }
+                      : cell,
+                  ),
+                }
+              : c.zone,
+          }
+        : c,
+    );
+    useGameStore.setState({ cards: updatedCards });
+  });
+  // 手動設 phase = results（模擬自動切換後）
+  useGameStore.getState().setPhase("results");
+}
+
+beforeEach(() => {
+  useGameStore.setState(useGameStore.getInitialState());
+});
+
+describe("ResultsPage", () => {
+  it("應渲染結果頁容器", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    expect(screen.getByTestId("results-page")).toBeInTheDocument();
+  });
+
+  it("應渲染結果匯總區", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    expect(screen.getByTestId("results-summary")).toBeInTheDocument();
+  });
+
+  it("應渲染 total-winnings", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    expect(screen.getByTestId("total-winnings")).toBeInTheDocument();
+  });
+
+  it("應渲染與選取卡片數量相同的摘要按鈕", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    const selectedIds = useGameStore.getState().selectedCardIds;
+    selectedIds.forEach((id) => {
+      expect(screen.getByTestId(`result-card-${id}`)).toBeInTheDocument();
+    });
+  });
+
+  it("點擊卡片摘要後應顯示 Modal", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    const selectedIds = useGameStore.getState().selectedCardIds;
+    fireEvent.click(screen.getByTestId(`result-card-${selectedIds[0]}`));
+    expect(screen.getByTestId("card-detail-modal")).toBeInTheDocument();
+  });
+
+  it("點擊 Modal 關閉按鈕後 Modal 應消失", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    const selectedIds = useGameStore.getState().selectedCardIds;
+    fireEvent.click(screen.getByTestId(`result-card-${selectedIds[0]}`));
+    expect(screen.getByTestId("card-detail-modal")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "關閉" }));
+    expect(screen.queryByTestId("card-detail-modal")).not.toBeInTheDocument();
+  });
+
+  it("點擊 Modal 背景遮罩後 Modal 應消失", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    const selectedIds = useGameStore.getState().selectedCardIds;
+    fireEvent.click(screen.getByTestId(`result-card-${selectedIds[0]}`));
+    const modal = screen.getByTestId("card-detail-modal");
+    // 點擊 modal 的父層（遮罩層）
+    fireEvent.click(modal.parentElement!);
+    expect(screen.queryByTestId("card-detail-modal")).not.toBeInTheDocument();
+  });
+
+  it("有中獎時 total-winnings 應顯示金額", () => {
+    setupResultsPhase(1);
+    render(<ResultsPage />);
+    const winnings = screen.getByTestId("total-winnings");
+    expect(winnings.textContent).toContain("500");
+  });
+});
