@@ -7,6 +7,7 @@ interface Props {
 
 export default function ScratchCard({ cardId }: Props) {
   const card = useGameStore((s) => s.cards.find((c) => c.id === cardId));
+  const config = useGameStore((s) => s.config);
 
   if (!card) return null;
 
@@ -14,6 +15,7 @@ export default function ScratchCard({ cardId }: Props) {
   const revealedCount = cells.filter((c) => c.isRevealed).length;
   const hasWinnings = card.totalWinnings > 0;
   const isCompleted = card.status === "completed";
+  const maxPrize = Math.max(...config.prizes.map((p) => p.amount), 0);
 
   return (
     <article
@@ -25,6 +27,9 @@ export default function ScratchCard({ cardId }: Props) {
         <h2 className="text-yellow-400 font-black text-sm tracking-widest drop-shadow">
           ✦ 電子刮刮樂 ✦
         </h2>
+        <p className="text-yellow-300/60 text-[10px] font-mono mt-0.5">
+          {card.serialNumber}
+        </p>
       </header>
 
       {/* 刮除格網格 */}
@@ -33,7 +38,12 @@ export default function ScratchCard({ cardId }: Props) {
         style={{ maxWidth: `${Math.ceil(cells.length / 2) * 138}px` }}
       >
         {cells.map((cell) => (
-          <ScratchCellCanvas key={cell.id} cell={cell} cardId={cardId} />
+          <ScratchCellCanvas
+            key={cell.id}
+            cell={cell}
+            cardId={cardId}
+            maxPrize={maxPrize}
+          />
         ))}
       </div>
 

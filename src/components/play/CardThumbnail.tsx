@@ -47,6 +47,9 @@ export default function CardThumbnail({ card, isSelected, onToggle }: Props) {
         <span className="text-yellow-300 text-xs font-bold tracking-widest drop-shadow">
           刮刮樂
         </span>
+        <span className="text-yellow-200/70 text-[10px] font-mono tracking-wider">
+          {card.serialNumber}
+        </span>
       </div>
 
       {/* 選取光暈遮罩 */}
