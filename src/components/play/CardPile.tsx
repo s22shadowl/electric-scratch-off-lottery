@@ -30,7 +30,7 @@ export default function CardPile() {
 
       {/* 牌堆 */}
       <div className="flex flex-wrap justify-center gap-4">
-        {cards.map((card, index) => (
+        {cards.map((card) => (
           <CardThumbnail
             key={card.id}
             card={card}
