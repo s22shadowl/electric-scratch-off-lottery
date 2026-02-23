@@ -7,11 +7,14 @@ import type { ScratchCard } from "@/types";
 const makeCard = (status: ScratchCard["status"] = "in-pile"): ScratchCard => ({
   id: "card-1",
   serialNumber: "TEST-01",
-  zone: {
-    id: "card-1-zone",
-    shapeVariant: "single",
-    cells: [],
-  },
+  cardTypeIndex: 0,
+  zones: [
+    {
+      id: "card-1-zone-0",
+      shapeVariant: "single",
+      cells: [],
+    },
+  ],
   status,
   totalWinnings: 0,
 });

@@ -11,11 +11,15 @@ export default function ScratchCard({ cardId }: Props) {
 
   if (!card) return null;
 
-  const { cells } = card.zone;
+  const { cells } = card.zones[0]!;
   const revealedCount = cells.filter((c) => c.isRevealed).length;
   const hasWinnings = card.totalWinnings > 0;
   const isCompleted = card.status === "completed";
-  const maxPrize = Math.max(...config.prizes.map((p) => p.amount), 0);
+  const cardTypeConfig = config.cardTypes[card.cardTypeIndex];
+  const maxPrize = Math.max(
+    ...(cardTypeConfig?.prizes.map((p) => p.amount) ?? [0]),
+    0,
+  );
 
   return (
     <article

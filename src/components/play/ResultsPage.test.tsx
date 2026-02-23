@@ -28,13 +28,19 @@ vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
 
 const config: GameConfig = {
   sessionTitle: "測試活動",
-  cardCount: 3,
-  prizes: [
-    { id: "p-lose", label: "謝謝", amount: 0, probability: 0.5, isWin: false },
-    { id: "p-win", label: "$500", amount: 500, probability: 0.5, isWin: true },
+  cardTypes: [
+    {
+      mechanic: "symbol",
+      prizes: [
+        { id: "p-lose", label: "謝謝", amount: 0, probability: 0.5, isWin: false },
+        { id: "p-win", label: "$500", amount: 500, probability: 0.5, isWin: true },
+      ],
+      count: 3,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 2 },
+    },
   ],
-  cellsPerZone: 2,
-  themeId: "wealth-god",
   effectsEnabled: true,
 };
 
@@ -49,7 +55,7 @@ function setupResultsPhase(winCardCount = 1) {
 
   // 讓所有格子揭曉（直接用 store 操作）
   [card0!, card1!].forEach((card, idx) => {
-    card.zone.cells.forEach((cell) => {
+    card.zones[0]!.cells.forEach((cell) => {
       useGameStore
         .getState()
         .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
@@ -61,24 +67,27 @@ function setupResultsPhase(winCardCount = 1) {
         ? {
             ...c,
             totalWinnings: shouldWin ? 500 : 0,
-            zone: shouldWin
-              ? {
-                  ...c.zone,
-                  cells: c.zone.cells.map((cell, i) =>
-                    i === 0
-                      ? {
-                          ...cell,
-                          isRevealed: true,
-                          prize: {
-                            ...cell.prize,
-                            isWin: true,
-                            amount: 500,
-                          },
-                        }
-                      : cell,
-                  ),
-                }
-              : c.zone,
+            zones: shouldWin
+              ? [
+                  {
+                    ...c.zones[0]!,
+                    cells: c.zones[0]!.cells.map((cell, i) =>
+                      i === 0
+                        ? {
+                            ...cell,
+                            isRevealed: true,
+                            prize: {
+                              ...cell.prize,
+                              isWin: true,
+                              amount: 500,
+                            },
+                          }
+                        : cell,
+                    ),
+                  },
+                  ...c.zones.slice(1),
+                ]
+              : c.zones,
           }
         : c,
     );

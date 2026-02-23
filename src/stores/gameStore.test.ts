@@ -6,13 +6,19 @@ import type { GameConfig } from "@/types";
 
 const config: GameConfig = {
   sessionTitle: "測試活動",
-  cardCount: 3,
-  prizes: [
-    { id: "p-lose", label: "謝謝", amount: 0, probability: 1, isWin: false },
-    { id: "p-win", label: "$100", amount: 100, probability: 1, isWin: true },
+  cardTypes: [
+    {
+      mechanic: "symbol",
+      prizes: [
+        { id: "p-lose", label: "謝謝", amount: 0, probability: 1, isWin: false },
+        { id: "p-win", label: "$100", amount: 100, probability: 1, isWin: true },
+      ],
+      count: 3,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 3 },
+    },
   ],
-  cellsPerZone: 3,
-  themeId: "wealth-god",
   effectsEnabled: true,
 };
 
@@ -24,7 +30,7 @@ beforeEach(() => {
 // ── initGame ──────────────────────────────────────────────
 
 describe("initGame", () => {
-  it("應建立等於 cardCount 的牌堆", () => {
+  it("應建立等於 cardType.count 的牌堆", () => {
     useGameStore.getState().initGame(config);
     expect(useGameStore.getState().cards).toHaveLength(3);
   });
@@ -129,22 +135,22 @@ describe("updateCellProgress", () => {
   it("應更新指定 cell 的 scratchProgress", () => {
     useGameStore.getState().initGame(config);
     const card = useGameStore.getState().cards[0]!;
-    const cellId = card.zone.cells[0]!.id;
+    const cellId = card.zones[0]!.cells[0]!.id;
     useGameStore.getState().updateCellProgress(card.id, cellId, 0.5);
     const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
-    const cell = updated?.zone.cells.find((c) => c.id === cellId);
+    const cell = updated?.zones[0]?.cells.find((c) => c.id === cellId);
     expect(cell?.scratchProgress).toBe(0.5);
   });
 
   it(`進度達 REVEAL_THRESHOLD 時，cell.isRevealed 應為 true`, () => {
     useGameStore.getState().initGame(config);
     const card = useGameStore.getState().cards[0]!;
-    const cellId = card.zone.cells[0]!.id;
+    const cellId = card.zones[0]!.cells[0]!.id;
     useGameStore
       .getState()
       .updateCellProgress(card.id, cellId, REVEAL_THRESHOLD);
     const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
-    const cell = updated?.zone.cells.find((c) => c.id === cellId);
+    const cell = updated?.zones[0]?.cells.find((c) => c.id === cellId);
     expect(cell?.isRevealed).toBe(true);
   });
 
@@ -153,10 +159,12 @@ describe("updateCellProgress", () => {
     // 找一張有 isWin cell 的卡
     const cards = useGameStore.getState().cards;
     const cardWithWin = cards.find((c) =>
-      c.zone.cells.some((cell) => cell.prize.isWin),
+      c.zones[0]!.cells.some((cell) => cell.prize.isWin),
     );
     expect(cardWithWin).toBeDefined();
-    const winCell = cardWithWin!.zone.cells.find((cell) => cell.prize.isWin)!;
+    const winCell = cardWithWin!.zones[0]!.cells.find(
+      (cell) => cell.prize.isWin,
+    )!;
     const winAmount = winCell.prize.amount;
     useGameStore
       .getState()
@@ -170,7 +178,7 @@ describe("updateCellProgress", () => {
   it("所有 cell 揭曉後，card.status 應變為 completed", () => {
     useGameStore.getState().initGame(config);
     const card = useGameStore.getState().cards[0]!;
-    card.zone.cells.forEach((cell) => {
+    card.zones[0]!.cells.forEach((cell) => {
       useGameStore
         .getState()
         .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
@@ -187,7 +195,7 @@ describe("updateCellProgress", () => {
     useGameStore.getState().selectCard(cards[1]!.id);
     useGameStore.getState().startScratching();
     // 刮完第一張
-    cards[0]!.zone.cells.forEach((cell) => {
+    cards[0]!.zones[0]!.cells.forEach((cell) => {
       useGameStore
         .getState()
         .updateCellProgress(cards[0]!.id, cell.id, REVEAL_THRESHOLD);
@@ -195,7 +203,7 @@ describe("updateCellProgress", () => {
     // 尚未全部完成，phase 仍為 scratching
     expect(useGameStore.getState().phase).toBe("scratching");
     // 刮完第二張
-    cards[1]!.zone.cells.forEach((cell) => {
+    cards[1]!.zones[0]!.cells.forEach((cell) => {
       useGameStore
         .getState()
         .updateCellProgress(cards[1]!.id, cell.id, REVEAL_THRESHOLD);
@@ -207,7 +215,7 @@ describe("updateCellProgress", () => {
   it("不應修改原始 cards 陣列（不可變）", () => {
     useGameStore.getState().initGame(config);
     const card = useGameStore.getState().cards[0]!;
-    const cellId = card.zone.cells[0]!.id;
+    const cellId = card.zones[0]!.cells[0]!.id;
     const originalCards = useGameStore.getState().cards;
     useGameStore.getState().updateCellProgress(card.id, cellId, 0.3);
     expect(useGameStore.getState().cards).not.toBe(originalCards);

@@ -26,10 +26,7 @@ interface GameActions {
 const initialState: GameState = {
   config: {
     sessionTitle: "",
-    cardCount: 0,
-    prizes: [],
-    cellsPerZone: 6,
-    themeId: "wealth-god",
+    cardTypes: [],
     effectsEnabled: true,
   },
   cards: [],
@@ -45,7 +42,8 @@ function applyProgressToCard(
   cellId: string,
   progress: number,
 ): ScratchCard {
-  const updatedCells = card.zone.cells.map((cell) => {
+  const zone0 = card.zones[0]!;
+  const updatedCells = zone0.cells.map((cell) => {
     if (cell.id !== cellId) return cell;
     const isRevealed = progress >= REVEAL_THRESHOLD;
     return { ...cell, scratchProgress: progress, isRevealed };
@@ -58,7 +56,7 @@ function applyProgressToCard(
 
   return {
     ...card,
-    zone: { ...card.zone, cells: updatedCells },
+    zones: [{ ...zone0, cells: updatedCells }, ...card.zones.slice(1)],
     status: allRevealed ? "completed" : card.status,
     totalWinnings,
   };

@@ -1,5 +1,5 @@
 import QRCode from 'qrcode'
-import type { GameConfig, Prize } from '@/types'
+import type { GameConfig, Prize, CardTypeConfig } from '@/types'
 
 // ── base64url 編解碼（URL 安全，不含 + / =） ──────────────────
 
@@ -28,6 +28,26 @@ function isValidPrize(p: unknown): p is Prize {
   )
 }
 
+function isValidCardTypeConfig(ct: unknown): ct is CardTypeConfig {
+  if (typeof ct !== 'object' || ct === null) return false
+  const obj = ct as Record<string, unknown>
+  if (typeof obj['mechanic'] !== 'string') return false
+  if (typeof obj['count'] !== 'number' || obj['count'] < 1) return false
+  if (!Array.isArray(obj['prizes']) || obj['prizes'].length === 0) return false
+  if (!(obj['prizes'] as unknown[]).every(isValidPrize)) return false
+  if (typeof obj['themeId'] !== 'string') return false
+  if (typeof obj['difficultyPreset'] !== 'string') return false
+  const opts = obj['mechanicOptions']
+  if (typeof opts !== 'object' || opts === null) return false
+  const mechanicOptions = opts as Record<string, unknown>
+  if (
+    typeof mechanicOptions['cellsPerZone'] !== 'number' ||
+    mechanicOptions['cellsPerZone'] < 1
+  )
+    return false
+  return true
+}
+
 function validateConfig(raw: unknown): GameConfig {
   if (typeof raw !== 'object' || raw === null) {
     throw new Error('config 格式無效')
@@ -37,20 +57,29 @@ function validateConfig(raw: unknown): GameConfig {
   if (typeof obj['sessionTitle'] !== 'string' || !obj['sessionTitle']) {
     throw new Error('sessionTitle 為必填字串')
   }
-  if (typeof obj['cardCount'] !== 'number' || obj['cardCount'] < 1) {
-    throw new Error('cardCount 必須為正整數')
+  if (!Array.isArray(obj['cardTypes']) || obj['cardTypes'].length === 0) {
+    throw new Error('cardTypes 不得為空陣列')
   }
-  if (!Array.isArray(obj['prizes']) || obj['prizes'].length === 0) {
-    throw new Error('prizes 不得為空陣列')
-  }
-  if (!(obj['prizes'] as unknown[]).every(isValidPrize)) {
-    throw new Error('prizes 內含無效獎項')
-  }
-  if (typeof obj['cellsPerZone'] !== 'number' || obj['cellsPerZone'] < 1) {
-    throw new Error('cellsPerZone 必須為正整數')
-  }
-  if (typeof obj['themeId'] !== 'string') {
-    throw new Error('themeId 為必填字串')
+  for (const ct of obj['cardTypes'] as unknown[]) {
+    if (!isValidCardTypeConfig(ct)) {
+      const ctObj = ct as Record<string, unknown>
+      // 提供具體的欄位錯誤訊息
+      if (typeof ctObj['count'] !== 'number' || ctObj['count'] < 1) {
+        throw new Error('cardTypes[].count 必須為正整數')
+      }
+      if (!Array.isArray(ctObj['prizes']) || ctObj['prizes'].length === 0) {
+        throw new Error('cardTypes[].prizes 不得為空陣列')
+      }
+      const opts = ctObj['mechanicOptions'] as Record<string, unknown> | undefined
+      if (
+        !opts ||
+        typeof opts['cellsPerZone'] !== 'number' ||
+        opts['cellsPerZone'] < 1
+      ) {
+        throw new Error('cardTypes[].mechanicOptions.cellsPerZone 必須為正整數')
+      }
+      throw new Error('cardTypes 內含無效的卡型設定')
+    }
   }
   if (typeof obj['effectsEnabled'] !== 'boolean') {
     throw new Error('effectsEnabled 必須為布林值')

@@ -4,6 +4,7 @@ import type {
   ScratchZone,
   ScratchCell,
   GameConfig,
+  CardTypeConfig,
 } from "@/types";
 
 // 生成 4 碼大寫英文 session code
@@ -32,14 +33,15 @@ export function drawPrize(prizes: Prize[]): Prize {
   return prizes[prizes.length - 1]!;
 }
 
-// 建立單一刮除格
+// 建立單一刮除格（zone-aware cell ID）
 function buildCell(
-  cellIndex: number,
   cardId: string,
+  zoneIndex: number,
+  cellIndex: number,
   prizes: Prize[],
 ): ScratchCell {
   return {
-    id: `${cardId}-cell-${cellIndex}`,
+    id: `${cardId}-zone-${zoneIndex}-cell-${cellIndex}`,
     prize: drawPrize(prizes),
     scratchProgress: 0,
     isRevealed: false,
@@ -49,42 +51,56 @@ function buildCell(
 // 建立單一刮除區
 function buildZone(
   cardId: string,
+  zoneIndex: number,
   cellCount: number,
   prizes: Prize[],
 ): ScratchZone {
   return {
-    id: `${cardId}-zone`,
+    id: `${cardId}-zone-${zoneIndex}`,
     shapeVariant: "single",
     cells: Array.from({ length: cellCount }, (_, i) =>
-      buildCell(i, cardId, prizes),
+      buildCell(cardId, zoneIndex, i, prizes),
     ),
   };
 }
 
 // 建立一張刮刮樂卡（在建卡時依機率分配獎項）
 export function buildCard(
-  config: GameConfig,
+  cardTypeConfig: CardTypeConfig,
   cardId: string,
   serialNumber: string,
+  cardTypeIndex: number,
 ): ScratchCard {
-  const normalized = normalizeProbabilities(config.prizes);
+  const normalized = normalizeProbabilities(cardTypeConfig.prizes);
   return {
     id: cardId,
     serialNumber,
-    zone: buildZone(cardId, config.cellsPerZone, normalized),
+    cardTypeIndex,
+    zones: [buildZone(cardId, 0, cardTypeConfig.mechanicOptions.cellsPerZone, normalized)],
     status: "in-pile",
     totalWinnings: 0,
   };
 }
 
-// 建立整副牌堆
+// 建立整副牌堆（迭代 cardTypes，globalIndex 跨類型遞增）
 export function buildDeck(config: GameConfig): ScratchCard[] {
   const sessionCode = generateSessionCode();
-  return Array.from({ length: config.cardCount }, (_, i) =>
-    buildCard(
-      config,
-      `card-${i}`,
-      `${sessionCode}-${String(i + 1).padStart(2, "0")}`,
-    ),
-  );
+  const cards: ScratchCard[] = [];
+  let globalIndex = 0;
+
+  for (const [typeIndex, cardType] of config.cardTypes.entries()) {
+    for (let i = 0; i < cardType.count; i++) {
+      cards.push(
+        buildCard(
+          cardType,
+          `card-${globalIndex}`,
+          `${sessionCode}-${String(globalIndex + 1).padStart(2, "0")}`,
+          typeIndex,
+        ),
+      );
+      globalIndex++;
+    }
+  }
+
+  return cards;
 }

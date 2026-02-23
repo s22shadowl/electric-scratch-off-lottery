@@ -7,13 +7,19 @@ import type { GameConfig } from '@/types'
 
 const config: GameConfig = {
   sessionTitle: '測試活動',
-  cardCount: 4,
-  prizes: [
-    { id: 'p1', label: '謝謝', amount: 0,   probability: 0.7, isWin: false },
-    { id: 'p2', label: '$100', amount: 100, probability: 0.3, isWin: true  },
+  cardTypes: [
+    {
+      mechanic: 'symbol',
+      prizes: [
+        { id: 'p1', label: '謝謝', amount: 0,   probability: 0.7, isWin: false },
+        { id: 'p2', label: '$100', amount: 100, probability: 0.3, isWin: true  },
+      ],
+      count: 4,
+      themeId: 'wealth-god',
+      difficultyPreset: 'standard',
+      mechanicOptions: { cellsPerZone: 3 },
+    },
   ],
-  cellsPerZone: 3,
-  themeId: 'wealth-god',
   effectsEnabled: true,
 }
 
@@ -25,7 +31,7 @@ beforeEach(() => {
 describe('CardPile', () => {
   it('應渲染所有卡片', () => {
     render(<CardPile />)
-    expect(screen.getAllByRole('button')).toHaveLength(config.cardCount)
+    expect(screen.getAllByRole('button')).toHaveLength(config.cardTypes[0]!.count)
   })
 
   it('點擊卡片應選取該卡', async () => {

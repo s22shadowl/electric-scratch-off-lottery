@@ -20,13 +20,13 @@ const validForm: HostFormState = {
 // ── draftToConfig ─────────────────────────────────────────
 
 describe('draftToConfig', () => {
-  it('合法表單應回傳 GameConfig', () => {
+  it('合法表單應回傳 GameConfig（包含 cardTypes[0]）', () => {
     const config = draftToConfig(validForm)
     expect(config).not.toBeNull()
     expect(config?.sessionTitle).toBe('年終抽獎')
-    expect(config?.cardCount).toBe(10)
-    expect(config?.cellsPerZone).toBe(6)
-    expect(config?.prizes).toHaveLength(3)
+    expect(config?.cardTypes[0]?.count).toBe(10)
+    expect(config?.cardTypes[0]?.mechanicOptions.cellsPerZone).toBe(6)
+    expect(config?.cardTypes[0]?.prizes).toHaveLength(3)
   })
 
   it('sessionTitle 為空應回傳 null', () => {
@@ -58,20 +58,30 @@ describe('draftToConfig', () => {
       ],
     }
     const config = draftToConfig(form)
-    expect(config?.prizes).toHaveLength(1)
-    expect(config?.prizes[0]?.label).toBe('$100')
+    expect(config?.cardTypes[0]?.prizes).toHaveLength(1)
+    expect(config?.cardTypes[0]?.prizes[0]?.label).toBe('$100')
   })
 
   it('amount > 0 的獎項 isWin 應為 true', () => {
     const config = draftToConfig(validForm)
-    const winPrize = config?.prizes.find(p => p.amount > 0)
+    const winPrize = config?.cardTypes[0]?.prizes.find(p => p.amount > 0)
     expect(winPrize?.isWin).toBe(true)
   })
 
   it('amount 為 0 的獎項 isWin 應為 false', () => {
     const config = draftToConfig(validForm)
-    const losePrize = config?.prizes.find(p => p.amount === 0)
+    const losePrize = config?.cardTypes[0]?.prizes.find(p => p.amount === 0)
     expect(losePrize?.isWin).toBe(false)
+  })
+
+  it('cardTypes[0].mechanic 應為 symbol', () => {
+    const config = draftToConfig(validForm)
+    expect(config?.cardTypes[0]?.mechanic).toBe('symbol')
+  })
+
+  it('cardTypes[0].difficultyPreset 應為 standard', () => {
+    const config = draftToConfig(validForm)
+    expect(config?.cardTypes[0]?.difficultyPreset).toBe('standard')
   })
 })
 

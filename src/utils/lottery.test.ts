@@ -27,10 +27,16 @@ const prizes: Prize[] = [
 
 const config: GameConfig = {
   sessionTitle: "測試活動",
-  cardCount: 5,
-  prizes,
-  cellsPerZone: 6,
-  themeId: "wealth-god",
+  cardTypes: [
+    {
+      mechanic: "symbol",
+      prizes,
+      count: 5,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 6 },
+    },
+  ],
   effectsEnabled: true,
 };
 
@@ -129,51 +135,68 @@ describe("generateSessionCode", () => {
 // ── buildCard ─────────────────────────────────────────────
 
 describe("buildCard", () => {
-  it("卡片格數應等於 config.cellsPerZone", () => {
-    const card = buildCard(config, "card-1", "TEST-01");
-    expect(card.zone.cells).toHaveLength(config.cellsPerZone);
+  const cardType = config.cardTypes[0]!;
+
+  it("卡片格數應等於 mechanicOptions.cellsPerZone", () => {
+    const card = buildCard(cardType, "card-1", "TEST-01", 0);
+    expect(card.zones[0]!.cells).toHaveLength(
+      cardType.mechanicOptions.cellsPerZone,
+    );
   });
 
   it("每個 cell 初始狀態：scratchProgress 為 0、isRevealed 為 false", () => {
-    const card = buildCard(config, "card-1", "TEST-01");
-    card.zone.cells.forEach((cell) => {
+    const card = buildCard(cardType, "card-1", "TEST-01", 0);
+    card.zones[0]!.cells.forEach((cell) => {
       expect(cell.scratchProgress).toBe(0);
       expect(cell.isRevealed).toBe(false);
     });
   });
 
   it("卡片初始狀態應為 in-pile，totalWinnings 為 0", () => {
-    const card = buildCard(config, "card-1", "TEST-01");
+    const card = buildCard(cardType, "card-1", "TEST-01", 0);
     expect(card.status).toBe("in-pile");
     expect(card.totalWinnings).toBe(0);
   });
 
-  it("每個 cell 的 prize 應來自 config.prizes 的獎項池", () => {
-    const card = buildCard(config, "card-1", "TEST-01");
-    const prizeIds = config.prizes.map((p) => p.id);
-    card.zone.cells.forEach((cell) => {
+  it("每個 cell 的 prize 應來自 cardType.prizes 的獎項池", () => {
+    const card = buildCard(cardType, "card-1", "TEST-01", 0);
+    const prizeIds = cardType.prizes.map((p) => p.id);
+    card.zones[0]!.cells.forEach((cell) => {
       expect(prizeIds).toContain(cell.prize.id);
     });
   });
 
   it("所有 cell.id 應唯一", () => {
-    const card = buildCard(config, "card-1", "TEST-01");
-    const ids = card.zone.cells.map((c) => c.id);
+    const card = buildCard(cardType, "card-1", "TEST-01", 0);
+    const ids = card.zones[0]!.cells.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it("cell.id 格式應包含 zone index（zone-aware）", () => {
+    const card = buildCard(cardType, "card-1", "TEST-01", 0);
+    card.zones[0]!.cells.forEach((cell, i) => {
+      expect(cell.id).toBe(`card-1-zone-0-cell-${i}`);
+    });
+  });
+
   it("serialNumber 應儲存在卡片上", () => {
-    const card = buildCard(config, "card-1", "ABCD-01");
+    const card = buildCard(cardType, "card-1", "ABCD-01", 0);
     expect(card.serialNumber).toBe("ABCD-01");
+  });
+
+  it("cardTypeIndex 應儲存在卡片上", () => {
+    const card = buildCard(cardType, "card-1", "TEST-01", 2);
+    expect(card.cardTypeIndex).toBe(2);
   });
 });
 
 // ── buildDeck ─────────────────────────────────────────────
 
 describe("buildDeck", () => {
-  it("牌堆數量應等於 config.cardCount", () => {
+  it("牌堆數量應等於所有 cardType.count 的總和", () => {
     const deck = buildDeck(config);
-    expect(deck).toHaveLength(config.cardCount);
+    const totalCount = config.cardTypes.reduce((s, ct) => s + ct.count, 0);
+    expect(deck).toHaveLength(totalCount);
   });
 
   it("每張卡的 id 應唯一", () => {
@@ -182,11 +205,13 @@ describe("buildDeck", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("每張卡應有完整的 zone 與 cells", () => {
+  it("每張卡應有完整的 zones 與 cells", () => {
     const deck = buildDeck(config);
     deck.forEach((card) => {
-      expect(card.zone).toBeDefined();
-      expect(card.zone.cells).toHaveLength(config.cellsPerZone);
+      expect(card.zones[0]).toBeDefined();
+      expect(card.zones[0]!.cells).toHaveLength(
+        config.cardTypes[0]!.mechanicOptions.cellsPerZone,
+      );
     });
   });
 
@@ -210,5 +235,23 @@ describe("buildDeck", () => {
       const seq = card.serialNumber.split("-")[1];
       expect(seq).toBe(String(i + 1).padStart(2, "0"));
     });
+  });
+
+  it("多個 cardType 時，globalIndex 應跨類型連續遞增", () => {
+    const multiConfig: GameConfig = {
+      ...config,
+      cardTypes: [
+        { ...config.cardTypes[0]!, count: 2 },
+        { ...config.cardTypes[0]!, count: 3 },
+      ],
+    };
+    const deck = buildDeck(multiConfig);
+    expect(deck).toHaveLength(5);
+    // cardTypeIndex 前 2 張應為 0，後 3 張應為 1
+    expect(deck[0]!.cardTypeIndex).toBe(0);
+    expect(deck[1]!.cardTypeIndex).toBe(0);
+    expect(deck[2]!.cardTypeIndex).toBe(1);
+    expect(deck[3]!.cardTypeIndex).toBe(1);
+    expect(deck[4]!.cardTypeIndex).toBe(1);
   });
 });

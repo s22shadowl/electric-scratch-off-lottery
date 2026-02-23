@@ -33,7 +33,8 @@ export type CardStatus = "in-pile" | "selected" | "scratching" | "completed";
 export interface ScratchCard {
   id: string;
   serialNumber: string; // 顯示用序號，如 "AQWT-01"
-  zone: ScratchZone;
+  cardTypeIndex: number; // 對應 config.cardTypes[i]
+  zones: ScratchZone[]; // 刮除區陣列（v1 固定只有一個）
   status: CardStatus;
   totalWinnings: number; // 所有已揭曉 isWin cell 的金額加總（即時計算）
 }
@@ -47,14 +48,38 @@ export interface CardTheme {
   accentColor: string; // 金色等輔助色
 }
 
-// 主持人設定（URL 序列化後傳遞）
+// 玩法識別碼（v1 只有 symbol，v2+ 擴充）
+export type Mechanic = "symbol";
+
+// 難度預設（v1 先加欄位，UI 選擇器 v2 再實作）
+export type DifficultyPreset =
+  | "generous"
+  | "standard"
+  | "conservative"
+  | "realistic";
+
+// symbol 玩法選項
+export interface SymbolOptions {
+  cellsPerZone: number;
+}
+
+export type MechanicOptions = SymbolOptions; // v2+ union 擴充
+
+// 單一卡型設定（v1 只會有一個）
+export interface CardTypeConfig {
+  mechanic: Mechanic;
+  prizes: Prize[];
+  count: number;
+  themeId: string;
+  difficultyPreset: DifficultyPreset;
+  mechanicOptions: MechanicOptions;
+}
+
+// 全局遊戲設定（breaking change：取代舊有的扁平欄位）
 export interface GameConfig {
-  sessionTitle: string; // 活動名稱
-  cardCount: number; // 總發牌數
-  prizes: Prize[]; // 獎項池（含相對權重）
-  cellsPerZone: number; // 每刮區格數，建議 5–6
-  themeId: string; // 對應 CardTheme.id
-  effectsEnabled: boolean; // 粒子特效預設值
+  sessionTitle: string;
+  cardTypes: CardTypeConfig[]; // 取代舊有的扁平欄位
+  effectsEnabled: boolean;
 }
 
 // 玩家端執行狀態（Zustand store）

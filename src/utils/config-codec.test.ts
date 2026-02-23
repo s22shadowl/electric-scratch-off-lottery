@@ -6,14 +6,20 @@ import type { GameConfig } from '@/types'
 
 const config: GameConfig = {
   sessionTitle: '年終抽獎',
-  cardCount: 10,
-  prizes: [
-    { id: 'p1', label: '謝謝', amount: 0,   probability: 0.6, isWin: false },
-    { id: 'p2', label: '$100', amount: 100, probability: 0.3, isWin: true  },
-    { id: 'p3', label: '$500', amount: 500, probability: 0.1, isWin: true  },
+  cardTypes: [
+    {
+      mechanic: 'symbol',
+      prizes: [
+        { id: 'p1', label: '謝謝', amount: 0,   probability: 0.6, isWin: false },
+        { id: 'p2', label: '$100', amount: 100, probability: 0.3, isWin: true  },
+        { id: 'p3', label: '$500', amount: 500, probability: 0.1, isWin: true  },
+      ],
+      count: 10,
+      themeId: 'wealth-god',
+      difficultyPreset: 'standard',
+      mechanicOptions: { cellsPerZone: 6 },
+    },
   ],
-  cellsPerZone: 6,
-  themeId: 'wealth-god',
   effectsEnabled: true,
 }
 
@@ -58,18 +64,37 @@ describe('decodeConfig', () => {
     expect(() => decodeConfig(broken)).toThrow(/sessionTitle/)
   })
 
-  it('prizes 為空陣列應拋出錯誤', () => {
-    const broken = encodeConfig({ ...config, prizes: [] })
+  it('cardTypes 為空陣列應拋出錯誤', () => {
+    const broken = encodeConfig({ ...config, cardTypes: [] })
+    expect(() => decodeConfig(broken)).toThrow(/cardTypes/)
+  })
+
+  it('cardType.prizes 為空陣列應拋出錯誤', () => {
+    const broken = encodeConfig({
+      ...config,
+      cardTypes: [{ ...config.cardTypes[0]!, prizes: [] }],
+    })
     expect(() => decodeConfig(broken)).toThrow(/prizes/)
   })
 
-  it('cardCount 為 0 應拋出錯誤', () => {
-    const broken = encodeConfig({ ...config, cardCount: 0 })
-    expect(() => decodeConfig(broken)).toThrow(/cardCount/)
+  it('cardType.count 為 0 應拋出錯誤', () => {
+    const broken = encodeConfig({
+      ...config,
+      cardTypes: [{ ...config.cardTypes[0]!, count: 0 }],
+    })
+    expect(() => decodeConfig(broken)).toThrow(/count/)
   })
 
-  it('cellsPerZone 小於 1 應拋出錯誤', () => {
-    const broken = encodeConfig({ ...config, cellsPerZone: 0 })
+  it('cardType.mechanicOptions.cellsPerZone 小於 1 應拋出錯誤', () => {
+    const broken = encodeConfig({
+      ...config,
+      cardTypes: [
+        {
+          ...config.cardTypes[0]!,
+          mechanicOptions: { cellsPerZone: 0 },
+        },
+      ],
+    })
     expect(() => decodeConfig(broken)).toThrow(/cellsPerZone/)
   })
 })

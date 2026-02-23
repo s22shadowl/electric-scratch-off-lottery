@@ -8,15 +8,23 @@ import type { GameConfig } from "@/types";
 
 const config: GameConfig = {
   sessionTitle: "年終抽獎活動",
-  cardCount: 5,
-  prizes: [
-    { id: "p1", label: "謝謝", amount: 0, probability: 0.7, isWin: false },
-    { id: "p2", label: "$100", amount: 100, probability: 0.3, isWin: true },
+  cardTypes: [
+    {
+      mechanic: "symbol",
+      prizes: [
+        { id: "p1", label: "謝謝", amount: 0, probability: 0.7, isWin: false },
+        { id: "p2", label: "$100", amount: 100, probability: 0.3, isWin: true },
+      ],
+      count: 5,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 6 },
+    },
   ],
-  cellsPerZone: 6,
-  themeId: "wealth-god",
   effectsEnabled: true,
 };
+
+const totalCardCount = config.cardTypes.reduce((s, ct) => s + ct.count, 0);
 
 const renderWithRoute = (search: string) =>
   render(
@@ -54,7 +62,7 @@ describe("PlayPage", () => {
     const encoded = encodeConfig(config);
     renderWithRoute(`?config=${encoded}`);
     await waitFor(() => {
-      expect(useGameStore.getState().cards).toHaveLength(config.cardCount);
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
     });
   });
 
@@ -77,7 +85,7 @@ describe("PlayPage", () => {
     const encoded = encodeConfig(config);
     renderWithRoute(`?config=${encoded}`);
     await waitFor(() => {
-      expect(useGameStore.getState().cards).toHaveLength(config.cardCount);
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
     });
     await act(async () => {
       useGameStore.getState().setPhase("results");

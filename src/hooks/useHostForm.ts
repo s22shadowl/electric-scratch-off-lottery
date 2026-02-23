@@ -47,10 +47,16 @@ export function draftToConfig(form: HostFormState): GameConfig | null {
 
   return {
     sessionTitle: form.sessionTitle.trim(),
-    cardCount,
-    prizes,
-    cellsPerZone,
-    themeId: "wealth-god",
+    cardTypes: [
+      {
+        mechanic: "symbol" as const,
+        prizes,
+        count: cardCount,
+        themeId: "wealth-god",
+        difficultyPreset: "standard" as const,
+        mechanicOptions: { cellsPerZone },
+      },
+    ],
     effectsEnabled: form.effectsEnabled,
   };
 }

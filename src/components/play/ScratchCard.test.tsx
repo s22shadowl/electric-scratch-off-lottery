@@ -22,13 +22,19 @@ vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
 
 const config: GameConfig = {
   sessionTitle: "測試",
-  cardCount: 1,
-  prizes: [
-    { id: "p-lose", label: "謝謝", amount: 0, probability: 0.5, isWin: false },
-    { id: "p-win", label: "$200", amount: 200, probability: 0.5, isWin: true },
+  cardTypes: [
+    {
+      mechanic: "symbol",
+      prizes: [
+        { id: "p-lose", label: "謝謝", amount: 0, probability: 0.5, isWin: false },
+        { id: "p-win", label: "$200", amount: 200, probability: 0.5, isWin: true },
+      ],
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 4 },
+    },
   ],
-  cellsPerZone: 4,
-  themeId: "wealth-god",
   effectsEnabled: true,
 };
 
@@ -47,7 +53,7 @@ describe("ScratchCard", () => {
   it("應渲染所有刮除格", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     render(<ScratchCard cardId={cardId} />);
-    const cells = useGameStore.getState().cards[0]!.zone.cells;
+    const cells = useGameStore.getState().cards[0]!.zones[0]!.cells;
     cells.forEach((cell) => {
       expect(screen.getByTestId(`scratch-cell-${cell.id}`)).toBeInTheDocument();
     });
@@ -61,7 +67,7 @@ describe("ScratchCard", () => {
 
   it("所有格揭曉後應顯示結果", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
-    const cells = useGameStore.getState().cards[0]!.zone.cells;
+    const cells = useGameStore.getState().cards[0]!.zones[0]!.cells;
     // 模擬全部揭曉
     cells.forEach((cell) => {
       useGameStore.getState().updateCellProgress(cardId, cell.id, 1.0);
