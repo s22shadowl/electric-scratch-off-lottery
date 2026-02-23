@@ -97,7 +97,8 @@ npm run build    # 建置正式版本
 
 **視覺升級**
 
-- [ ] 財神款式精緻化（仿台灣彩券真實質感：金屬紋理、浮雕邊框、Serif 字體）
+- [ ] 美術素材準備：LLM 生成財神、元寶等裝飾圖（確認 prompt 方向、篩選並整理 PNG 資源）
+- [ ] 版型精緻化實作：套用素材 + CSS 升級仿真實紙本刮刮樂質感（金屬紋理、浮雕邊框、Serif 字體、安全紋底）
 - [ ] 多款式選擇（節慶、生肖等主題）
 - [ ] 玩法說明 UI（主持人設定說明 tooltip + 玩家端規則卡）
 
@@ -105,3 +106,7 @@ npm run build    # 建置正式版本
 
 - [ ] 列印支援（`@media print`）
 - [ ] 鍵盤無障礙（空白鍵 / Enter 直接揭曉）
+
+### 穩定維護階段
+
+- [ ] CI/CD Pipeline + pre-commit hooks（GitHub Actions + husky/lint-staged：lint、typecheck、test 全自動化，PR 合併前強制通過）
