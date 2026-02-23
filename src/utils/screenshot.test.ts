@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { captureAndShare } from "./screenshot";
 
-// html2canvas module mock（hoisted，整個測試檔共用）
-vi.mock("html2canvas", () => ({
-  default: vi.fn().mockResolvedValue({
-    toDataURL: vi.fn().mockReturnValue("data:image/png;base64,MOCK"),
-  }),
+// ── html-to-image mock ─────────────────────────────────────
+
+const mockBlob = vi.hoisted(() => new Blob(["PNG"], { type: "image/png" }));
+
+vi.mock("html-to-image", () => ({
+  toBlob: vi.fn().mockResolvedValue(mockBlob),
 }));
 
 // ── 測試輔助 ──────────────────────────────────────────────
@@ -18,16 +19,13 @@ function makeElement(): HTMLElement {
 
 describe("captureAndShare", () => {
   beforeEach(async () => {
-    // 恢復所有 spy（不影響 vi.mock），避免跨測試污染
     vi.restoreAllMocks();
 
-    // 確保 html2canvas mock 實作在每個測試都正確
-    const html2canvas = (await import("html2canvas")).default as ReturnType<
-      typeof vi.fn
-    >;
-    html2canvas.mockResolvedValue({
-      toDataURL: vi.fn().mockReturnValue("data:image/png;base64,MOCK"),
-    });
+    // 確保 html-to-image mock 每次都正常回傳
+    const { toBlob } = (await import("html-to-image")) as {
+      toBlob: ReturnType<typeof vi.fn>;
+    };
+    toBlob.mockResolvedValue(mockBlob);
 
     // 重設 navigator API
     Object.defineProperty(navigator, "share", {
@@ -41,30 +39,49 @@ describe("captureAndShare", () => {
       configurable: true,
     });
 
-    // mock fetch（Web Share path）
-    global.fetch = vi.fn().mockResolvedValue({
-      blob: () => Promise.resolve(new Blob([""], { type: "image/png" })),
+    // mock URL.createObjectURL / revokeObjectURL
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL: vi.fn().mockReturnValue("blob:mock-url"),
+      revokeObjectURL: vi.fn(),
     });
 
     // mock <a>.click（download fallback）
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
-  });
-
-  it("應呼叫 html2canvas 並傳入目標元素", async () => {
-    const html2canvas = (await import("html2canvas")).default;
-    const el = makeElement();
-    await captureAndShare(el);
-    expect(html2canvas).toHaveBeenCalledWith(
-      el,
-      expect.objectContaining({ logging: false }),
+    // mock document.body.appendChild / removeChild（避免 jsdom 副作用）
+    vi.spyOn(document.body, "appendChild").mockImplementation(
+      (node) => node as HTMLAnchorElement,
+    );
+    vi.spyOn(document.body, "removeChild").mockImplementation(
+      (node) => node as HTMLAnchorElement,
     );
   });
 
-  it("Web Share 不可用時應觸發 <a> 下載", async () => {
-    // navigator.share = undefined（預設）
+  it("應呼叫 toBlob 並傳入目標元素", async () => {
+    const { toBlob } = await import("html-to-image");
     const el = makeElement();
-    await captureAndShare(el, "test.png");
+    await captureAndShare(el);
+    expect(toBlob).toHaveBeenCalledWith(
+      el,
+      expect.objectContaining({ backgroundColor: "#7f1d1d" }),
+    );
+  });
+
+  it("Web Share 不可用時應觸發 Blob URL 下載", async () => {
+    await captureAndShare(makeElement(), "test.png");
+    expect(URL.createObjectURL).toHaveBeenCalledWith(mockBlob);
     expect(HTMLAnchorElement.prototype.click).toHaveBeenCalled();
+  });
+
+  it("下載連結應附加到 body 再移除", async () => {
+    await captureAndShare(makeElement());
+    expect(document.body.appendChild).toHaveBeenCalled();
+    expect(document.body.removeChild).toHaveBeenCalled();
+  });
+
+  it("下載後應釋放 Blob URL", async () => {
+    await captureAndShare(makeElement());
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
   });
 
   it("filename 參數應套用到下載連結", async () => {
@@ -101,7 +118,6 @@ describe("captureAndShare", () => {
     });
     await captureAndShare(makeElement());
     expect(mockShare).toHaveBeenCalledOnce();
-    // 已 share，不應再 download
     expect(HTMLAnchorElement.prototype.click).not.toHaveBeenCalled();
   });
 
@@ -116,5 +132,15 @@ describe("captureAndShare", () => {
     });
     await captureAndShare(makeElement());
     expect(HTMLAnchorElement.prototype.click).toHaveBeenCalled();
+  });
+
+  it("toBlob 回傳 null 時應 throw", async () => {
+    const { toBlob } = (await import("html-to-image")) as {
+      toBlob: ReturnType<typeof vi.fn>;
+    };
+    toBlob.mockResolvedValue(null);
+    await expect(captureAndShare(makeElement())).rejects.toThrow(
+      "toBlob 回傳 null",
+    );
   });
 });

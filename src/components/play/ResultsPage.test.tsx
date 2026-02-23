@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { useGameStore, REVEAL_THRESHOLD } from "@/stores/gameStore";
+import { useToastStore } from "@/stores/toastStore";
 import ResultsPage from "./ResultsPage";
 import type { GameConfig } from "@/types";
 
@@ -89,6 +90,7 @@ function setupResultsPhase(winCardCount = 1) {
 
 beforeEach(() => {
   useGameStore.setState(useGameStore.getInitialState());
+  useToastStore.setState({ message: null, type: "info" });
 });
 
 describe("ResultsPage", () => {
@@ -179,5 +181,22 @@ describe("ResultsPage", () => {
     const selectedIds = useGameStore.getState().selectedCardIds;
     fireEvent.click(screen.getByTestId(`result-card-${selectedIds[0]}`));
     expect(screen.getByTestId("capture-card-btn")).toBeInTheDocument();
+  });
+
+  it("截圖失敗時應呼叫 showToast 並記錄 console.error", async () => {
+    const { captureAndShare } = await import("@/utils/screenshot");
+    vi.mocked(captureAndShare).mockRejectedValueOnce(new Error("截圖錯誤"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    fireEvent.click(screen.getByTestId("capture-summary-btn"));
+    await waitFor(() => {
+      expect(useToastStore.getState().message).toBe("截圖失敗，請再試一次");
+      expect(useToastStore.getState().type).toBe("error");
+      expect(console.error).toHaveBeenCalledWith(
+        "[截圖 summary 失敗]",
+        expect.any(Error),
+      );
+    });
   });
 });

@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useGameStore } from "@/stores/gameStore";
+import { useToastStore } from "@/stores/toastStore";
 import { captureAndShare } from "@/utils/screenshot";
 import ScratchCard from "./ScratchCard";
 
@@ -12,6 +13,7 @@ export default function ResultsPage() {
 
   const summaryRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToastStore();
 
   const selectedCards = selectedCardIds
     .map((id) => cards.find((c) => c.id === id))
@@ -28,8 +30,9 @@ export default function ResultsPage() {
     setSummaryCapturing(true);
     try {
       await captureAndShare(summaryRef.current, "scratch-results.png");
-    } catch {
-      // 忽略截圖失敗
+    } catch (err) {
+      console.error("[截圖 summary 失敗]", err);
+      showToast("截圖失敗，請再試一次", "error");
     } finally {
       setSummaryCapturing(false);
     }
@@ -43,22 +46,23 @@ export default function ResultsPage() {
         cardRef.current,
         `scratch-card-${detailCardId}.png`,
       );
-    } catch {
-      // 忽略截圖失敗
+    } catch (err) {
+      console.error("[截圖 card 失敗]", err);
+      showToast("截圖失敗，請再試一次", "error");
     } finally {
       setCardCapturing(false);
     }
   };
 
   return (
-    <div data-testid="results-page" className="min-h-screen bg-gradient-to-br from-red-800 to-red-950 text-white py-8 px-4">
+    <div
+      data-testid="results-page"
+      className="min-h-screen bg-gradient-to-br from-red-800 to-red-950 text-white py-8 px-4"
+    >
       {/* 截圖範圍：結果匯總 + 卡片摘要格 */}
       <div ref={summaryRef} className="pb-4">
         {/* 結果匯總標題 */}
-        <section
-          data-testid="results-summary"
-          className="text-center mb-8"
-        >
+        <section data-testid="results-summary" className="text-center mb-8">
           <h2 className="text-3xl font-black text-yellow-400 drop-shadow-lg mb-2">
             🎊 刮刮結果
           </h2>
