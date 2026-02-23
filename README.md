@@ -102,11 +102,8 @@ npm run build    # 建置正式版本
 - [ ] 多款式選擇（節慶、生肖等主題）
 - [ ] 玩法說明 UI（主持人設定說明 tooltip + 玩家端規則卡）
 
-### v3.0
+### v3.0 — 收尾與穩定化
 
 - [ ] 列印支援（`@media print`）
 - [ ] 鍵盤無障礙（空白鍵 / Enter 直接揭曉）
-
-### 穩定維護階段
-
 - [ ] CI/CD Pipeline + pre-commit hooks（GitHub Actions + husky/lint-staged：lint、typecheck、test 全自動化，PR 合併前強制通過）
