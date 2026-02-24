@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **玩家遊玩頁** `/play`：從牌堆挑選編號卡片，刮開揭曉，全部完成後跳轉結果頁
 - **無後端**：設定以 base64url URL query params 編碼傳遞，同時生成 QR Code
 - **預先決定結果**：仿真實彩券，先決定整批獎項分布，再逆向生成圖案
-- **結果分享**：`html2canvas` 截圖分享（結果頁 + 單張卡片）
+- **結果分享**：`html-to-image` 截圖分享（結果頁 + 單張卡片）
 
 ## 技術棧
 
@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **樣式**：TailwindCSS 4
 - **狀態管理**：Zustand 5
 - **刮除效果**：原生 `<canvas>` API（`destination-out` composite operation）
-- **截圖**：`html2canvas`
+- **截圖**：`html-to-image`
 - **QR Code**：`qrcode`
 
 ## 常用指令
@@ -49,7 +49,9 @@ src/
 ├── utils/
 │   ├── lottery.ts           # 抽獎邏輯、buildDeck（predetermined outcome 架構）
 │   ├── canvas-utils.ts      # drawErase / drawSilverMask / calculateRevealedRatio
-│   └── config-codec.ts      # encodeConfig / decodeConfig / buildPlayUrl / generateQRCode
+│   ├── config-codec.ts      # encodeConfig / decodeConfig / buildPlayUrl / generateQRCode
+│   ├── symbol-pool.ts       # 10 種符號常數、assignSymbolsToPrizes
+│   └── prize-presets.ts     # DIFFICULTY_PRESETS, scalePrizesToTicketPrice, calculateRTP, classifyDifficulty
 ├── stores/gameStore.ts      # Zustand 狀態機（REVEAL_THRESHOLD = 0.7）
 ├── hooks/
 │   ├── useScratch.ts        # Canvas 刮除事件（willReadFrequently: true）
@@ -57,11 +59,16 @@ src/
 ├── pages/
 │   ├── HostPage.tsx         # /host
 │   └── PlayPage.tsx         # /play?config=
-└── components/play/
-    ├── CardPile.tsx
-    ├── CardThumbnail.tsx
-    ├── ScratchCard.tsx
-    └── ScratchCellCanvas.tsx
+├── components/play/
+│   ├── CardPile.tsx
+│   ├── CardThumbnail.tsx
+│   ├── ScratchCard.tsx
+│   └── ScratchCellCanvas.tsx
+└── components/host/
+    ├── DifficultySelector.tsx
+    ├── EVDisplay.tsx
+    ├── PrizeEditor.tsx
+    └── SharePanel.tsx
 ```
 
 ### 核心刮除機制
@@ -78,7 +85,7 @@ buildDeck(config)
   → 再 buildCard(result) 產生符合結果的圖案
 ```
 
-v2 擴充後：`allocatePrizes(整批)` → 各玩法依結果逆向生成符號/數字/賓果格
+v2 已實作：`buildDeck` 依 `mechanic` 分支 — symbol 走 `buildZone`，triple 走 `buildTripleZones`（3 zones × rowsPerCard cells）
 
 ### GamePhase 狀態流
 
@@ -86,17 +93,17 @@ v2 擴充後：`allocatePrizes(整批)` → 各玩法依結果逆向生成符號
 pile → scratching → results
 ```
 
-### v2 目標架構（勿提早動）
+### v2 架構（已實作）
 
 ```typescript
-// v2 GameConfig 重構方向（目前仍為單一 cardType）
 interface CardTypeConfig {
-  mechanic: 'symbol' | 'triple' | 'compare' | 'bingo'
+  mechanic: 'symbol' | 'triple'  // compare / bingo 尚未實作
   prizes: Prize[]
   count: number
   themeId: string
   difficultyPreset: 'generous' | 'standard' | 'conservative' | 'realistic'
-  mechanicOptions: SymbolOptions | TripleOptions | CompareOptions | BingoOptions
+  mechanicOptions: SymbolOptions | TripleOptions
+  ticketPrice: number
 }
 interface GameConfig {
   sessionTitle: string
@@ -107,13 +114,13 @@ interface GameConfig {
 
 ## 玩法規格
 
-### v1（已實作）：刮出特定符號
+### v1（已實作 ✅）：刮出特定符號
 - 單一刮除區，刮開對照中獎表
-- 符號池 10 種（v2 三同時一起實作）
+- 符號池 10 種（symbol-pool.ts）
 
-### v2a：三同（Triple Match）
+### v2a（已實作 ✅）：三同（Triple Match）
 - 3 個刮除區，全同即中
-- 符號池 10 種，無「再刮一次」特殊符號
+- Win invariant 在 buildTripleZones 建構期保證；符號池 10 種
 
 ### v2b：比大小（High-Low）
 - 結果預先決定，平手算輸
@@ -168,3 +175,10 @@ interface GameConfig {
 - **TDD 輔助**：每個 utility / hook / store action 均有對應測試，覆蓋率維持 80%+
 - **元件大小**：單一檔案不超過 400 行，Canvas 邏輯抽離至 hook
 - **卡片旋轉**：已移除（需求取消），勿重新加入
+
+## Session 工作流程
+
+- **設計與實作同一 session**：討論決策後立刻進入實作，不跨 session；如需離開先 commit
+- **計畫工具**：使用 `everything-claude-code:plan`（Task subagent）；不使用內建 Plan Mode（`EnterPlanMode` 會寫入 `~/.claude/plans/` 並在每個新 session 自動全文掛載）
+- **Annotation cycle**：`/plan` 產出後可多輪標注修正並說「不要動手」，確認後再實作
+- **Plan 輕量化**：計畫只記決策結果，不記實作細節；完成後決策結果移入 MEMORY.md，計畫本身丟棄
