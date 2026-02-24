@@ -32,13 +32,26 @@ const config: GameConfig = {
     {
       mechanic: "symbol",
       prizes: [
-        { id: "p-lose", label: "謝謝", amount: 0, probability: 0.5, isWin: false },
-        { id: "p-win", label: "$500", amount: 500, probability: 0.5, isWin: true },
+        {
+          id: "p-lose",
+          label: "謝謝",
+          amount: 0,
+          probability: 0.5,
+          isWin: false,
+        },
+        {
+          id: "p-win",
+          label: "$500",
+          amount: 500,
+          probability: 0.5,
+          isWin: true,
+        },
       ],
       count: 3,
       themeId: "wealth-god",
       difficultyPreset: "standard",
       mechanicOptions: { cellsPerZone: 2 },
+      ticketPrice: 100,
     },
   ],
   effectsEnabled: true,

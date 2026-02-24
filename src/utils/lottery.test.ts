@@ -35,6 +35,7 @@ const config: GameConfig = {
       themeId: "wealth-god",
       difficultyPreset: "standard",
       mechanicOptions: { cellsPerZone: 6 },
+      ticketPrice: 100,
     },
   ],
   effectsEnabled: true,

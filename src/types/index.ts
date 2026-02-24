@@ -73,6 +73,7 @@ export interface CardTypeConfig {
   themeId: string;
   difficultyPreset: DifficultyPreset;
   mechanicOptions: MechanicOptions;
+  ticketPrice?: number; // 虛擬票面價格，用於計算 RTP（解碼時補預設 100）
 }
 
 // 全局遊戲設定（breaking change：取代舊有的扁平欄位）

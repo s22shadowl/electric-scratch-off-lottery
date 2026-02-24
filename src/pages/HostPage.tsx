@@ -1,14 +1,17 @@
 import { useHostForm } from '@/hooks/useHostForm'
 import PrizeEditor from '@/components/host/PrizeEditor'
 import SharePanel from '@/components/host/SharePanel'
+import DifficultySelector from '@/components/host/DifficultySelector'
+import EVDisplay from '@/components/host/EVDisplay'
 
 const BASE_URL = window.location.origin
 
 export default function HostPage() {
   const {
-    form, isValid, playUrl, qrCode, copied,
+    form, isValid, playUrl, qrCode, copied, currentRTP,
     setTitle, updatePrize, addPrize, removePrize,
-    setCardCount, setCellsPerZone, toggleEffects, copyUrl,
+    setCardCount, setCellsPerZone, toggleEffects,
+    setDifficultyPreset, setTicketPrice, copyUrl,
   } = useHostForm(BASE_URL)
 
   return (
@@ -52,10 +55,16 @@ export default function HostPage() {
             onRemove={removePrize}
           />
 
-          {/* 卡片與格子設定 */}
+          {/* 難度預設 */}
+          <DifficultySelector
+            value={form.difficultyPreset}
+            onChange={setDifficultyPreset}
+          />
+
+          {/* 牌局設定：總牌數 / 每張格數 / 票面價格 */}
           <section>
             <h2 className="text-lg font-bold text-yellow-300 mb-3">牌局設定</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label htmlFor="card-count" className="block text-xs text-red-200 mb-1">
                   總牌數
@@ -86,8 +95,25 @@ export default function HostPage() {
                   className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                 />
               </div>
+              <div>
+                <label htmlFor="ticket-price" className="block text-xs text-red-200 mb-1">
+                  票面價格（元）
+                </label>
+                <input
+                  id="ticket-price"
+                  type="number"
+                  value={form.ticketPrice}
+                  onChange={e => setTicketPrice(e.target.value)}
+                  min="1"
+                  aria-label="票面價格"
+                  className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
+                />
+              </div>
             </div>
           </section>
+
+          {/* 即時 EV 顯示 */}
+          <EVDisplay rtp={currentRTP} />
 
           {/* 特效開關 */}
           <section className="flex items-center justify-between">

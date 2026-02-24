@@ -1,10 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   buildPlayUrl,
   generateQRCode,
   encodeConfig,
 } from "@/utils/config-codec";
-import type { GameConfig, Prize } from "@/types";
+import {
+  scalePrizesToTicketPrice,
+  calculateRTP,
+} from "@/utils/prize-presets";
+import type { GameConfig, Prize, DifficultyPreset } from "@/types";
 
 // ── 表單內部用的草稿型別（字串便於 input 綁定）─────────────────
 
@@ -21,6 +25,8 @@ export interface HostFormState {
   cardCount: string;
   cellsPerZone: string;
   effectsEnabled: boolean;
+  difficultyPreset: DifficultyPreset;
+  ticketPrice: string; // input 字串，提交時轉 number
 }
 
 // ── 草稿 → GameConfig 轉換（失敗時回傳 null）─────────────────
@@ -30,8 +36,10 @@ export function draftToConfig(form: HostFormState): GameConfig | null {
 
   const cardCount = parseInt(form.cardCount, 10);
   const cellsPerZone = parseInt(form.cellsPerZone, 10);
+  const ticketPrice = parseInt(form.ticketPrice, 10);
   if (!cardCount || cardCount < 1) return null;
   if (!cellsPerZone || cellsPerZone < 1 || cellsPerZone > 9) return null;
+  if (!ticketPrice || ticketPrice < 1) return null;
 
   const prizes: Prize[] = form.prizes
     .map((p, i) => ({
@@ -53,8 +61,9 @@ export function draftToConfig(form: HostFormState): GameConfig | null {
         prizes,
         count: cardCount,
         themeId: "wealth-god",
-        difficultyPreset: "standard" as const,
+        difficultyPreset: form.difficultyPreset,
         mechanicOptions: { cellsPerZone },
+        ticketPrice,
       },
     ],
     effectsEnabled: form.effectsEnabled,
@@ -75,13 +84,15 @@ function newPrize(
 const defaultForm: HostFormState = {
   sessionTitle: "",
   prizes: [
-    newPrize("uid-0", "謝謝參與", "0", "60"),
-    newPrize("uid-1", "$100", "100", "30"),
+    newPrize("uid-0", "謝謝參與", "0", "45"),
+    newPrize("uid-1", "$100", "100", "45"),
     newPrize("uid-2", "$500", "500", "10"),
   ],
   cardCount: "10",
   cellsPerZone: "6",
   effectsEnabled: true,
+  difficultyPreset: "standard",
+  ticketPrice: "100",
 };
 
 // ── Hook ─────────────────────────────────────────────────────
@@ -93,6 +104,13 @@ export function useHostForm(baseUrl: string) {
   const [playUrl, setPlayUrl] = useState<string>("");
   const [qrCode, setQrCode] = useState<string>("");
   const [copied, setCopied] = useState(false);
+
+  // 即時 RTP（依賴 prizes + ticketPrice）
+  const currentRTP = useMemo<number | null>(() => {
+    const price = parseInt(form.ticketPrice, 10);
+    if (!price || price < 1) return null;
+    return calculateRTP(form.prizes, price);
+  }, [form.prizes, form.ticketPrice]);
 
   // 表單合法時自動更新 URL 與 QR Code
   useEffect(() => {
@@ -157,6 +175,19 @@ export function useHostForm(baseUrl: string) {
     setForm((f) => ({ ...f, effectsEnabled: !f.effectsEnabled }));
   }, []);
 
+  const setDifficultyPreset = useCallback(
+    (preset: DifficultyPreset) => {
+      const price = parseInt(form.ticketPrice, 10) || 100;
+      const newPrizes = scalePrizesToTicketPrice(preset, price);
+      setForm((f) => ({ ...f, difficultyPreset: preset, prizes: newPrizes }));
+    },
+    [form.ticketPrice],
+  );
+
+  const setTicketPrice = useCallback((v: string) => {
+    setForm((f) => ({ ...f, ticketPrice: v }));
+  }, []);
+
   const copyUrl = useCallback(async () => {
     if (!playUrl) return;
     await navigator.clipboard.writeText(playUrl);
@@ -174,6 +205,7 @@ export function useHostForm(baseUrl: string) {
     qrCode,
     copied,
     config,
+    currentRTP,
     setTitle,
     updatePrize,
     addPrize,
@@ -181,6 +213,8 @@ export function useHostForm(baseUrl: string) {
     setCardCount,
     setCellsPerZone,
     toggleEffects,
+    setDifficultyPreset,
+    setTicketPrice,
     copyUrl,
   };
 }
