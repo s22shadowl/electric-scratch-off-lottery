@@ -263,3 +263,90 @@ describe("toggleEffects", () => {
     expect(useGameStore.getState().effectsEnabled).toBe(original);
   });
 });
+
+// ── updateCellProgress (triple) ───────────────────────────
+
+const tripleConfig: GameConfig = {
+  sessionTitle: "三同測試",
+  cardTypes: [
+    {
+      mechanic: "triple",
+      prizes: [
+        {
+          id: "p-lose",
+          label: "謝謝",
+          amount: 0,
+          probability: 2,
+          isWin: false,
+        },
+        {
+          id: "p-win",
+          label: "$100",
+          amount: 100,
+          probability: 1,
+          isWin: true,
+        },
+      ],
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { rowsPerCard: 3 },
+      ticketPrice: 100,
+    },
+  ],
+  effectsEnabled: true,
+};
+
+describe("updateCellProgress (triple)", () => {
+  it("揭曉部分格子（未全部完成）時 totalWinnings 應維持 0", () => {
+    useGameStore.getState().initGame(tripleConfig);
+    const card = useGameStore.getState().cards[0]!;
+    // 只刮開 zone[0] 的所有格，仍有 zone[1]、zone[2] 未完成
+    card.zones[0]!.cells.forEach((cell) => {
+      useGameStore
+        .getState()
+        .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+    });
+    const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
+    expect(updated?.totalWinnings).toBe(0);
+    expect(updated?.status).not.toBe("completed");
+  });
+
+  it("三個 zones 全部揭曉後 status 應為 completed", () => {
+    useGameStore.getState().initGame(tripleConfig);
+    const card = useGameStore.getState().cards[0]!;
+    card.zones.forEach((zone) => {
+      zone.cells.forEach((cell) => {
+        useGameStore
+          .getState()
+          .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+      });
+    });
+    const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
+    expect(updated?.status).toBe("completed");
+  });
+
+  it("全部揭曉後 totalWinnings 應等於三同中獎列的獎金加總", () => {
+    useGameStore.getState().initGame(tripleConfig);
+    const card = useGameStore.getState().cards[0]!;
+
+    // 從建牌結果計算預期獎金（同列三格 prize.id 相同則中獎）
+    const expectedWinnings = card.zones[0]!.cells.reduce((sum, _, row) => {
+      const p0 = card.zones[0]!.cells[row]!.prize;
+      const p1 = card.zones[1]!.cells[row]!.prize;
+      const p2 = card.zones[2]!.cells[row]!.prize;
+      return p0.id === p1.id && p1.id === p2.id ? sum + p0.amount : sum;
+    }, 0);
+
+    card.zones.forEach((zone) => {
+      zone.cells.forEach((cell) => {
+        useGameStore
+          .getState()
+          .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+      });
+    });
+
+    const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
+    expect(updated?.totalWinnings).toBe(expectedWinnings);
+  });
+});

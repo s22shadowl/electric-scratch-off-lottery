@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { draftToConfig, useHostForm } from "./useHostForm";
 import type { HostFormState } from "./useHostForm";
+import type { SymbolOptions, TripleOptions } from "@/types";
 
 // ── 測試資料 ──────────────────────────────────────────────
 
@@ -17,6 +18,8 @@ const validForm: HostFormState = {
   effectsEnabled: true,
   difficultyPreset: "standard",
   ticketPrice: "100",
+  mechanic: "symbol",
+  rowsPerCard: "3",
 };
 
 // ── draftToConfig ─────────────────────────────────────────
@@ -27,7 +30,9 @@ describe("draftToConfig", () => {
     expect(config).not.toBeNull();
     expect(config?.sessionTitle).toBe("年終抽獎");
     expect(config?.cardTypes[0]?.count).toBe(10);
-    expect(config?.cardTypes[0]?.mechanicOptions.cellsPerZone).toBe(6);
+    expect(
+      (config?.cardTypes[0]?.mechanicOptions as SymbolOptions).cellsPerZone,
+    ).toBe(6);
     expect(config?.cardTypes[0]?.prizes).toHaveLength(3);
   });
 
@@ -105,6 +110,30 @@ describe("draftToConfig", () => {
   it("輸出應包含正確 ticketPrice", () => {
     const config = draftToConfig({ ...validForm, ticketPrice: "200" });
     expect(config?.cardTypes[0]?.ticketPrice).toBe(200);
+  });
+
+  it("mechanic=triple 時輸出 rowsPerCard 而非 cellsPerZone", () => {
+    const config = draftToConfig({
+      ...validForm,
+      mechanic: "triple",
+      rowsPerCard: "4",
+    });
+    expect(config?.cardTypes[0]?.mechanic).toBe("triple");
+    expect(
+      (config?.cardTypes[0]?.mechanicOptions as TripleOptions).rowsPerCard,
+    ).toBe(4);
+  });
+
+  it("mechanic=triple 且 rowsPerCard 超過 9 應回傳 null", () => {
+    expect(
+      draftToConfig({ ...validForm, mechanic: "triple", rowsPerCard: "10" }),
+    ).toBeNull();
+  });
+
+  it("mechanic=triple 且 rowsPerCard=0 應回傳 null", () => {
+    expect(
+      draftToConfig({ ...validForm, mechanic: "triple", rowsPerCard: "0" }),
+    ).toBeNull();
   });
 });
 
@@ -203,5 +232,17 @@ describe("useHostForm", () => {
     const { result } = renderHook(() => useHostForm(BASE));
     act(() => result.current.setTicketPrice("0"));
     expect(result.current.currentRTP).toBeNull();
+  });
+
+  it("setMechanic('triple') 應更新 form.mechanic", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setMechanic("triple"));
+    expect(result.current.form.mechanic).toBe("triple");
+  });
+
+  it("setRowsPerCard 應更新 form.rowsPerCard", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setRowsPerCard("5"));
+    expect(result.current.form.rowsPerCard).toBe("5");
   });
 });

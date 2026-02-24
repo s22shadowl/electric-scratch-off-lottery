@@ -5,6 +5,8 @@ import type {
   ScratchCell,
   GameConfig,
   CardTypeConfig,
+  SymbolOptions,
+  TripleOptions,
 } from "@/types";
 
 // 生成 4 碼大寫英文 session code
@@ -64,6 +66,59 @@ function buildZone(
   };
 }
 
+// 建立三同玩法的 3 個刮除區（各區 rowsPerCard 格，同列三格對應一組三同）
+function buildTripleZones(
+  cardId: string,
+  rowsPerCard: number,
+  normalized: Prize[],
+): ScratchZone[] {
+  const zoneCells: ScratchCell[][] = [[], [], []];
+
+  for (let row = 0; row < rowsPerCard; row++) {
+    const rowPrize = drawPrize(normalized);
+
+    if (rowPrize.isWin) {
+      // 中獎：三個 zone 同列格均填相同獎項
+      for (let z = 0; z < 3; z++) {
+        zoneCells[z]!.push({
+          id: `${cardId}-zone-${z}-cell-${row}`,
+          prize: rowPrize,
+          scratchProgress: 0,
+          isRevealed: false,
+        });
+      }
+    } else {
+      // 落敗：zone 0、1 填落敗獎項，zone 2 強制填不同獎項（保證不三同）
+      for (let z = 0; z < 2; z++) {
+        zoneCells[z]!.push({
+          id: `${cardId}-zone-${z}-cell-${row}`,
+          prize: rowPrize,
+          scratchProgress: 0,
+          isRevealed: false,
+        });
+      }
+      const others = normalized.filter((p) => p.id !== rowPrize.id);
+      const mismatch =
+        others.length > 0
+          ? others[Math.floor(Math.random() * others.length)]!
+          : normalized[0]!;
+      zoneCells[2]!.push({
+        id: `${cardId}-zone-2-cell-${row}`,
+        prize: mismatch,
+        scratchProgress: 0,
+        isRevealed: false,
+      });
+    }
+  }
+
+  const shapeVariants = ["left", "single", "right"] as const;
+  return [0, 1, 2].map((z) => ({
+    id: `${cardId}-zone-${z}`,
+    shapeVariant: shapeVariants[z]!,
+    cells: zoneCells[z]!,
+  }));
+}
+
 // 建立一張刮刮樂卡（在建卡時依機率分配獎項）
 export function buildCard(
   cardTypeConfig: CardTypeConfig,
@@ -72,11 +127,26 @@ export function buildCard(
   cardTypeIndex: number,
 ): ScratchCard {
   const normalized = normalizeProbabilities(cardTypeConfig.prizes);
+  const zones =
+    cardTypeConfig.mechanic === "triple"
+      ? buildTripleZones(
+          cardId,
+          (cardTypeConfig.mechanicOptions as TripleOptions).rowsPerCard,
+          normalized,
+        )
+      : [
+          buildZone(
+            cardId,
+            0,
+            (cardTypeConfig.mechanicOptions as SymbolOptions).cellsPerZone,
+            normalized,
+          ),
+        ];
   return {
     id: cardId,
     serialNumber,
     cardTypeIndex,
-    zones: [buildZone(cardId, 0, cardTypeConfig.mechanicOptions.cellsPerZone, normalized)],
+    zones,
     status: "in-pile",
     totalWinnings: 0,
   };

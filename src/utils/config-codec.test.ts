@@ -115,6 +115,39 @@ describe("decodeConfig", () => {
     expect(() => decodeConfig(broken)).toThrow(/ticketPrice/);
   });
 
+  it("triple 玩法 config 應能 encode/decode（round-trip）", () => {
+    const tripleConfig: GameConfig = {
+      ...config,
+      cardTypes: [
+        {
+          mechanic: "triple",
+          prizes: config.cardTypes[0]!.prizes,
+          count: 5,
+          themeId: "wealth-god",
+          difficultyPreset: "standard",
+          mechanicOptions: { rowsPerCard: 3 },
+          ticketPrice: 100,
+        },
+      ],
+    };
+    const decoded = decodeConfig(encodeConfig(tripleConfig));
+    expect(decoded).toEqual(tripleConfig);
+  });
+
+  it("triple cardType 缺少 rowsPerCard 應拋出錯誤", () => {
+    const broken = encodeConfig({
+      ...config,
+      cardTypes: [
+        {
+          ...config.cardTypes[0]!,
+          mechanic: "triple" as const,
+          mechanicOptions: {} as never,
+        },
+      ],
+    });
+    expect(() => decodeConfig(broken)).toThrow(/rowsPerCard/);
+  });
+
   it("缺少 ticketPrice 的舊格式應自動補值 100（向下相容）", () => {
     // 建立一個沒有 ticketPrice 的舊格式 config
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

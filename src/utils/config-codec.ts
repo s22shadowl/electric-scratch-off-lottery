@@ -40,11 +40,19 @@ function isValidCardTypeConfig(ct: unknown): ct is CardTypeConfig {
   const opts = obj["mechanicOptions"];
   if (typeof opts !== "object" || opts === null) return false;
   const mechanicOptions = opts as Record<string, unknown>;
-  if (
-    typeof mechanicOptions["cellsPerZone"] !== "number" ||
-    mechanicOptions["cellsPerZone"] < 1
-  )
-    return false;
+  if (obj["mechanic"] === "triple") {
+    if (
+      typeof mechanicOptions["rowsPerCard"] !== "number" ||
+      mechanicOptions["rowsPerCard"] < 1
+    )
+      return false;
+  } else {
+    if (
+      typeof mechanicOptions["cellsPerZone"] !== "number" ||
+      mechanicOptions["cellsPerZone"] < 1
+    )
+      return false;
+  }
   // ticketPrice 若存在，必須為正整數
   if (obj["ticketPrice"] !== undefined) {
     if (typeof obj["ticketPrice"] !== "number" || obj["ticketPrice"] < 1)
@@ -78,13 +86,18 @@ function validateConfig(raw: unknown): GameConfig {
       const opts = ctObj["mechanicOptions"] as
         | Record<string, unknown>
         | undefined;
+      const isTriple = ctObj["mechanic"] === "triple";
       if (
         !opts ||
-        typeof opts["cellsPerZone"] !== "number" ||
-        opts["cellsPerZone"] < 1
+        (isTriple
+          ? typeof opts["rowsPerCard"] !== "number" || opts["rowsPerCard"] < 1
+          : typeof opts["cellsPerZone"] !== "number" ||
+            opts["cellsPerZone"] < 1)
       ) {
         throw new Error(
-          "cardTypes[].mechanicOptions.cellsPerZone 必須為正整數",
+          isTriple
+            ? "cardTypes[].mechanicOptions.rowsPerCard 必須為正整數"
+            : "cardTypes[].mechanicOptions.cellsPerZone 必須為正整數",
         );
       }
       if (

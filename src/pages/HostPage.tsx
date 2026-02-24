@@ -1,18 +1,32 @@
-import { useHostForm } from '@/hooks/useHostForm'
-import PrizeEditor from '@/components/host/PrizeEditor'
-import SharePanel from '@/components/host/SharePanel'
-import DifficultySelector from '@/components/host/DifficultySelector'
-import EVDisplay from '@/components/host/EVDisplay'
+import { useHostForm } from "@/hooks/useHostForm";
+import PrizeEditor from "@/components/host/PrizeEditor";
+import SharePanel from "@/components/host/SharePanel";
+import DifficultySelector from "@/components/host/DifficultySelector";
+import EVDisplay from "@/components/host/EVDisplay";
 
-const BASE_URL = window.location.origin
+const BASE_URL = window.location.origin;
 
 export default function HostPage() {
   const {
-    form, isValid, playUrl, qrCode, copied, currentRTP,
-    setTitle, updatePrize, addPrize, removePrize,
-    setCardCount, setCellsPerZone, toggleEffects,
-    setDifficultyPreset, setTicketPrice, copyUrl,
-  } = useHostForm(BASE_URL)
+    form,
+    isValid,
+    playUrl,
+    qrCode,
+    copied,
+    currentRTP,
+    setTitle,
+    updatePrize,
+    addPrize,
+    removePrize,
+    setCardCount,
+    setCellsPerZone,
+    toggleEffects,
+    setDifficultyPreset,
+    setTicketPrice,
+    setMechanic,
+    setRowsPerCard,
+    copyUrl,
+  } = useHostForm(BASE_URL);
 
   return (
     <main
@@ -28,20 +42,21 @@ export default function HostPage() {
       </header>
 
       <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-
         {/* 左欄：設定表單 */}
         <div className="space-y-6">
-
           {/* 活動名稱 */}
           <section>
-            <label htmlFor="session-title" className="block text-sm font-bold text-yellow-300 mb-1">
+            <label
+              htmlFor="session-title"
+              className="block text-sm font-bold text-yellow-300 mb-1"
+            >
               活動名稱
             </label>
             <input
               id="session-title"
               type="text"
               value={form.sessionTitle}
-              onChange={e => setTitle(e.target.value)}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="如：2026 年終晚會抽獎"
               className="w-full px-4 py-2 rounded-lg bg-red-900 border border-red-700 text-white placeholder-red-400 focus:outline-none focus:border-yellow-400"
             />
@@ -61,49 +76,109 @@ export default function HostPage() {
             onChange={setDifficultyPreset}
           />
 
-          {/* 牌局設定：總牌數 / 每張格數 / 票面價格 */}
+          {/* 牌局設定：玩法 / 總牌數 / 格數參數 / 票面價格 */}
           <section>
             <h2 className="text-lg font-bold text-yellow-300 mb-3">牌局設定</h2>
+
+            {/* 玩法選擇 */}
+            <div
+              role="radiogroup"
+              aria-label="玩法選擇"
+              className="flex gap-2 mb-3"
+            >
+              {(
+                [
+                  { value: "symbol", label: "🎴 符號" },
+                  { value: "triple", label: "🎯 三同" },
+                ] as const
+              ).map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={form.mechanic === value}
+                  onClick={() => setMechanic(value)}
+                  className={`flex-1 py-2 rounded-lg text-sm font-bold border transition-colors ${
+                    form.mechanic === value
+                      ? "bg-yellow-400 text-red-900 border-yellow-400"
+                      : "bg-red-900 text-red-200 border-red-700 hover:border-yellow-400"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label htmlFor="card-count" className="block text-xs text-red-200 mb-1">
+                <label
+                  htmlFor="card-count"
+                  className="block text-xs text-red-200 mb-1"
+                >
                   總牌數
                 </label>
                 <input
                   id="card-count"
                   type="number"
                   value={form.cardCount}
-                  onChange={e => setCardCount(e.target.value)}
+                  onChange={(e) => setCardCount(e.target.value)}
                   min="1"
                   max="200"
                   aria-label="總牌數"
                   className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                 />
               </div>
+              {form.mechanic === "triple" ? (
+                <div>
+                  <label
+                    htmlFor="rows-per-card"
+                    className="block text-xs text-red-200 mb-1"
+                  >
+                    列數（1–9）
+                  </label>
+                  <input
+                    id="rows-per-card"
+                    type="number"
+                    value={form.rowsPerCard}
+                    onChange={(e) => setRowsPerCard(e.target.value)}
+                    min="1"
+                    max="9"
+                    aria-label="三同列數"
+                    className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label
+                    htmlFor="cells-per-zone"
+                    className="block text-xs text-red-200 mb-1"
+                  >
+                    每張格數（1–9）
+                  </label>
+                  <input
+                    id="cells-per-zone"
+                    type="number"
+                    value={form.cellsPerZone}
+                    onChange={(e) => setCellsPerZone(e.target.value)}
+                    min="1"
+                    max="9"
+                    aria-label="每張格數"
+                    className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
+                  />
+                </div>
+              )}
               <div>
-                <label htmlFor="cells-per-zone" className="block text-xs text-red-200 mb-1">
-                  每張格數（1–9）
-                </label>
-                <input
-                  id="cells-per-zone"
-                  type="number"
-                  value={form.cellsPerZone}
-                  onChange={e => setCellsPerZone(e.target.value)}
-                  min="1"
-                  max="9"
-                  aria-label="每張格數"
-                  className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
-                />
-              </div>
-              <div>
-                <label htmlFor="ticket-price" className="block text-xs text-red-200 mb-1">
+                <label
+                  htmlFor="ticket-price"
+                  className="block text-xs text-red-200 mb-1"
+                >
                   票面價格（元）
                 </label>
                 <input
                   id="ticket-price"
                   type="number"
                   value={form.ticketPrice}
-                  onChange={e => setTicketPrice(e.target.value)}
+                  onChange={(e) => setTicketPrice(e.target.value)}
                   min="1"
                   aria-label="票面價格"
                   className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
@@ -124,12 +199,12 @@ export default function HostPage() {
               aria-checked={form.effectsEnabled}
               onClick={toggleEffects}
               className={`relative w-12 h-6 rounded-full transition-colors ${
-                form.effectsEnabled ? 'bg-yellow-400' : 'bg-red-700'
+                form.effectsEnabled ? "bg-yellow-400" : "bg-red-700"
               }`}
             >
               <span
                 className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                  form.effectsEnabled ? 'left-7' : 'left-1'
+                  form.effectsEnabled ? "left-7" : "left-1"
                 }`}
               />
             </button>
@@ -140,7 +215,9 @@ export default function HostPage() {
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-yellow-300">分享給玩家</h2>
           {!isValid && (
-            <p className="text-sm text-red-300">請完整填寫活動名稱與至少一個有效獎項</p>
+            <p className="text-sm text-red-300">
+              請完整填寫活動名稱與至少一個有效獎項
+            </p>
           )}
           <SharePanel
             playUrl={playUrl}
@@ -149,8 +226,7 @@ export default function HostPage() {
             onCopy={copyUrl}
           />
         </div>
-
       </div>
     </main>
-  )
+  );
 }

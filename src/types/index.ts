@@ -48,8 +48,8 @@ export interface CardTheme {
   accentColor: string; // 金色等輔助色
 }
 
-// 玩法識別碼（v1 只有 symbol，v2+ 擴充）
-export type Mechanic = "symbol";
+// 玩法識別碼
+export type Mechanic = "symbol" | "triple";
 
 // 難度預設（v1 先加欄位，UI 選擇器 v2 再實作）
 export type DifficultyPreset =
@@ -63,7 +63,12 @@ export interface SymbolOptions {
   cellsPerZone: number;
 }
 
-export type MechanicOptions = SymbolOptions; // v2+ union 擴充
+// triple 玩法選項（3 zones × rowsPerCard cells，每 row 判斷三同）
+export interface TripleOptions {
+  rowsPerCard: number; // 幾組三同（1–9）
+}
+
+export type MechanicOptions = SymbolOptions | TripleOptions;
 
 // 單一卡型設定（v1 只會有一個）
 export interface CardTypeConfig {

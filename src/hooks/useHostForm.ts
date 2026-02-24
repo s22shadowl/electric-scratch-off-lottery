@@ -4,11 +4,8 @@ import {
   generateQRCode,
   encodeConfig,
 } from "@/utils/config-codec";
-import {
-  scalePrizesToTicketPrice,
-  calculateRTP,
-} from "@/utils/prize-presets";
-import type { GameConfig, Prize, DifficultyPreset } from "@/types";
+import { scalePrizesToTicketPrice, calculateRTP } from "@/utils/prize-presets";
+import type { GameConfig, Prize, DifficultyPreset, Mechanic } from "@/types";
 
 // ── 表單內部用的草稿型別（字串便於 input 綁定）─────────────────
 
@@ -27,6 +24,8 @@ export interface HostFormState {
   effectsEnabled: boolean;
   difficultyPreset: DifficultyPreset;
   ticketPrice: string; // input 字串，提交時轉 number
+  mechanic: Mechanic;
+  rowsPerCard: string; // triple 玩法列數，提交時轉 number
 }
 
 // ── 草稿 → GameConfig 轉換（失敗時回傳 null）─────────────────
@@ -35,11 +34,20 @@ export function draftToConfig(form: HostFormState): GameConfig | null {
   if (!form.sessionTitle.trim()) return null;
 
   const cardCount = parseInt(form.cardCount, 10);
-  const cellsPerZone = parseInt(form.cellsPerZone, 10);
   const ticketPrice = parseInt(form.ticketPrice, 10);
   if (!cardCount || cardCount < 1) return null;
-  if (!cellsPerZone || cellsPerZone < 1 || cellsPerZone > 9) return null;
   if (!ticketPrice || ticketPrice < 1) return null;
+
+  let mechanicOptions: GameConfig["cardTypes"][number]["mechanicOptions"];
+  if (form.mechanic === "triple") {
+    const rowsPerCard = parseInt(form.rowsPerCard, 10);
+    if (!rowsPerCard || rowsPerCard < 1 || rowsPerCard > 9) return null;
+    mechanicOptions = { rowsPerCard };
+  } else {
+    const cellsPerZone = parseInt(form.cellsPerZone, 10);
+    if (!cellsPerZone || cellsPerZone < 1 || cellsPerZone > 9) return null;
+    mechanicOptions = { cellsPerZone };
+  }
 
   const prizes: Prize[] = form.prizes
     .map((p, i) => ({
@@ -57,12 +65,12 @@ export function draftToConfig(form: HostFormState): GameConfig | null {
     sessionTitle: form.sessionTitle.trim(),
     cardTypes: [
       {
-        mechanic: "symbol" as const,
+        mechanic: form.mechanic,
         prizes,
         count: cardCount,
         themeId: "wealth-god",
         difficultyPreset: form.difficultyPreset,
-        mechanicOptions: { cellsPerZone },
+        mechanicOptions,
         ticketPrice,
       },
     ],
@@ -93,6 +101,8 @@ const defaultForm: HostFormState = {
   effectsEnabled: true,
   difficultyPreset: "standard",
   ticketPrice: "100",
+  mechanic: "symbol",
+  rowsPerCard: "3",
 };
 
 // ── Hook ─────────────────────────────────────────────────────
@@ -188,6 +198,14 @@ export function useHostForm(baseUrl: string) {
     setForm((f) => ({ ...f, ticketPrice: v }));
   }, []);
 
+  const setMechanic = useCallback((mechanic: Mechanic) => {
+    setForm((f) => ({ ...f, mechanic }));
+  }, []);
+
+  const setRowsPerCard = useCallback((v: string) => {
+    setForm((f) => ({ ...f, rowsPerCard: v }));
+  }, []);
+
   const copyUrl = useCallback(async () => {
     if (!playUrl) return;
     await navigator.clipboard.writeText(playUrl);
@@ -215,6 +233,8 @@ export function useHostForm(baseUrl: string) {
     toggleEffects,
     setDifficultyPreset,
     setTicketPrice,
+    setMechanic,
+    setRowsPerCard,
     copyUrl,
   };
 }

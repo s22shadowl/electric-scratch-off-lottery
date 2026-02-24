@@ -11,11 +11,12 @@ export default function ScratchCard({ cardId }: Props) {
 
   if (!card) return null;
 
-  const { cells } = card.zones[0]!;
-  const revealedCount = cells.filter((c) => c.isRevealed).length;
+  const cardTypeConfig = config.cardTypes[card.cardTypeIndex];
+  const mechanic = cardTypeConfig?.mechanic ?? "symbol";
+  const allCells = card.zones.flatMap((z) => z.cells);
+  const revealedCount = allCells.filter((c) => c.isRevealed).length;
   const hasWinnings = card.totalWinnings > 0;
   const isCompleted = card.status === "completed";
-  const cardTypeConfig = config.cardTypes[card.cardTypeIndex];
   const maxPrize = Math.max(
     ...(cardTypeConfig?.prizes.map((p) => p.amount) ?? [0]),
     0,
@@ -36,26 +37,48 @@ export default function ScratchCard({ cardId }: Props) {
         </p>
       </header>
 
-      {/* 刮除格網格 */}
-      <div
-        className="flex flex-wrap gap-2 justify-center"
-        style={{ maxWidth: `${Math.ceil(cells.length / 2) * 138}px` }}
-      >
-        {cells.map((cell) => (
-          <ScratchCellCanvas
-            key={cell.id}
-            cell={cell}
-            cardId={cardId}
-            maxPrize={maxPrize}
-          />
-        ))}
-      </div>
+      {/* 刮除格：symbol=flex-wrap，triple=row-first 每列加外框 */}
+      {mechanic === "triple" ? (
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: card.zones[0]!.cells.length }, (_, row) => (
+            <div
+              key={row}
+              className="flex gap-2 items-center justify-center rounded-lg border border-yellow-500/30 bg-red-950/40 px-2 py-1.5"
+            >
+              {card.zones.map((zone) => (
+                <ScratchCellCanvas
+                  key={zone.cells[row]!.id}
+                  cell={zone.cells[row]!}
+                  cardId={cardId}
+                  maxPrize={maxPrize}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          className="flex flex-wrap gap-2 justify-center"
+          style={{
+            maxWidth: `${Math.ceil(card.zones[0]!.cells.length / 2) * 138}px`,
+          }}
+        >
+          {card.zones[0]!.cells.map((cell) => (
+            <ScratchCellCanvas
+              key={cell.id}
+              cell={cell}
+              cardId={cardId}
+              maxPrize={maxPrize}
+            />
+          ))}
+        </div>
+      )}
 
       {/* 進度提示 */}
       <footer className="mt-3 text-center">
         {!isCompleted && (
           <p className="text-red-300 text-xs">
-            已刮開 {revealedCount} / {cells.length} 格
+            已刮開 {revealedCount} / {allCells.length} 格
           </p>
         )}
 

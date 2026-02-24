@@ -6,7 +6,13 @@ import {
   buildDeck,
   generateSessionCode,
 } from "./lottery";
-import type { Prize, GameConfig } from "@/types";
+import type {
+  Prize,
+  GameConfig,
+  SymbolOptions,
+  TripleOptions,
+  CardTypeConfig,
+} from "@/types";
 
 // ── 測試資料 ──────────────────────────────────────────────
 
@@ -141,7 +147,7 @@ describe("buildCard", () => {
   it("卡片格數應等於 mechanicOptions.cellsPerZone", () => {
     const card = buildCard(cardType, "card-1", "TEST-01", 0);
     expect(card.zones[0]!.cells).toHaveLength(
-      cardType.mechanicOptions.cellsPerZone,
+      (cardType.mechanicOptions as SymbolOptions).cellsPerZone,
     );
   });
 
@@ -211,7 +217,7 @@ describe("buildDeck", () => {
     deck.forEach((card) => {
       expect(card.zones[0]).toBeDefined();
       expect(card.zones[0]!.cells).toHaveLength(
-        config.cardTypes[0]!.mechanicOptions.cellsPerZone,
+        (config.cardTypes[0]!.mechanicOptions as SymbolOptions).cellsPerZone,
       );
     });
   });
@@ -254,5 +260,85 @@ describe("buildDeck", () => {
     expect(deck[2]!.cardTypeIndex).toBe(1);
     expect(deck[3]!.cardTypeIndex).toBe(1);
     expect(deck[4]!.cardTypeIndex).toBe(1);
+  });
+});
+
+// ── buildCard (triple) ────────────────────────────────────
+
+const tripleCardType: CardTypeConfig = {
+  mechanic: "triple",
+  prizes,
+  count: 3,
+  themeId: "wealth-god",
+  difficultyPreset: "standard",
+  mechanicOptions: { rowsPerCard: 3 } satisfies TripleOptions,
+  ticketPrice: 100,
+};
+
+describe("buildCard (triple)", () => {
+  it("三同卡片應有 3 個 zones", () => {
+    const card = buildCard(tripleCardType, "card-t", "TEST-01", 0);
+    expect(card.zones).toHaveLength(3);
+  });
+
+  it("每個 zone 應有 rowsPerCard 個 cells", () => {
+    const card = buildCard(tripleCardType, "card-t", "TEST-01", 0);
+    card.zones.forEach((zone) => {
+      expect(zone.cells).toHaveLength(
+        (tripleCardType.mechanicOptions as TripleOptions).rowsPerCard,
+      );
+    });
+  });
+
+  it("所有 cell.id 應唯一", () => {
+    const card = buildCard(tripleCardType, "card-t", "TEST-01", 0);
+    const ids = card.zones.flatMap((z) => z.cells.map((c) => c.id));
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("cell.id 格式應包含 zone index（zone-aware）", () => {
+    const card = buildCard(tripleCardType, "card-t", "TEST-01", 0);
+    card.zones.forEach((zone, z) => {
+      zone.cells.forEach((cell, i) => {
+        expect(cell.id).toBe(`card-t-zone-${z}-cell-${i}`);
+      });
+    });
+  });
+
+  it("卡片初始狀態：status=in-pile, totalWinnings=0", () => {
+    const card = buildCard(tripleCardType, "card-t", "TEST-01", 0);
+    expect(card.status).toBe("in-pile");
+    expect(card.totalWinnings).toBe(0);
+  });
+
+  it("不變量：同一列三格 prize.id 一致時，prize.isWin 必須為 true（100 次迭代）", () => {
+    const rowsPerCard = (tripleCardType.mechanicOptions as TripleOptions)
+      .rowsPerCard;
+    for (let iter = 0; iter < 100; iter++) {
+      const card = buildCard(tripleCardType, "card-t", "TEST-01", 0);
+      for (let row = 0; row < rowsPerCard; row++) {
+        const p0 = card.zones[0]!.cells[row]!.prize;
+        const p1 = card.zones[1]!.cells[row]!.prize;
+        const p2 = card.zones[2]!.cells[row]!.prize;
+        if (p0.id === p1.id && p1.id === p2.id) {
+          expect(p0.isWin).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("不變量：落敗列（zone[0].prize.isWin=false）zone[2] 的 prize.id 必須不同（100 次迭代）", () => {
+    const rowsPerCard = (tripleCardType.mechanicOptions as TripleOptions)
+      .rowsPerCard;
+    for (let iter = 0; iter < 100; iter++) {
+      const card = buildCard(tripleCardType, "card-t", "TEST-01", 0);
+      for (let row = 0; row < rowsPerCard; row++) {
+        const p0 = card.zones[0]!.cells[row]!.prize;
+        const p2 = card.zones[2]!.cells[row]!.prize;
+        if (!p0.isWin) {
+          expect(p2.id).not.toBe(p0.id);
+        }
+      }
+    }
   });
 });
