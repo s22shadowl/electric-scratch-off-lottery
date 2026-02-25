@@ -46,6 +46,12 @@ function isValidCardTypeConfig(ct: unknown): ct is CardTypeConfig {
       mechanicOptions["rowsPerCard"] < 1
     )
       return false;
+  } else if (obj["mechanic"] === "compare") {
+    if (
+      typeof mechanicOptions["roundsPerCard"] !== "number" ||
+      mechanicOptions["roundsPerCard"] < 1
+    )
+      return false;
   } else {
     if (
       typeof mechanicOptions["cellsPerZone"] !== "number" ||
@@ -86,18 +92,27 @@ function validateConfig(raw: unknown): GameConfig {
       const opts = ctObj["mechanicOptions"] as
         | Record<string, unknown>
         | undefined;
-      const isTriple = ctObj["mechanic"] === "triple";
+      const mechanic = ctObj["mechanic"];
+      const isTriple = mechanic === "triple";
+      const isCompare = mechanic === "compare";
+      if (!opts) {
+        throw new Error("cardTypes[].mechanicOptions 為必填");
+      }
       if (
-        !opts ||
-        (isTriple
+        isTriple
           ? typeof opts["rowsPerCard"] !== "number" || opts["rowsPerCard"] < 1
-          : typeof opts["cellsPerZone"] !== "number" ||
-            opts["cellsPerZone"] < 1)
+          : isCompare
+            ? typeof opts["roundsPerCard"] !== "number" ||
+              opts["roundsPerCard"] < 1
+            : typeof opts["cellsPerZone"] !== "number" ||
+              opts["cellsPerZone"] < 1
       ) {
         throw new Error(
           isTriple
             ? "cardTypes[].mechanicOptions.rowsPerCard 必須為正整數"
-            : "cardTypes[].mechanicOptions.cellsPerZone 必須為正整數",
+            : isCompare
+              ? "cardTypes[].mechanicOptions.roundsPerCard 必須為正整數"
+              : "cardTypes[].mechanicOptions.cellsPerZone 必須為正整數",
         );
       }
       if (

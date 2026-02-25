@@ -7,6 +7,7 @@ import type {
   CardTypeConfig,
   SymbolOptions,
   TripleOptions,
+  CompareOptions,
 } from "@/types";
 
 // 生成 4 碼大寫英文 session code
@@ -64,6 +65,69 @@ function buildZone(
       buildCell(cardId, zoneIndex, i, prizes),
     ),
   };
+}
+
+// 比大小玩法用亂數（整數，含兩端）
+function randInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+const COMPARE_MIN = 30;
+const COMPARE_MAX = 60;
+
+// 建立比大小玩法的 3 個刮除區（zone[0]=玩家 / zone[1]=莊家 / zone[2]=獎金）
+function buildCompareZones(
+  cardId: string,
+  roundsPerCard: number,
+  normalized: Prize[],
+): ScratchZone[] {
+  const playerCells: ScratchCell[] = [];
+  const dealerCells: ScratchCell[] = [];
+  const prizeCells: ScratchCell[] = [];
+  const dummyPrize = normalized[0]!;
+
+  for (let row = 0; row < roundsPerCard; row++) {
+    const rowPrize = drawPrize(normalized);
+    let playerVal: number;
+    let dealerVal: number;
+
+    if (rowPrize.isWin) {
+      // 中獎：玩家數字嚴格大於莊家（31–60 vs 30–player-1）
+      playerVal = randInt(COMPARE_MIN + 1, COMPARE_MAX);
+      dealerVal = randInt(COMPARE_MIN, playerVal - 1);
+    } else {
+      // 落敗：玩家數字 <= 莊家（平手算輸，30–60 vs player–60）
+      dealerVal = randInt(COMPARE_MIN, COMPARE_MAX);
+      playerVal = randInt(COMPARE_MIN, dealerVal);
+    }
+
+    playerCells.push({
+      id: `${cardId}-zone-0-cell-${row}`,
+      prize: dummyPrize,
+      scratchProgress: 0,
+      isRevealed: false,
+      compareValue: playerVal,
+    });
+    dealerCells.push({
+      id: `${cardId}-zone-1-cell-${row}`,
+      prize: dummyPrize,
+      scratchProgress: 0,
+      isRevealed: false,
+      compareValue: dealerVal,
+    });
+    prizeCells.push({
+      id: `${cardId}-zone-2-cell-${row}`,
+      prize: rowPrize,
+      scratchProgress: 0,
+      isRevealed: false,
+    });
+  }
+
+  return [
+    { id: `${cardId}-zone-0`, shapeVariant: "left", cells: playerCells },
+    { id: `${cardId}-zone-1`, shapeVariant: "right", cells: dealerCells },
+    { id: `${cardId}-zone-2`, shapeVariant: "single", cells: prizeCells },
+  ];
 }
 
 // 建立三同玩法的 3 個刮除區（各區 rowsPerCard 格，同列三格對應一組三同）
@@ -134,14 +198,20 @@ export function buildCard(
           (cardTypeConfig.mechanicOptions as TripleOptions).rowsPerCard,
           normalized,
         )
-      : [
-          buildZone(
+      : cardTypeConfig.mechanic === "compare"
+        ? buildCompareZones(
             cardId,
-            0,
-            (cardTypeConfig.mechanicOptions as SymbolOptions).cellsPerZone,
+            (cardTypeConfig.mechanicOptions as CompareOptions).roundsPerCard,
             normalized,
-          ),
-        ];
+          )
+        : [
+            buildZone(
+              cardId,
+              0,
+              (cardTypeConfig.mechanicOptions as SymbolOptions).cellsPerZone,
+              normalized,
+            ),
+          ];
   return {
     id: cardId,
     serialNumber,

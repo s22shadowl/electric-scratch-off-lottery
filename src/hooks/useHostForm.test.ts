@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { draftToConfig, useHostForm } from "./useHostForm";
 import type { HostFormState } from "./useHostForm";
-import type { SymbolOptions, TripleOptions } from "@/types";
+import type { SymbolOptions, TripleOptions, CompareOptions } from "@/types";
 
 // ── 測試資料 ──────────────────────────────────────────────
 
@@ -133,6 +133,30 @@ describe("draftToConfig", () => {
   it("mechanic=triple 且 rowsPerCard=0 應回傳 null", () => {
     expect(
       draftToConfig({ ...validForm, mechanic: "triple", rowsPerCard: "0" }),
+    ).toBeNull();
+  });
+
+  it("mechanic=compare 時輸出 roundsPerCard 而非 cellsPerZone", () => {
+    const config = draftToConfig({
+      ...validForm,
+      mechanic: "compare",
+      rowsPerCard: "4",
+    });
+    expect(config?.cardTypes[0]?.mechanic).toBe("compare");
+    expect(
+      (config?.cardTypes[0]?.mechanicOptions as CompareOptions).roundsPerCard,
+    ).toBe(4);
+  });
+
+  it("mechanic=compare 且 rowsPerCard 超過 9 應回傳 null", () => {
+    expect(
+      draftToConfig({ ...validForm, mechanic: "compare", rowsPerCard: "10" }),
+    ).toBeNull();
+  });
+
+  it("mechanic=compare 且 rowsPerCard=0 應回傳 null", () => {
+    expect(
+      draftToConfig({ ...validForm, mechanic: "compare", rowsPerCard: "0" }),
     ).toBeNull();
   });
 });

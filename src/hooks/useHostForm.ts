@@ -5,7 +5,13 @@ import {
   encodeConfig,
 } from "@/utils/config-codec";
 import { scalePrizesToTicketPrice, calculateRTP } from "@/utils/prize-presets";
-import type { GameConfig, Prize, DifficultyPreset, Mechanic } from "@/types";
+import type {
+  GameConfig,
+  Prize,
+  DifficultyPreset,
+  Mechanic,
+  CompareOptions,
+} from "@/types";
 
 // ── 表單內部用的草稿型別（字串便於 input 綁定）─────────────────
 
@@ -43,6 +49,10 @@ export function draftToConfig(form: HostFormState): GameConfig | null {
     const rowsPerCard = parseInt(form.rowsPerCard, 10);
     if (!rowsPerCard || rowsPerCard < 1 || rowsPerCard > 9) return null;
     mechanicOptions = { rowsPerCard };
+  } else if (form.mechanic === "compare") {
+    const roundsPerCard = parseInt(form.rowsPerCard, 10);
+    if (!roundsPerCard || roundsPerCard < 1 || roundsPerCard > 9) return null;
+    mechanicOptions = { roundsPerCard } satisfies CompareOptions;
   } else {
     const cellsPerZone = parseInt(form.cellsPerZone, 10);
     if (!cellsPerZone || cellsPerZone < 1 || cellsPerZone > 9) return null;

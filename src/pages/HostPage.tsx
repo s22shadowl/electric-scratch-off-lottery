@@ -90,6 +90,7 @@ export default function HostPage() {
                 [
                   { value: "symbol", label: "🎴 符號" },
                   { value: "triple", label: "🎯 三同" },
+                  { value: "compare", label: "🃏 比大小" },
                 ] as const
               ).map(({ value, label }) => (
                 <button
@@ -128,13 +129,15 @@ export default function HostPage() {
                   className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                 />
               </div>
-              {form.mechanic === "triple" ? (
+              {form.mechanic === "triple" || form.mechanic === "compare" ? (
                 <div>
                   <label
                     htmlFor="rows-per-card"
                     className="block text-xs text-red-200 mb-1"
                   >
-                    列數（1–9）
+                    {form.mechanic === "compare"
+                      ? "回合數（1–9）"
+                      : "列數（1–9）"}
                   </label>
                   <input
                     id="rows-per-card"

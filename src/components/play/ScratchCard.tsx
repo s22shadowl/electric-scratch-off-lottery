@@ -37,7 +37,7 @@ export default function ScratchCard({ cardId }: Props) {
         </p>
       </header>
 
-      {/* 刮除格：symbol=flex-wrap，triple=row-first 每列加外框 */}
+      {/* 刮除格：symbol=flex-wrap，triple/compare=row-first 每列加外框 */}
       {mechanic === "triple" ? (
         <div className="flex flex-col gap-2">
           {Array.from({ length: card.zones[0]!.cells.length }, (_, row) => (
@@ -53,6 +53,38 @@ export default function ScratchCard({ cardId }: Props) {
                   maxPrize={maxPrize}
                 />
               ))}
+            </div>
+          ))}
+        </div>
+      ) : mechanic === "compare" ? (
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: card.zones[0]!.cells.length }, (_, row) => (
+            <div
+              key={row}
+              className="flex gap-1.5 items-center justify-center rounded-lg border border-yellow-500/30 bg-red-950/40 px-2 py-1.5"
+            >
+              {/* 你的 */}
+              <ScratchCellCanvas
+                cell={card.zones[0]!.cells[row]!}
+                cardId={cardId}
+                maxPrize={maxPrize}
+              />
+              {/* VS */}
+              <span className="text-yellow-400/70 font-black text-xs shrink-0">
+                VS
+              </span>
+              {/* 莊家 */}
+              <ScratchCellCanvas
+                cell={card.zones[1]!.cells[row]!}
+                cardId={cardId}
+                maxPrize={maxPrize}
+              />
+              {/* 獎金 */}
+              <ScratchCellCanvas
+                cell={card.zones[2]!.cells[row]!}
+                cardId={cardId}
+                maxPrize={maxPrize}
+              />
             </div>
           ))}
         </div>

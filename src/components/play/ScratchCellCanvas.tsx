@@ -41,9 +41,14 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
     if (!cell.isRevealed) initCanvas();
   }, [cell.isRevealed, initCanvas]);
 
-  const isWin = cell.prize.isWin;
+  // compare 玩法：compareValue 定義時為數字格（玩家/莊家），否則為一般獎項格
+  const isNumberCell = cell.compareValue !== undefined;
+  const isWin = isNumberCell ? false : cell.prize.isWin;
   const winLevel =
     cell.isRevealed && isWin ? getWinLevel(cell.prize.amount, maxPrize) : 0;
+  const displayLabel = isNumberCell
+    ? String(cell.compareValue)
+    : cell.prize.label;
 
   return (
     <div
@@ -54,21 +59,27 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
       <div
         className={[
           "absolute inset-0 flex flex-col items-center justify-center rounded-lg",
-          isWin
-            ? "bg-gradient-to-br from-yellow-700 to-yellow-900"
-            : "bg-gradient-to-br from-red-900 to-red-950",
+          isNumberCell
+            ? "bg-gradient-to-br from-slate-700 to-slate-900"
+            : isWin
+              ? "bg-gradient-to-br from-yellow-700 to-yellow-900"
+              : "bg-gradient-to-br from-red-900 to-red-950",
         ].join(" ")}
       >
         <span
           className={[
-            "text-lg font-black leading-none",
-            isWin ? "text-yellow-300" : "text-red-400",
+            "font-black leading-none",
+            isNumberCell
+              ? "text-3xl text-white"
+              : isWin
+                ? "text-lg text-yellow-300"
+                : "text-lg text-red-400",
             winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
           ].join(" ")}
         >
-          {cell.prize.label}
+          {displayLabel}
         </span>
-        {cell.prize.symbolCode && (
+        {!isNumberCell && cell.prize.symbolCode && (
           <span className="text-[9px] text-red-500 tracking-widest mt-0.5">
             {cell.prize.symbolCode}
           </span>

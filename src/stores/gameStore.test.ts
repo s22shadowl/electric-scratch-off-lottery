@@ -350,3 +350,89 @@ describe("updateCellProgress (triple)", () => {
     expect(updated?.totalWinnings).toBe(expectedWinnings);
   });
 });
+
+// ── updateCellProgress (compare) ──────────────────────────
+
+const compareConfig: GameConfig = {
+  sessionTitle: "比大小測試",
+  cardTypes: [
+    {
+      mechanic: "compare",
+      prizes: [
+        {
+          id: "p-lose",
+          label: "謝謝",
+          amount: 0,
+          probability: 2,
+          isWin: false,
+        },
+        {
+          id: "p-win",
+          label: "$100",
+          amount: 100,
+          probability: 1,
+          isWin: true,
+        },
+      ],
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { roundsPerCard: 3 },
+      ticketPrice: 100,
+    },
+  ],
+  effectsEnabled: true,
+};
+
+describe("updateCellProgress (compare)", () => {
+  it("揭曉部分格子（只 zone[0]）時 totalWinnings 應維持 0", () => {
+    useGameStore.getState().initGame(compareConfig);
+    const card = useGameStore.getState().cards[0]!;
+    card.zones[0]!.cells.forEach((cell) => {
+      useGameStore
+        .getState()
+        .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+    });
+    const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
+    expect(updated?.totalWinnings).toBe(0);
+    expect(updated?.status).not.toBe("completed");
+  });
+
+  it("三個 zones 全部揭曉後 status 應為 completed", () => {
+    useGameStore.getState().initGame(compareConfig);
+    const card = useGameStore.getState().cards[0]!;
+    card.zones.forEach((zone) => {
+      zone.cells.forEach((cell) => {
+        useGameStore
+          .getState()
+          .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+      });
+    });
+    const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
+    expect(updated?.status).toBe("completed");
+  });
+
+  it("全部揭曉後 totalWinnings 應等於比大小中獎列的獎金加總", () => {
+    useGameStore.getState().initGame(compareConfig);
+    const card = useGameStore.getState().cards[0]!;
+
+    // 從建牌結果計算預期獎金（玩家 compareValue > 莊家 compareValue → 贏 zone[2] prize）
+    const expectedWinnings = card.zones[0]!.cells.reduce((sum, _, row) => {
+      const playerVal = card.zones[0]!.cells[row]!.compareValue!;
+      const dealerVal = card.zones[1]!.cells[row]!.compareValue!;
+      const prize = card.zones[2]!.cells[row]!.prize;
+      return playerVal > dealerVal ? sum + prize.amount : sum;
+    }, 0);
+
+    card.zones.forEach((zone) => {
+      zone.cells.forEach((cell) => {
+        useGameStore
+          .getState()
+          .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+      });
+    });
+
+    const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
+    expect(updated?.totalWinnings).toBe(expectedWinnings);
+  });
+});

@@ -16,6 +16,7 @@ export interface ScratchCell {
   prize: Prize; // 格子底下藏的獎項（建卡時由抽獎邏輯決定）
   scratchProgress: number; // 0–1，Canvas 刮除覆蓋比例
   isRevealed: boolean; // scratchProgress 達門檻後設為 true
+  compareValue?: number; // compare 玩法專用：zone[0/1] 顯示的 30–60 數字
 }
 
 // 刮除區（v1 每張卡固定 1 個）
@@ -49,7 +50,7 @@ export interface CardTheme {
 }
 
 // 玩法識別碼
-export type Mechanic = "symbol" | "triple";
+export type Mechanic = "symbol" | "triple" | "compare";
 
 // 難度預設（v1 先加欄位，UI 選擇器 v2 再實作）
 export type DifficultyPreset =
@@ -68,7 +69,12 @@ export interface TripleOptions {
   rowsPerCard: number; // 幾組三同（1–9）
 }
 
-export type MechanicOptions = SymbolOptions | TripleOptions;
+// compare 玩法選項（3 zones × roundsPerCard cells：你的 vs 莊家 vs 獎金）
+export interface CompareOptions {
+  roundsPerCard: number; // 幾回合比大小（1–9）
+}
+
+export type MechanicOptions = SymbolOptions | TripleOptions | CompareOptions;
 
 // 單一卡型設定（v1 只會有一個）
 export interface CardTypeConfig {

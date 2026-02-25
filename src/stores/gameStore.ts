@@ -57,6 +57,27 @@ function resolveTripleWinnings(card: ScratchCard): number {
   }, 0);
 }
 
+// ── 純函式：比大小玩法的完成獎金計算（compareValue 列對列比對）──
+
+function resolveCompareWinnings(card: ScratchCard): number {
+  const [zone0, zone1, zone2] = card.zones;
+  if (!zone0 || !zone1 || !zone2) return 0;
+  return zone0.cells.reduce((sum, _, row) => {
+    const playerVal = zone0.cells[row]?.compareValue;
+    const dealerVal = zone1.cells[row]?.compareValue;
+    const prize = zone2.cells[row]?.prize;
+    if (
+      playerVal !== undefined &&
+      dealerVal !== undefined &&
+      prize &&
+      playerVal > dealerVal
+    ) {
+      return sum + prize.amount;
+    }
+    return sum;
+  }, 0);
+}
+
 // ── 純函式：更新單張卡片（不可變）────────────────────────────
 
 function applyProgressToCard(
@@ -84,6 +105,11 @@ function applyProgressToCard(
     // 三同：全部揭曉後計算列對列勝負；未完成時維持 0
     totalWinnings = allRevealed
       ? resolveTripleWinnings({ ...card, zones: updatedZones })
+      : 0;
+  } else if (mechanic === "compare") {
+    // 比大小：全部揭曉後依 compareValue 列對列計算；未完成時維持 0
+    totalWinnings = allRevealed
+      ? resolveCompareWinnings({ ...card, zones: updatedZones })
       : 0;
   } else {
     // symbol：即時加總已揭曉的中獎格

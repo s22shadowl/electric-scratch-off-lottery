@@ -148,6 +148,39 @@ describe("decodeConfig", () => {
     expect(() => decodeConfig(broken)).toThrow(/rowsPerCard/);
   });
 
+  it("compare 玩法 config 應能 encode/decode（round-trip）", () => {
+    const compareConfig: GameConfig = {
+      ...config,
+      cardTypes: [
+        {
+          mechanic: "compare",
+          prizes: config.cardTypes[0]!.prizes,
+          count: 5,
+          themeId: "wealth-god",
+          difficultyPreset: "standard",
+          mechanicOptions: { roundsPerCard: 3 },
+          ticketPrice: 100,
+        },
+      ],
+    };
+    const decoded = decodeConfig(encodeConfig(compareConfig));
+    expect(decoded).toEqual(compareConfig);
+  });
+
+  it("compare cardType 缺少 roundsPerCard 應拋出錯誤", () => {
+    const broken = encodeConfig({
+      ...config,
+      cardTypes: [
+        {
+          ...config.cardTypes[0]!,
+          mechanic: "compare" as const,
+          mechanicOptions: {} as never,
+        },
+      ],
+    });
+    expect(() => decodeConfig(broken)).toThrow(/roundsPerCard/);
+  });
+
   it("缺少 ticketPrice 的舊格式應自動補值 100（向下相容）", () => {
     // 建立一個沒有 ticketPrice 的舊格式 config
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

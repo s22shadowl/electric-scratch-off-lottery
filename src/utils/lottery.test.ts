@@ -11,6 +11,7 @@ import type {
   GameConfig,
   SymbolOptions,
   TripleOptions,
+  CompareOptions,
   CardTypeConfig,
 } from "@/types";
 
@@ -337,6 +338,114 @@ describe("buildCard (triple)", () => {
         const p2 = card.zones[2]!.cells[row]!.prize;
         if (!p0.isWin) {
           expect(p2.id).not.toBe(p0.id);
+        }
+      }
+    }
+  });
+});
+
+// ── buildCard (compare) ───────────────────────────────────
+
+const compareCardType: CardTypeConfig = {
+  mechanic: "compare",
+  prizes,
+  count: 3,
+  themeId: "wealth-god",
+  difficultyPreset: "standard",
+  mechanicOptions: { roundsPerCard: 3 } satisfies CompareOptions,
+  ticketPrice: 100,
+};
+
+describe("buildCard (compare)", () => {
+  it("比大小卡片應有 3 個 zones（你的 / 莊家 / 獎金）", () => {
+    const card = buildCard(compareCardType, "card-c", "TEST-01", 0);
+    expect(card.zones).toHaveLength(3);
+  });
+
+  it("每個 zone 應有 roundsPerCard 個 cells", () => {
+    const card = buildCard(compareCardType, "card-c", "TEST-01", 0);
+    const rounds = (compareCardType.mechanicOptions as CompareOptions)
+      .roundsPerCard;
+    card.zones.forEach((zone) => {
+      expect(zone.cells).toHaveLength(rounds);
+    });
+  });
+
+  it("所有 cell.id 應唯一", () => {
+    const card = buildCard(compareCardType, "card-c", "TEST-01", 0);
+    const ids = card.zones.flatMap((z) => z.cells.map((c) => c.id));
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("cell.id 格式應包含 zone index（zone-aware）", () => {
+    const card = buildCard(compareCardType, "card-c", "TEST-01", 0);
+    card.zones.forEach((zone, z) => {
+      zone.cells.forEach((cell, i) => {
+        expect(cell.id).toBe(`card-c-zone-${z}-cell-${i}`);
+      });
+    });
+  });
+
+  it("卡片初始狀態：status=in-pile, totalWinnings=0", () => {
+    const card = buildCard(compareCardType, "card-c", "TEST-01", 0);
+    expect(card.status).toBe("in-pile");
+    expect(card.totalWinnings).toBe(0);
+  });
+
+  it("zone[0/1] 的 compareValue 應在 30–60 範圍內（100 次迭代）", () => {
+    for (let iter = 0; iter < 100; iter++) {
+      const card = buildCard(compareCardType, "card-c", "TEST-01", 0);
+      for (const zone of [card.zones[0]!, card.zones[1]!]) {
+        for (const cell of zone.cells) {
+          expect(cell.compareValue).toBeGreaterThanOrEqual(30);
+          expect(cell.compareValue).toBeLessThanOrEqual(60);
+        }
+      }
+    }
+  });
+
+  it("zone[2]（獎金格）的 compareValue 應為 undefined", () => {
+    const card = buildCard(compareCardType, "card-c", "TEST-01", 0);
+    card.zones[2]!.cells.forEach((cell) => {
+      expect(cell.compareValue).toBeUndefined();
+    });
+  });
+
+  it("zone[2] 的 prize 應來自獎項池", () => {
+    const prizeIds = compareCardType.prizes.map((p) => p.id);
+    const card = buildCard(compareCardType, "card-c", "TEST-01", 0);
+    card.zones[2]!.cells.forEach((cell) => {
+      expect(prizeIds).toContain(cell.prize.id);
+    });
+  });
+
+  it("不變量：中獎列 zone[0].compareValue > zone[1].compareValue（100 次迭代）", () => {
+    const rounds = (compareCardType.mechanicOptions as CompareOptions)
+      .roundsPerCard;
+    for (let iter = 0; iter < 100; iter++) {
+      const card = buildCard(compareCardType, "card-c", "TEST-01", 0);
+      for (let row = 0; row < rounds; row++) {
+        const prizeCell = card.zones[2]!.cells[row]!;
+        if (prizeCell.prize.isWin) {
+          const playerVal = card.zones[0]!.cells[row]!.compareValue!;
+          const dealerVal = card.zones[1]!.cells[row]!.compareValue!;
+          expect(playerVal).toBeGreaterThan(dealerVal);
+        }
+      }
+    }
+  });
+
+  it("不變量：落敗列 zone[0].compareValue <= zone[1].compareValue（平手算輸，100 次迭代）", () => {
+    const rounds = (compareCardType.mechanicOptions as CompareOptions)
+      .roundsPerCard;
+    for (let iter = 0; iter < 100; iter++) {
+      const card = buildCard(compareCardType, "card-c", "TEST-01", 0);
+      for (let row = 0; row < rounds; row++) {
+        const prizeCell = card.zones[2]!.cells[row]!;
+        if (!prizeCell.prize.isWin) {
+          const playerVal = card.zones[0]!.cells[row]!.compareValue!;
+          const dealerVal = card.zones[1]!.cells[row]!.compareValue!;
+          expect(playerVal).toBeLessThanOrEqual(dealerVal);
         }
       }
     }
