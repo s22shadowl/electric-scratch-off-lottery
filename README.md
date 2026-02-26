@@ -60,7 +60,7 @@ npm run build    # 建置正式版本
 | 刮除效果 | 原生 Canvas API（`destination-out`）|
 | 設定傳遞 | base64url URL 參數 |
 | QR Code | `qrcode` |
-| 截圖 | `html2canvas` |
+| 截圖 | `html-to-image` |
 | 測試 | Vitest + Testing Library |
 
 ---
@@ -91,9 +91,15 @@ npm run build    # 建置正式版本
 
 **新玩法**
 
-- [ ] **三同（Triple Match）**：刮開 3 區，全同即中，10 種符號池
-- [ ] **比大小（High-Low）**：結果預先決定，平手算輸
-- [ ] **賓果（Bingo）**：3×3～6×6 可設定，可重複中獎
+- [x] **三同（Triple Match）**：刮開 3 區，全同即中，10 種符號池
+- [x] **比大小（High-Low）**：3 欄（你的號碼 / 莊家號碼 / 獎金），你大於莊即中，平手算輸，結果預先決定
+- [ ] **賓果（Bingo）**：3×3～6×6 可設定；2 個區域（開獎號碼自動顯示 + 賓果格刮除）；可重複中獎（多條線多重獎）；獎金以 prizePerLine × 連線數計算
+
+**工具與 UX**
+
+- [ ] **game-math.ts 集中**：將 calculateRTP、classifyDifficulty、calcBingoLineProbabilities 等計算函式集中至獨立模組
+- [ ] **獎池查看**：玩家可在刮刮樂中點 ⓘ 圖示查看本張獎池；主持人亦可在設定後點 ⓘ 預覽獎池分布
+- [ ] **Bingo 後續優化**：開獎號碼區改為逐格刮開（目前版本自動全部顯示）
 
 **視覺升級**
 
