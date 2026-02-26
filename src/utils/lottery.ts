@@ -8,6 +8,7 @@ import type {
   SymbolOptions,
   TripleOptions,
   CompareOptions,
+  BingoOptions,
 } from "@/types";
 
 // 生成 4 碼大寫英文 session code
@@ -183,6 +184,65 @@ function buildTripleZones(
   }));
 }
 
+// 建立賓果玩法的 2 個刮除區（zone[0]=開獎號碼自動揭曉 / zone[1]=賓果格）
+function buildBingoZones(cardId: string, options: BingoOptions): ScratchZone[] {
+  const { gridSize, drawnCount } = options;
+  const poolSize = Math.ceil(gridSize * gridSize * 2);
+
+  // 從 1..poolSize 隨機不重複取樣 n 個數
+  function sampleWithoutReplacement(
+    n: number,
+    exclude?: Set<number>,
+  ): number[] {
+    const pool: number[] = [];
+    for (let i = 1; i <= poolSize; i++) {
+      if (!exclude?.has(i)) pool.push(i);
+    }
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+    }
+    return pool.slice(0, n);
+  }
+
+  // zone[0]：開獎號碼（全部 isRevealed=true）
+  const drawnNums = sampleWithoutReplacement(drawnCount);
+  const drawnCells: ScratchCell[] = drawnNums.map((num, i) => ({
+    id: `${cardId}-zone-0-cell-${i}`,
+    prize: {
+      id: "dummy",
+      label: String(num),
+      amount: 0,
+      probability: 1,
+      isWin: false,
+    },
+    scratchProgress: 1,
+    isRevealed: true,
+    bingoNumber: num,
+  }));
+
+  // zone[1]：賓果格（gridSize²，從整個 pool 不重複取樣，獨立於 zone[0]）
+  const gridNums = sampleWithoutReplacement(gridSize * gridSize);
+  const gridCells: ScratchCell[] = gridNums.map((num, i) => ({
+    id: `${cardId}-zone-1-cell-${i}`,
+    prize: {
+      id: "dummy",
+      label: String(num),
+      amount: 0,
+      probability: 1,
+      isWin: false,
+    },
+    scratchProgress: 0,
+    isRevealed: false,
+    bingoNumber: num,
+  }));
+
+  return [
+    { id: `${cardId}-zone-0`, shapeVariant: "single", cells: drawnCells },
+    { id: `${cardId}-zone-1`, shapeVariant: "single", cells: gridCells },
+  ];
+}
+
 // 建立一張刮刮樂卡（在建卡時依機率分配獎項）
 export function buildCard(
   cardTypeConfig: CardTypeConfig,
@@ -204,14 +264,19 @@ export function buildCard(
             (cardTypeConfig.mechanicOptions as CompareOptions).roundsPerCard,
             normalized,
           )
-        : [
-            buildZone(
+        : cardTypeConfig.mechanic === "bingo"
+          ? buildBingoZones(
               cardId,
-              0,
-              (cardTypeConfig.mechanicOptions as SymbolOptions).cellsPerZone,
-              normalized,
-            ),
-          ];
+              cardTypeConfig.mechanicOptions as BingoOptions,
+            )
+          : [
+              buildZone(
+                cardId,
+                0,
+                (cardTypeConfig.mechanicOptions as SymbolOptions).cellsPerZone,
+                normalized,
+              ),
+            ];
   return {
     id: cardId,
     serialNumber,

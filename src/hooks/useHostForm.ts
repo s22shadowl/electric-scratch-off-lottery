@@ -11,6 +11,7 @@ import type {
   DifficultyPreset,
   Mechanic,
   CompareOptions,
+  BingoOptions,
 } from "@/types";
 
 // ── 表單內部用的草稿型別（字串便於 input 綁定）─────────────────
@@ -31,7 +32,9 @@ export interface HostFormState {
   difficultyPreset: DifficultyPreset;
   ticketPrice: string; // input 字串，提交時轉 number
   mechanic: Mechanic;
-  rowsPerCard: string; // triple 玩法列數，提交時轉 number
+  rowsPerCard: string; // triple / compare 玩法列/局數，提交時轉 number
+  gridSize: string; // bingo 玩法格數（3–6）
+  prizePerLine: string; // bingo 玩法每線獎金（元）
 }
 
 // ── 草稿 → GameConfig 轉換（失敗時回傳 null）─────────────────
@@ -53,6 +56,17 @@ export function draftToConfig(form: HostFormState): GameConfig | null {
     const roundsPerCard = parseInt(form.rowsPerCard, 10);
     if (!roundsPerCard || roundsPerCard < 1 || roundsPerCard > 9) return null;
     mechanicOptions = { roundsPerCard } satisfies CompareOptions;
+  } else if (form.mechanic === "bingo") {
+    const gridSize = parseInt(form.gridSize, 10);
+    const prizePerLine = parseInt(form.prizePerLine, 10);
+    if (!gridSize || gridSize < 3 || gridSize > 6) return null;
+    if (isNaN(prizePerLine) || prizePerLine < 0) return null;
+    const drawnCount = Math.ceil(gridSize * gridSize * 0.6);
+    mechanicOptions = {
+      gridSize,
+      drawnCount,
+      prizePerLine,
+    } satisfies BingoOptions;
   } else {
     const cellsPerZone = parseInt(form.cellsPerZone, 10);
     if (!cellsPerZone || cellsPerZone < 1 || cellsPerZone > 9) return null;
@@ -113,6 +127,8 @@ const defaultForm: HostFormState = {
   ticketPrice: "100",
   mechanic: "symbol",
   rowsPerCard: "3",
+  gridSize: "3",
+  prizePerLine: "100",
 };
 
 // ── Hook ─────────────────────────────────────────────────────
@@ -216,6 +232,14 @@ export function useHostForm(baseUrl: string) {
     setForm((f) => ({ ...f, rowsPerCard: v }));
   }, []);
 
+  const setGridSize = useCallback((v: string) => {
+    setForm((f) => ({ ...f, gridSize: v }));
+  }, []);
+
+  const setPrizePerLine = useCallback((v: string) => {
+    setForm((f) => ({ ...f, prizePerLine: v }));
+  }, []);
+
   const copyUrl = useCallback(async () => {
     if (!playUrl) return;
     await navigator.clipboard.writeText(playUrl);
@@ -245,6 +269,8 @@ export function useHostForm(baseUrl: string) {
     setTicketPrice,
     setMechanic,
     setRowsPerCard,
+    setGridSize,
+    setPrizePerLine,
     copyUrl,
   };
 }

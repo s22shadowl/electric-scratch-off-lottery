@@ -181,6 +181,53 @@ describe("decodeConfig", () => {
     expect(() => decodeConfig(broken)).toThrow(/roundsPerCard/);
   });
 
+  it("bingo 玩法 config 應能 encode/decode（round-trip）", () => {
+    const bingoConfig: GameConfig = {
+      ...config,
+      cardTypes: [
+        {
+          mechanic: "bingo",
+          prizes: config.cardTypes[0]!.prizes,
+          count: 5,
+          themeId: "wealth-god",
+          difficultyPreset: "standard",
+          mechanicOptions: { gridSize: 3, drawnCount: 6, prizePerLine: 100 },
+          ticketPrice: 100,
+        },
+      ],
+    };
+    const decoded = decodeConfig(encodeConfig(bingoConfig));
+    expect(decoded).toEqual(bingoConfig);
+  });
+
+  it("bingo cardType 缺少 gridSize 應拋出錯誤", () => {
+    const broken = encodeConfig({
+      ...config,
+      cardTypes: [
+        {
+          ...config.cardTypes[0]!,
+          mechanic: "bingo" as const,
+          mechanicOptions: { drawnCount: 6, prizePerLine: 100 } as never,
+        },
+      ],
+    });
+    expect(() => decodeConfig(broken)).toThrow(/gridSize/);
+  });
+
+  it("bingo cardType 缺少 prizePerLine 應拋出錯誤", () => {
+    const broken = encodeConfig({
+      ...config,
+      cardTypes: [
+        {
+          ...config.cardTypes[0]!,
+          mechanic: "bingo" as const,
+          mechanicOptions: { gridSize: 3, drawnCount: 6 } as never,
+        },
+      ],
+    });
+    expect(() => decodeConfig(broken)).toThrow(/prizePerLine/);
+  });
+
   it("缺少 ticketPrice 的舊格式應自動補值 100（向下相容）", () => {
     // 建立一個沒有 ticketPrice 的舊格式 config
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

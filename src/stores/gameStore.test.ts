@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useGameStore, REVEAL_THRESHOLD } from "./gameStore";
-import type { GameConfig } from "@/types";
+import type { GameConfig, BingoOptions } from "@/types";
 
 // ── 測試資料 ──────────────────────────────────────────────
 
@@ -432,6 +432,135 @@ describe("updateCellProgress (compare)", () => {
       });
     });
 
+    const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
+    expect(updated?.totalWinnings).toBe(expectedWinnings);
+  });
+});
+
+// ── updateCellProgress (bingo) ────────────────────────────
+
+const BINGO_GRID_SIZE = 3;
+const BINGO_DRAWN_COUNT = 6;
+const BINGO_PRIZE_PER_LINE = 100;
+
+const bingoConfig: GameConfig = {
+  sessionTitle: "賓果測試",
+  cardTypes: [
+    {
+      mechanic: "bingo",
+      prizes: [
+        {
+          id: "p-lose",
+          label: "謝謝",
+          amount: 0,
+          probability: 1,
+          isWin: false,
+        },
+      ],
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: {
+        gridSize: BINGO_GRID_SIZE,
+        drawnCount: BINGO_DRAWN_COUNT,
+        prizePerLine: BINGO_PRIZE_PER_LINE,
+      } satisfies BingoOptions,
+      ticketPrice: 100,
+    },
+  ],
+  effectsEnabled: true,
+};
+
+describe("updateCellProgress (bingo)", () => {
+  it("zone[0] 開獎號碼在建牌時已全部 isRevealed", () => {
+    useGameStore.getState().initGame(bingoConfig);
+    const card = useGameStore.getState().cards[0]!;
+    card.zones[0]!.cells.forEach((cell) => {
+      expect(cell.isRevealed).toBe(true);
+      expect(cell.scratchProgress).toBe(1);
+    });
+  });
+
+  it("zone[1] 格子在建牌時 isRevealed=false", () => {
+    useGameStore.getState().initGame(bingoConfig);
+    const card = useGameStore.getState().cards[0]!;
+    card.zones[1]!.cells.forEach((cell) => {
+      expect(cell.isRevealed).toBe(false);
+    });
+  });
+
+  it("zone[0] 有 drawnCount 格、zone[1] 有 gridSize² 格", () => {
+    useGameStore.getState().initGame(bingoConfig);
+    const card = useGameStore.getState().cards[0]!;
+    expect(card.zones[0]!.cells).toHaveLength(BINGO_DRAWN_COUNT);
+    expect(card.zones[1]!.cells).toHaveLength(
+      BINGO_GRID_SIZE * BINGO_GRID_SIZE,
+    );
+  });
+
+  it("揭曉部分 zone[1] 格子時 totalWinnings 應維持 0", () => {
+    useGameStore.getState().initGame(bingoConfig);
+    const card = useGameStore.getState().cards[0]!;
+    const firstCell = card.zones[1]!.cells[0]!;
+    useGameStore
+      .getState()
+      .updateCellProgress(card.id, firstCell.id, REVEAL_THRESHOLD);
+    const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
+    expect(updated?.totalWinnings).toBe(0);
+    expect(updated?.status).not.toBe("completed");
+  });
+
+  it("zone[1] 全部揭曉後 status 應為 completed", () => {
+    useGameStore.getState().initGame(bingoConfig);
+    const card = useGameStore.getState().cards[0]!;
+    card.zones[1]!.cells.forEach((cell) => {
+      useGameStore
+        .getState()
+        .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+    });
+    const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
+    expect(updated?.status).toBe("completed");
+  });
+
+  it("全部揭曉後 totalWinnings 應等於完成線數 × prizePerLine", () => {
+    useGameStore.getState().initGame(bingoConfig);
+    const card = useGameStore.getState().cards[0]!;
+    const g = BINGO_GRID_SIZE;
+
+    // 從建牌結果計算預期獎金
+    const drawnSet = new Set(card.zones[0]!.cells.map((c) => c.bingoNumber!));
+    const gridCells = card.zones[1]!.cells;
+    const matched = gridCells.map((c) => drawnSet.has(c.bingoNumber!));
+
+    let lines = 0;
+    for (let r = 0; r < g; r++) {
+      if (
+        Array.from({ length: g }, (_, c) => matched[r * g + c]).every(Boolean)
+      )
+        lines++;
+    }
+    for (let c = 0; c < g; c++) {
+      if (
+        Array.from({ length: g }, (_, r) => matched[r * g + c]).every(Boolean)
+      )
+        lines++;
+    }
+    if (Array.from({ length: g }, (_, i) => matched[i * g + i]).every(Boolean))
+      lines++;
+    if (
+      Array.from({ length: g }, (_, i) => matched[i * g + (g - 1 - i)]).every(
+        Boolean,
+      )
+    )
+      lines++;
+
+    const expectedWinnings = lines * BINGO_PRIZE_PER_LINE;
+
+    card.zones[1]!.cells.forEach((cell) => {
+      useGameStore
+        .getState()
+        .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+    });
     const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
     expect(updated?.totalWinnings).toBe(expectedWinnings);
   });

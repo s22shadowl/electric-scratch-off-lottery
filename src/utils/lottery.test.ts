@@ -12,6 +12,7 @@ import type {
   SymbolOptions,
   TripleOptions,
   CompareOptions,
+  BingoOptions,
   CardTypeConfig,
 } from "@/types";
 
@@ -449,5 +450,109 @@ describe("buildCard (compare)", () => {
         }
       }
     }
+  });
+});
+
+// ── buildCard (bingo) ─────────────────────────────────────
+
+const bingoCardType: CardTypeConfig = {
+  mechanic: "bingo",
+  prizes: prizes,
+  count: 2,
+  themeId: "wealth-god",
+  difficultyPreset: "standard",
+  mechanicOptions: {
+    gridSize: 3,
+    drawnCount: 6,
+    prizePerLine: 100,
+  } satisfies BingoOptions,
+  ticketPrice: 100,
+};
+
+describe("buildCard (bingo)", () => {
+  it("賓果卡片應有 2 個 zones", () => {
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    expect(card.zones).toHaveLength(2);
+  });
+
+  it("zone[0] 應有 drawnCount 個 cells", () => {
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    const { drawnCount } = bingoCardType.mechanicOptions as BingoOptions;
+    expect(card.zones[0]!.cells).toHaveLength(drawnCount);
+  });
+
+  it("zone[1] 應有 gridSize×gridSize 個 cells", () => {
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    const { gridSize } = bingoCardType.mechanicOptions as BingoOptions;
+    expect(card.zones[1]!.cells).toHaveLength(gridSize * gridSize);
+  });
+
+  it("zone[0] 所有 cells 應在 build time 已揭曉（isRevealed=true）", () => {
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    card.zones[0]!.cells.forEach((cell) => {
+      expect(cell.isRevealed).toBe(true);
+    });
+  });
+
+  it("zone[1] 所有 cells 初始應為未揭曉（isRevealed=false）", () => {
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    card.zones[1]!.cells.forEach((cell) => {
+      expect(cell.isRevealed).toBe(false);
+    });
+  });
+
+  it("zone[0] 所有 cells 應有 bingoNumber 在 1..poolSize 範圍", () => {
+    const { gridSize } = bingoCardType.mechanicOptions as BingoOptions;
+    const poolSize = Math.ceil(gridSize * gridSize * 2);
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    card.zones[0]!.cells.forEach((cell) => {
+      expect(cell.bingoNumber).toBeDefined();
+      expect(cell.bingoNumber!).toBeGreaterThanOrEqual(1);
+      expect(cell.bingoNumber!).toBeLessThanOrEqual(poolSize);
+    });
+  });
+
+  it("zone[1] 所有 cells 應有 bingoNumber 在 1..poolSize 範圍", () => {
+    const { gridSize } = bingoCardType.mechanicOptions as BingoOptions;
+    const poolSize = Math.ceil(gridSize * gridSize * 2);
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    card.zones[1]!.cells.forEach((cell) => {
+      expect(cell.bingoNumber).toBeDefined();
+      expect(cell.bingoNumber!).toBeGreaterThanOrEqual(1);
+      expect(cell.bingoNumber!).toBeLessThanOrEqual(poolSize);
+    });
+  });
+
+  it("zone[0] 開獎號碼應無重複", () => {
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    const nums = card.zones[0]!.cells.map((c) => c.bingoNumber!);
+    expect(new Set(nums).size).toBe(nums.length);
+  });
+
+  it("zone[1] 賓果格號碼應無重複", () => {
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    const nums = card.zones[1]!.cells.map((c) => c.bingoNumber!);
+    expect(new Set(nums).size).toBe(nums.length);
+  });
+
+  it("所有 cell.id 應唯一", () => {
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    const ids = card.zones.flatMap((z) => z.cells.map((c) => c.id));
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("cell.id 格式應包含 zone index（zone-aware）", () => {
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    card.zones.forEach((zone, z) => {
+      zone.cells.forEach((cell, i) => {
+        expect(cell.id).toBe(`card-b-zone-${z}-cell-${i}`);
+      });
+    });
+  });
+
+  it("卡片初始 status=in-pile, totalWinnings=0", () => {
+    const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
+    expect(card.status).toBe("in-pile");
+    expect(card.totalWinnings).toBe(0);
   });
 });

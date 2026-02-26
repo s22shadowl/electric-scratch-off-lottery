@@ -2,7 +2,12 @@ import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { draftToConfig, useHostForm } from "./useHostForm";
 import type { HostFormState } from "./useHostForm";
-import type { SymbolOptions, TripleOptions, CompareOptions } from "@/types";
+import type {
+  SymbolOptions,
+  TripleOptions,
+  CompareOptions,
+  BingoOptions,
+} from "@/types";
 
 // ── 測試資料 ──────────────────────────────────────────────
 
@@ -20,6 +25,8 @@ const validForm: HostFormState = {
   ticketPrice: "100",
   mechanic: "symbol",
   rowsPerCard: "3",
+  gridSize: "3",
+  prizePerLine: "100",
 };
 
 // ── draftToConfig ─────────────────────────────────────────
@@ -159,6 +166,32 @@ describe("draftToConfig", () => {
       draftToConfig({ ...validForm, mechanic: "compare", rowsPerCard: "0" }),
     ).toBeNull();
   });
+
+  it("mechanic=bingo 時輸出 gridSize / drawnCount / prizePerLine", () => {
+    const config = draftToConfig({
+      ...validForm,
+      mechanic: "bingo",
+      gridSize: "4",
+      prizePerLine: "200",
+    });
+    expect(config?.cardTypes[0]?.mechanic).toBe("bingo");
+    const opts = config?.cardTypes[0]?.mechanicOptions as BingoOptions;
+    expect(opts.gridSize).toBe(4);
+    expect(opts.drawnCount).toBe(Math.ceil(4 * 4 * 0.6)); // 10
+    expect(opts.prizePerLine).toBe(200);
+  });
+
+  it("mechanic=bingo 且 gridSize 小於 3 應回傳 null", () => {
+    expect(
+      draftToConfig({ ...validForm, mechanic: "bingo", gridSize: "2" }),
+    ).toBeNull();
+  });
+
+  it("mechanic=bingo 且 prizePerLine 為負數應回傳 null", () => {
+    expect(
+      draftToConfig({ ...validForm, mechanic: "bingo", prizePerLine: "-1" }),
+    ).toBeNull();
+  });
 });
 
 // ── useHostForm hook ──────────────────────────────────────
@@ -268,5 +301,17 @@ describe("useHostForm", () => {
     const { result } = renderHook(() => useHostForm(BASE));
     act(() => result.current.setRowsPerCard("5"));
     expect(result.current.form.rowsPerCard).toBe("5");
+  });
+
+  it("setGridSize 應更新 form.gridSize", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setGridSize("5"));
+    expect(result.current.form.gridSize).toBe("5");
+  });
+
+  it("setPrizePerLine 應更新 form.prizePerLine", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setPrizePerLine("500"));
+    expect(result.current.form.prizePerLine).toBe("500");
   });
 });

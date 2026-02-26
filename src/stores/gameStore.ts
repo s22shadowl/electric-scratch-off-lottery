@@ -5,6 +5,7 @@ import type {
   GamePhase,
   ScratchCard,
   Mechanic,
+  BingoOptions,
 } from "@/types";
 import { buildDeck } from "@/utils/lottery";
 
@@ -78,6 +79,52 @@ function resolveCompareWinnings(card: ScratchCard): number {
   }, 0);
 }
 
+// ── 純函式：賓果玩法的完成獎金計算（完成線數 × prizePerLine）──
+
+function resolveBingoWinnings(card: ScratchCard, prizePerLine: number): number {
+  const [zone0, zone1] = card.zones;
+  if (!zone0 || !zone1) return 0;
+
+  const drawnSet = new Set(zone0.cells.map((c) => c.bingoNumber!));
+  const gridSize = Math.round(Math.sqrt(zone1.cells.length));
+  const matched = zone1.cells.map((c) => drawnSet.has(c.bingoNumber!));
+
+  let lines = 0;
+  for (let r = 0; r < gridSize; r++) {
+    if (
+      Array.from(
+        { length: gridSize },
+        (_, c) => matched[r * gridSize + c],
+      ).every(Boolean)
+    )
+      lines++;
+  }
+  for (let c = 0; c < gridSize; c++) {
+    if (
+      Array.from(
+        { length: gridSize },
+        (_, r) => matched[r * gridSize + c],
+      ).every(Boolean)
+    )
+      lines++;
+  }
+  if (
+    Array.from({ length: gridSize }, (_, i) => matched[i * gridSize + i]).every(
+      Boolean,
+    )
+  )
+    lines++;
+  if (
+    Array.from(
+      { length: gridSize },
+      (_, i) => matched[i * gridSize + (gridSize - 1 - i)],
+    ).every(Boolean)
+  )
+    lines++;
+
+  return lines * prizePerLine;
+}
+
 // ── 純函式：更新單張卡片（不可變）────────────────────────────
 
 function applyProgressToCard(
@@ -85,6 +132,7 @@ function applyProgressToCard(
   cellId: string,
   progress: number,
   mechanic: Mechanic,
+  prizePerLine?: number,
 ): ScratchCard {
   const isRevealed = progress >= REVEAL_THRESHOLD;
   const updatedZones = card.zones.map((zone) => ({
@@ -110,6 +158,14 @@ function applyProgressToCard(
     // 比大小：全部揭曉後依 compareValue 列對列計算；未完成時維持 0
     totalWinnings = allRevealed
       ? resolveCompareWinnings({ ...card, zones: updatedZones })
+      : 0;
+  } else if (mechanic === "bingo") {
+    // 賓果：zone[1] 全部揭曉後計算完成線數；未完成時維持 0
+    totalWinnings = allRevealed
+      ? resolveBingoWinnings(
+          { ...card, zones: updatedZones },
+          prizePerLine ?? 0,
+        )
       : 0;
   } else {
     // symbol：即時加總已揭曉的中獎格
@@ -178,9 +234,13 @@ export const useGameStore = create<GameStore>((set) => ({
     set((state) => {
       const updatedCards = state.cards.map((c) => {
         if (c.id !== cardId) return c;
-        const mechanic =
-          state.config.cardTypes[c.cardTypeIndex]?.mechanic ?? "symbol";
-        return applyProgressToCard(c, cellId, progress, mechanic);
+        const cardTypeConfig = state.config.cardTypes[c.cardTypeIndex];
+        const mechanic = cardTypeConfig?.mechanic ?? "symbol";
+        const prizePerLine =
+          mechanic === "bingo"
+            ? (cardTypeConfig?.mechanicOptions as BingoOptions).prizePerLine
+            : undefined;
+        return applyProgressToCard(c, cellId, progress, mechanic, prizePerLine);
       });
       const allCompleted =
         state.selectedCardIds.length > 0 &&

@@ -52,6 +52,18 @@ function isValidCardTypeConfig(ct: unknown): ct is CardTypeConfig {
       mechanicOptions["roundsPerCard"] < 1
     )
       return false;
+  } else if (obj["mechanic"] === "bingo") {
+    if (
+      typeof mechanicOptions["gridSize"] !== "number" ||
+      mechanicOptions["gridSize"] < 3
+    )
+      return false;
+    if (
+      typeof mechanicOptions["drawnCount"] !== "number" ||
+      mechanicOptions["drawnCount"] < 1
+    )
+      return false;
+    if (typeof mechanicOptions["prizePerLine"] !== "number") return false;
   } else {
     if (
       typeof mechanicOptions["cellsPerZone"] !== "number" ||
@@ -95,10 +107,24 @@ function validateConfig(raw: unknown): GameConfig {
       const mechanic = ctObj["mechanic"];
       const isTriple = mechanic === "triple";
       const isCompare = mechanic === "compare";
+      const isBingo = mechanic === "bingo";
       if (!opts) {
         throw new Error("cardTypes[].mechanicOptions 為必填");
       }
-      if (
+      if (isBingo) {
+        if (typeof opts["gridSize"] !== "number" || opts["gridSize"] < 3)
+          throw new Error(
+            "cardTypes[].mechanicOptions.gridSize 必須為 >= 3 的整數",
+          );
+        if (typeof opts["drawnCount"] !== "number" || opts["drawnCount"] < 1)
+          throw new Error(
+            "cardTypes[].mechanicOptions.drawnCount 必須為正整數",
+          );
+        if (typeof opts["prizePerLine"] !== "number")
+          throw new Error(
+            "cardTypes[].mechanicOptions.prizePerLine 必須為數字",
+          );
+      } else if (
         isTriple
           ? typeof opts["rowsPerCard"] !== "number" || opts["rowsPerCard"] < 1
           : isCompare
