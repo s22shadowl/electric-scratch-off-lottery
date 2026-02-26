@@ -1,67 +1,67 @@
-import type { DifficultyPreset } from '@/types'
-import type { PrizeDraft } from '@/hooks/useHostForm'
+import type { DifficultyPreset } from "@/types";
+import type { PrizeDraft } from "@/hooks/useHostForm";
 
 // ── 難度預設定義 ───────────────────────────────────────────
 
 export interface PresetTemplate {
-  label: string       // 中文名稱
-  emoji: string
-  targetRtp: number
-  description: string
+  label: string; // 中文名稱
+  emoji: string;
+  targetRtp: number;
+  description: string;
   // 模板獎項（以 ticketPrice=100 為基準）
-  prizes: Array<{ label: string; amount: number; weight: number }>
+  prizes: Array<{ label: string; amount: number; weight: number }>;
 }
 
 export const DIFFICULTY_PRESETS: Record<DifficultyPreset, PresetTemplate> = {
   generous: {
-    label: '慷慨',
-    emoji: '🎁',
-    targetRtp: 1.20,
-    description: '兒童活動、暖場用',
+    label: "慷慨",
+    emoji: "🎁",
+    targetRtp: 1.2,
+    description: "兒童活動、暖場用",
     prizes: [
-      { label: '謝謝參與', amount: 0,   weight: 40 },
-      { label: '$100',     amount: 100, weight: 45 },
-      { label: '$500',     amount: 500, weight: 15 },
+      { label: "謝謝參與", amount: 0, weight: 40 },
+      { label: "$100", amount: 100, weight: 45 },
+      { label: "$500", amount: 500, weight: 15 },
     ],
   },
   standard: {
-    label: '標準',
-    emoji: '🎯',
+    label: "標準",
+    emoji: "🎯",
     targetRtp: 0.95,
-    description: '一般聚會用',
+    description: "一般聚會用",
     prizes: [
-      { label: '謝謝參與', amount: 0,   weight: 45 },
-      { label: '$100',     amount: 100, weight: 45 },
-      { label: '$500',     amount: 500, weight: 10 },
+      { label: "謝謝參與", amount: 0, weight: 45 },
+      { label: "$100", amount: 100, weight: 45 },
+      { label: "$500", amount: 500, weight: 10 },
     ],
   },
   conservative: {
-    label: '保守',
-    emoji: '🏆',
-    targetRtp: 0.80,
-    description: '競爭感更強',
+    label: "保守",
+    emoji: "🏆",
+    targetRtp: 0.8,
+    description: "競爭感更強",
     prizes: [
-      { label: '謝謝參與', amount: 0,   weight: 60 },
-      { label: '$100',     amount: 100, weight: 30 },
-      { label: '$500',     amount: 500, weight: 10 },
+      { label: "謝謝參與", amount: 0, weight: 60 },
+      { label: "$100", amount: 100, weight: 30 },
+      { label: "$500", amount: 500, weight: 10 },
     ],
   },
   realistic: {
-    label: '真實難度',
-    emoji: '🎰',
+    label: "真實難度",
+    emoji: "🎰",
     targetRtp: 0.63,
-    description: '仿台彩 $100 面額水準',
+    description: "仿台彩 $100 面額水準",
     prizes: [
-      { label: '謝謝參與', amount: 0,   weight: 65 },
-      { label: '$100',     amount: 100, weight: 28 },
-      { label: '$500',     amount: 500, weight: 7  },
+      { label: "謝謝參與", amount: 0, weight: 65 },
+      { label: "$100", amount: 100, weight: 28 },
+      { label: "$500", amount: 500, weight: 7 },
     ],
   },
-}
+};
 
 // ── scalePrizesToTicketPrice ───────────────────────────────
 
-let uidCounter = 1000
+let uidCounter = 1000;
 
 /**
  * 依票面價格縮放模板獎項金額，回傳新的 PrizeDraft 陣列。
@@ -71,61 +71,18 @@ export function scalePrizesToTicketPrice(
   preset: DifficultyPreset,
   ticketPrice: number,
 ): PrizeDraft[] {
-  const template = DIFFICULTY_PRESETS[preset]
+  const template = DIFFICULTY_PRESETS[preset];
   return template.prizes.map((p) => {
-    const scaled = Math.round((p.amount * ticketPrice) / 100)
-    const label = scaled === 0 ? '謝謝參與' : `$${scaled}`
+    const scaled = Math.round((p.amount * ticketPrice) / 100);
+    const label = scaled === 0 ? "謝謝參與" : `$${scaled}`;
     return {
       uid: `preset-uid-${++uidCounter}`,
       label,
       amount: String(scaled),
       weight: String(p.weight),
-    }
-  })
+    };
+  });
 }
 
-// ── calculateRTP ───────────────────────────────────────────
-
-/**
- * 依目前獎項草稿 + 票面計算 RTP（期望值 / ticketPrice）。
- * 無效輸入（ticketPrice <= 0 或無有效 prizes）回傳 null。
- */
-export function calculateRTP(
-  prizes: PrizeDraft[],
-  ticketPrice: number,
-): number | null {
-  if (ticketPrice <= 0) return null
-
-  const valid = prizes.filter((p) => parseFloat(p.weight) > 0)
-  if (valid.length === 0) return null
-
-  const totalWeight = valid.reduce((sum, p) => sum + parseFloat(p.weight), 0)
-  if (totalWeight <= 0) return null
-
-  const ev = valid.reduce((sum, p) => {
-    const amount = parseFloat(p.amount) || 0
-    const weight = parseFloat(p.weight)
-    return sum + (amount * weight) / totalWeight
-  }, 0)
-
-  return ev / ticketPrice
-}
-
-// ── classifyDifficulty ─────────────────────────────────────
-
-/**
- * 將 RTP 分類為難度標籤。
- *
- * rtp > 1.05           → 'generous'
- * 0.85 <= rtp <= 1.05  → 'standard'
- * 0.70 <= rtp < 0.85   → 'conservative'
- * 0.55 <= rtp < 0.70   → 'realistic'
- * 其他                  → 'custom'
- */
-export function classifyDifficulty(rtp: number): DifficultyPreset | 'custom' {
-  if (rtp > 1.05) return 'generous'
-  if (rtp >= 0.85) return 'standard'
-  if (rtp >= 0.70) return 'conservative'
-  if (rtp >= 0.55) return 'realistic'
-  return 'custom'
-}
+// ── re-export from game-math（正式實作已移至 game-math.ts）──
+export { calculateRTP, classifyDifficulty } from "./game-math";

@@ -17,6 +17,7 @@ export interface ScratchCell {
   scratchProgress: number; // 0–1，Canvas 刮除覆蓋比例
   isRevealed: boolean; // scratchProgress 達門檻後設為 true
   compareValue?: number; // compare 玩法專用：zone[0/1] 顯示的 30–60 數字
+  bingoNumber?: number; // bingo 玩法專用：zone[1] 賓果格號碼；zone[0] 開獎號碼
 }
 
 // 刮除區（v1 每張卡固定 1 個）
@@ -50,7 +51,7 @@ export interface CardTheme {
 }
 
 // 玩法識別碼
-export type Mechanic = "symbol" | "triple" | "compare";
+export type Mechanic = "symbol" | "triple" | "compare" | "bingo";
 
 // 難度預設（v1 先加欄位，UI 選擇器 v2 再實作）
 export type DifficultyPreset =
@@ -74,7 +75,18 @@ export interface CompareOptions {
   roundsPerCard: number; // 幾回合比大小（1–9）
 }
 
-export type MechanicOptions = SymbolOptions | TripleOptions | CompareOptions;
+// bingo 玩法選項（2 zones：開獎號碼區 + gridSize×gridSize 賓果格）
+export interface BingoOptions {
+  gridSize: number; // 3–6，賓果格邊長
+  drawnCount: number; // 開獎號碼顆數，= ceil(gridSize² × 0.6)
+  prizePerLine: number; // 每條連線獎金（元）
+}
+
+export type MechanicOptions =
+  | SymbolOptions
+  | TripleOptions
+  | CompareOptions
+  | BingoOptions;
 
 // 單一卡型設定（v1 只會有一個）
 export interface CardTypeConfig {
