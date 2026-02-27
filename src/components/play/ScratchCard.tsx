@@ -1,5 +1,7 @@
 import { useGameStore } from "@/stores/gameStore";
 import ScratchCellCanvas from "./ScratchCellCanvas";
+import BingoCellCanvas from "./BingoCellCanvas";
+import type { BingoOptions } from "@/types";
 
 interface Props {
   cardId: string;
@@ -13,14 +15,18 @@ export default function ScratchCard({ cardId }: Props) {
 
   const cardTypeConfig = config.cardTypes[card.cardTypeIndex];
   const mechanic = cardTypeConfig?.mechanic ?? "symbol";
-  const allCells = card.zones.flatMap((z) => z.cells);
-  const revealedCount = allCells.filter((c) => c.isRevealed).length;
   const hasWinnings = card.totalWinnings > 0;
   const isCompleted = card.status === "completed";
   const maxPrize = Math.max(
     ...(cardTypeConfig?.prizes.map((p) => p.amount) ?? [0]),
     0,
   );
+
+  // bingo：進度只計算 zone[1]（zone[0] 已自動揭曉，不算在刮除進度內）
+  const scratchZone = mechanic === "bingo" ? card.zones[1] : card.zones[0];
+  const scratchCells = scratchZone?.cells ?? [];
+  const revealedCount = scratchCells.filter((c) => c.isRevealed).length;
+  const totalCount = scratchCells.length;
 
   return (
     <article
@@ -37,8 +43,54 @@ export default function ScratchCard({ cardId }: Props) {
         </p>
       </header>
 
-      {/* 刮除格：symbol=flex-wrap，triple/compare=row-first 每列加外框 */}
-      {mechanic === "triple" ? (
+      {/* 刮除格：bingo=開獎區+格子 / triple/compare=row-first / symbol=flex-wrap */}
+      {mechanic === "bingo" ? (
+        (() => {
+          const opts = cardTypeConfig?.mechanicOptions as
+            | BingoOptions
+            | undefined;
+          const gridSize = opts?.gridSize ?? 3;
+          const drawnSet = new Set(
+            card.zones[0]?.cells.map((c) => c.bingoNumber!) ?? [],
+          );
+          return (
+            <div className="flex flex-col gap-3">
+              {/* zone[0]：開獎號碼 */}
+              <div>
+                <p className="text-yellow-400/70 text-[10px] text-center mb-1 tracking-widest">
+                  開獎號碼
+                </p>
+                <div className="flex flex-wrap gap-1.5 justify-center">
+                  {card.zones[0]?.cells.map((cell) => (
+                    <span
+                      key={cell.id}
+                      className="w-8 h-8 flex items-center justify-center rounded-md bg-yellow-600 text-white text-sm font-black"
+                    >
+                      {cell.bingoNumber}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {/* zone[1]：賓果格 */}
+              <div
+                className="grid gap-1.5 justify-center"
+                style={{
+                  gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
+                }}
+              >
+                {card.zones[1]?.cells.map((cell) => (
+                  <BingoCellCanvas
+                    key={cell.id}
+                    cell={cell}
+                    cardId={cardId}
+                    isMatched={drawnSet.has(cell.bingoNumber!)}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })()
+      ) : mechanic === "triple" ? (
         <div className="flex flex-col gap-2">
           {Array.from({ length: card.zones[0]!.cells.length }, (_, row) => (
             <div
@@ -110,7 +162,7 @@ export default function ScratchCard({ cardId }: Props) {
       <footer className="mt-3 text-center">
         {!isCompleted && (
           <p className="text-red-300 text-xs">
-            已刮開 {revealedCount} / {allCells.length} 格
+            已刮開 {revealedCount} / {totalCount} 格
           </p>
         )}
 

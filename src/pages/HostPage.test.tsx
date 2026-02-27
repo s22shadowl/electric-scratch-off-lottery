@@ -99,6 +99,23 @@ describe("HostPage", () => {
     expect(writeTextMock).toHaveBeenCalledOnce();
   });
 
+  it("玩法選擇應有賓果選項", () => {
+    renderPage();
+    expect(screen.getByRole("radio", { name: /賓果/ })).toBeInTheDocument();
+  });
+
+  it("選擇賓果玩法後應顯示格子大小選擇", async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole("radio", { name: /賓果/ }));
+    expect(screen.getByLabelText("賓果格大小")).toBeInTheDocument();
+  });
+
+  it("選擇賓果玩法後應顯示每線獎金輸入框", async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole("radio", { name: /賓果/ }));
+    expect(screen.getByLabelText("每線獎金")).toBeInTheDocument();
+  });
+
   it("特效開關應可切換", async () => {
     renderPage();
     const toggle = screen.getByRole("switch");

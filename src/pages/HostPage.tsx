@@ -25,6 +25,8 @@ export default function HostPage() {
     setTicketPrice,
     setMechanic,
     setRowsPerCard,
+    setGridSize,
+    setPrizePerLine,
     copyUrl,
   } = useHostForm(BASE_URL);
 
@@ -91,6 +93,7 @@ export default function HostPage() {
                   { value: "symbol", label: "🎴 符號" },
                   { value: "triple", label: "🎯 三同" },
                   { value: "compare", label: "🃏 比大小" },
+                  { value: "bingo", label: "🎱 賓果" },
                 ] as const
               ).map(({ value, label }) => (
                 <button
@@ -129,7 +132,49 @@ export default function HostPage() {
                   className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                 />
               </div>
-              {form.mechanic === "triple" || form.mechanic === "compare" ? (
+
+              {form.mechanic === "bingo" ? (
+                <>
+                  <div>
+                    <label
+                      htmlFor="grid-size"
+                      className="block text-xs text-red-200 mb-1"
+                    >
+                      賓果格大小
+                    </label>
+                    <select
+                      id="grid-size"
+                      value={form.gridSize}
+                      onChange={(e) => setGridSize(e.target.value)}
+                      aria-label="賓果格大小"
+                      className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
+                    >
+                      {([3, 4, 5, 6] as const).map((n) => (
+                        <option key={n} value={String(n)}>
+                          {n}×{n}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="prize-per-line"
+                      className="block text-xs text-red-200 mb-1"
+                    >
+                      每線獎金（元）
+                    </label>
+                    <input
+                      id="prize-per-line"
+                      type="number"
+                      value={form.prizePerLine}
+                      onChange={(e) => setPrizePerLine(e.target.value)}
+                      min="0"
+                      aria-label="每線獎金"
+                      className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
+                    />
+                  </div>
+                </>
+              ) : form.mechanic === "triple" || form.mechanic === "compare" ? (
                 <div>
                   <label
                     htmlFor="rows-per-card"
@@ -170,23 +215,26 @@ export default function HostPage() {
                   />
                 </div>
               )}
-              <div>
-                <label
-                  htmlFor="ticket-price"
-                  className="block text-xs text-red-200 mb-1"
-                >
-                  票面價格（元）
-                </label>
-                <input
-                  id="ticket-price"
-                  type="number"
-                  value={form.ticketPrice}
-                  onChange={(e) => setTicketPrice(e.target.value)}
-                  min="1"
-                  aria-label="票面價格"
-                  className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
-                />
-              </div>
+
+              {form.mechanic !== "bingo" && (
+                <div>
+                  <label
+                    htmlFor="ticket-price"
+                    className="block text-xs text-red-200 mb-1"
+                  >
+                    票面價格（元）
+                  </label>
+                  <input
+                    id="ticket-price"
+                    type="number"
+                    value={form.ticketPrice}
+                    onChange={(e) => setTicketPrice(e.target.value)}
+                    min="1"
+                    aria-label="票面價格"
+                    className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
+                  />
+                </div>
+              )}
             </div>
           </section>
 

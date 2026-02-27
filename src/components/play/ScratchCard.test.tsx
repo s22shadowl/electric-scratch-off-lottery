@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { useGameStore } from "@/stores/gameStore";
 import ScratchCard from "./ScratchCard";
-import type { GameConfig } from "@/types";
+import type { GameConfig, BingoOptions } from "@/types";
 
 // canvas mock
 HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
@@ -92,5 +92,70 @@ describe("ScratchCard", () => {
   it("cardId 不存在時應不渲染任何內容", () => {
     const { container } = render(<ScratchCard cardId="non-existent" />);
     expect(container.firstChild).toBeNull();
+  });
+});
+
+// ── bingo 玩法 ─────────────────────────────────────────────
+
+const bingoConfig: GameConfig = {
+  sessionTitle: "賓果測試",
+  cardTypes: [
+    {
+      mechanic: "bingo",
+      prizes: [
+        {
+          id: "p-lose",
+          label: "謝謝",
+          amount: 0,
+          probability: 1,
+          isWin: false,
+        },
+      ],
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: {
+        gridSize: 3,
+        drawnCount: 6,
+        prizePerLine: 100,
+      } satisfies BingoOptions,
+      ticketPrice: 100,
+    },
+  ],
+  effectsEnabled: true,
+};
+
+describe("ScratchCard (bingo)", () => {
+  beforeEach(() => {
+    useGameStore.setState(useGameStore.getInitialState());
+    useGameStore.getState().initGame(bingoConfig);
+  });
+
+  it("應渲染 zone[1] 的賓果格（BingoCellCanvas）", () => {
+    const cardId = useGameStore.getState().cards[0]!.id;
+    render(<ScratchCard cardId={cardId} />);
+    const card = useGameStore.getState().cards[0]!;
+    card.zones[1]!.cells.forEach((cell) => {
+      expect(screen.getByTestId(`bingo-cell-${cell.id}`)).toBeInTheDocument();
+    });
+  });
+
+  it("zone[0] 開獎號碼應顯示在畫面上", () => {
+    const cardId = useGameStore.getState().cards[0]!.id;
+    render(<ScratchCard cardId={cardId} />);
+    const card = useGameStore.getState().cards[0]!;
+    // zone[0] 的號碼應以文字顯示（已揭曉）
+    card.zones[0]!.cells.forEach((cell) => {
+      expect(
+        screen.getAllByText(String(cell.bingoNumber!)).length,
+      ).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it("進度提示只計算 zone[1] 格數", () => {
+    const cardId = useGameStore.getState().cards[0]!.id;
+    render(<ScratchCard cardId={cardId} />);
+    // gridSize=3 → zone[1]=9格，zone[0]=6格（已揭曉不計入）
+    expect(screen.getByText(/0 \/ 9/)).toBeInTheDocument();
   });
 });
