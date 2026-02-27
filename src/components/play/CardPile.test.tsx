@@ -32,7 +32,7 @@ beforeEach(() => {
 describe("CardPile", () => {
   it("應渲染所有卡片", () => {
     render(<CardPile />);
-    expect(screen.getAllByRole("button")).toHaveLength(
+    expect(screen.getAllByRole("button", { name: /刮刮樂/ })).toHaveLength(
       config.cardTypes[0]!.count,
     );
   });
@@ -85,5 +85,13 @@ describe("CardPile", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: /開始刮/ }));
     expect(useGameStore.getState().phase).toBe("scratching");
+  });
+
+  it("點擊 ⓘ 按鈕後應開啟獎池 Modal", async () => {
+    render(<CardPile />);
+    await userEvent.click(screen.getByRole("button", { name: /查看獎池/ }));
+    expect(
+      screen.getByRole("dialog", { name: /獎池資訊/ }),
+    ).toBeInTheDocument();
   });
 });
