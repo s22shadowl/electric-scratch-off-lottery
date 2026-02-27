@@ -116,6 +116,23 @@ describe("HostPage", () => {
     expect(screen.getByLabelText("每線獎金")).toBeInTheDocument();
   });
 
+  it("選擇賓果玩法後票面價格欄位應可見", async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole("radio", { name: /賓果/ }));
+    expect(screen.getByLabelText("票面價格")).toBeInTheDocument();
+  });
+
+  it("選擇賓果玩法後 PrizeEditor 應顯示 disabled 遮罩", async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole("radio", { name: /賓果/ }));
+    expect(screen.getByText("賓果玩法不使用獎項設定")).toBeInTheDocument();
+  });
+
+  it("非賓果玩法時票面價格欄位應可見", () => {
+    renderPage();
+    expect(screen.getByLabelText("票面價格")).toBeInTheDocument();
+  });
+
   it("特效開關應可切換", async () => {
     renderPage();
     const toggle = screen.getByRole("switch");

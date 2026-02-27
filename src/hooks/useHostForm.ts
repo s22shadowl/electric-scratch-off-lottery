@@ -5,6 +5,7 @@ import {
   encodeConfig,
 } from "@/utils/config-codec";
 import { scalePrizesToTicketPrice, calculateRTP } from "@/utils/prize-presets";
+import { calcBingoLineProbabilities } from "@/utils/game-math";
 import type {
   GameConfig,
   Prize,
@@ -148,6 +149,22 @@ export function useHostForm(baseUrl: string) {
     return calculateRTP(form.prizes, price);
   }, [form.prizes, form.ticketPrice]);
 
+  // bingo 專用 RTP（prizePerLine × 期望連線數 / ticketPrice）
+  const bingoRTP = useMemo<number | null>(() => {
+    if (form.mechanic !== "bingo") return null;
+    const price = parseInt(form.ticketPrice, 10);
+    const gridSize = parseInt(form.gridSize, 10);
+    const prizePerLine = parseInt(form.prizePerLine, 10);
+    if (!price || price < 1 || !gridSize || isNaN(prizePerLine)) return null;
+    const drawnCount = Math.ceil(gridSize * gridSize * 0.6);
+    const probs = calcBingoLineProbabilities(gridSize, drawnCount);
+    const expectedLines = Object.entries(probs).reduce(
+      (sum, [k, p]) => sum + Number(k) * p,
+      0,
+    );
+    return (expectedLines * prizePerLine) / price;
+  }, [form.mechanic, form.ticketPrice, form.gridSize, form.prizePerLine]);
+
   // 表單合法時自動更新 URL 與 QR Code
   useEffect(() => {
     const config = draftToConfig(form);
@@ -258,6 +275,7 @@ export function useHostForm(baseUrl: string) {
     copied,
     config,
     currentRTP,
+    bingoRTP,
     setTitle,
     updatePrize,
     addPrize,

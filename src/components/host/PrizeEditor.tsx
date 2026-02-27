@@ -1,15 +1,31 @@
-import type { PrizeDraft } from '@/hooks/useHostForm'
+import type { PrizeDraft } from "@/hooks/useHostForm";
 
 interface Props {
-  prizes: PrizeDraft[]
-  onUpdate: (uid: string, field: keyof Omit<PrizeDraft, 'uid'>, value: string) => void
-  onAdd: () => void
-  onRemove: (uid: string) => void
+  prizes: PrizeDraft[];
+  onUpdate: (
+    uid: string,
+    field: keyof Omit<PrizeDraft, "uid">,
+    value: string,
+  ) => void;
+  onAdd: () => void;
+  onRemove: (uid: string) => void;
+  disabled?: boolean;
 }
 
-export default function PrizeEditor({ prizes, onUpdate, onAdd, onRemove }: Props) {
+export default function PrizeEditor({
+  prizes,
+  onUpdate,
+  onAdd,
+  onRemove,
+  disabled,
+}: Props) {
   return (
-    <section aria-label="獎項設定">
+    <section aria-label="獎項設定" className="relative">
+      {disabled && (
+        <div className="absolute inset-0 bg-gray-900/60 rounded-lg z-10 flex items-center justify-center">
+          <span className="text-gray-300 text-sm">賓果玩法不使用獎項設定</span>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-bold text-yellow-300">獎項設定</h2>
         <button
@@ -31,12 +47,15 @@ export default function PrizeEditor({ prizes, onUpdate, onAdd, onRemove }: Props
       </div>
 
       <ul className="space-y-2">
-        {prizes.map(prize => (
-          <li key={prize.uid} className="grid grid-cols-[1fr_5rem_5rem_2.5rem] gap-2 items-center">
+        {prizes.map((prize) => (
+          <li
+            key={prize.uid}
+            className="grid grid-cols-[1fr_5rem_5rem_2.5rem] gap-2 items-center"
+          >
             <input
               type="text"
               value={prize.label}
-              onChange={e => onUpdate(prize.uid, 'label', e.target.value)}
+              onChange={(e) => onUpdate(prize.uid, "label", e.target.value)}
               placeholder="如：$500、謝謝參與"
               aria-label="獎項名稱"
               className="px-2 py-1 rounded bg-red-900 border border-red-700 text-white placeholder-red-400 text-sm focus:outline-none focus:border-yellow-400"
@@ -44,7 +63,7 @@ export default function PrizeEditor({ prizes, onUpdate, onAdd, onRemove }: Props
             <input
               type="number"
               value={prize.amount}
-              onChange={e => onUpdate(prize.uid, 'amount', e.target.value)}
+              onChange={(e) => onUpdate(prize.uid, "amount", e.target.value)}
               min="0"
               aria-label="獎項金額"
               className="px-2 py-1 rounded bg-red-900 border border-red-700 text-white text-sm text-center focus:outline-none focus:border-yellow-400"
@@ -52,7 +71,7 @@ export default function PrizeEditor({ prizes, onUpdate, onAdd, onRemove }: Props
             <input
               type="number"
               value={prize.weight}
-              onChange={e => onUpdate(prize.uid, 'weight', e.target.value)}
+              onChange={(e) => onUpdate(prize.uid, "weight", e.target.value)}
               min="0"
               aria-label="相對權重"
               className="px-2 py-1 rounded bg-red-900 border border-red-700 text-white text-sm text-center focus:outline-none focus:border-yellow-400"
@@ -70,5 +89,5 @@ export default function PrizeEditor({ prizes, onUpdate, onAdd, onRemove }: Props
         ))}
       </ul>
     </section>
-  )
+  );
 }

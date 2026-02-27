@@ -14,6 +14,7 @@ export default function HostPage() {
     qrCode,
     copied,
     currentRTP,
+    bingoRTP,
     setTitle,
     updatePrize,
     addPrize,
@@ -70,6 +71,7 @@ export default function HostPage() {
             onUpdate={updatePrize}
             onAdd={addPrize}
             onRemove={removePrize}
+            disabled={form.mechanic === "bingo"}
           />
 
           {/* 難度預設 */}
@@ -215,31 +217,29 @@ export default function HostPage() {
                   />
                 </div>
               )}
+            </div>
 
-              {form.mechanic !== "bingo" && (
-                <div>
-                  <label
-                    htmlFor="ticket-price"
-                    className="block text-xs text-red-200 mb-1"
-                  >
-                    票面價格（元）
-                  </label>
-                  <input
-                    id="ticket-price"
-                    type="number"
-                    value={form.ticketPrice}
-                    onChange={(e) => setTicketPrice(e.target.value)}
-                    min="1"
-                    aria-label="票面價格"
-                    className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
-                  />
-                </div>
-              )}
+            <div className="mt-3">
+              <label
+                htmlFor="ticket-price"
+                className="block text-xs text-red-200 mb-1"
+              >
+                票面價格（元）
+              </label>
+              <input
+                id="ticket-price"
+                type="number"
+                value={form.ticketPrice}
+                onChange={(e) => setTicketPrice(e.target.value)}
+                min="1"
+                aria-label="票面價格"
+                className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
+              />
             </div>
           </section>
 
           {/* 即時 EV 顯示 */}
-          <EVDisplay rtp={currentRTP} />
+          <EVDisplay rtp={bingoRTP ?? currentRTP} />
 
           {/* 特效開關 */}
           <section className="flex items-center justify-between">

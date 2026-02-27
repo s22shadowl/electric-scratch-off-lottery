@@ -314,4 +314,46 @@ describe("useHostForm", () => {
     act(() => result.current.setPrizePerLine("500"));
     expect(result.current.form.prizePerLine).toBe("500");
   });
+
+  it("非 bingo 玩法時 bingoRTP 應為 null", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    expect(result.current.form.mechanic).toBe("symbol");
+    expect(result.current.bingoRTP).toBeNull();
+  });
+
+  it("切換到 bingo 後 bingoRTP 應為正數", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setMechanic("bingo"));
+    expect(result.current.bingoRTP).not.toBeNull();
+    expect(result.current.bingoRTP!).toBeGreaterThan(0);
+  });
+
+  it("bingo 時 ticketPrice 無效應讓 bingoRTP 為 null", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => {
+      result.current.setMechanic("bingo");
+      result.current.setTicketPrice("0");
+    });
+    expect(result.current.bingoRTP).toBeNull();
+  });
+
+  it("bingo 時 prizePerLine=0 應讓 bingoRTP 為 0", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => {
+      result.current.setMechanic("bingo");
+      result.current.setPrizePerLine("0");
+    });
+    expect(result.current.bingoRTP).toBe(0);
+  });
+
+  it("bingo 3x3 prizePerLine=100 ticketPrice=100 bingoRTP 應 > 0", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => {
+      result.current.setMechanic("bingo");
+      result.current.setGridSize("3");
+      result.current.setPrizePerLine("100");
+      result.current.setTicketPrice("100");
+    });
+    expect(result.current.bingoRTP!).toBeGreaterThan(0);
+  });
 });
