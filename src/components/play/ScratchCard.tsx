@@ -58,6 +58,12 @@ export default function ScratchCard({ cardId }: Props) {
           const drawnSet = new Set(
             card.zones[0]?.cells.map((c) => c.bingoNumber!) ?? [],
           );
+          // 已揭曉且命中開獎號碼的賓果格 → zone[0] 對應號碼顯示特效
+          const confirmedNums = new Set(
+            card.zones[1]?.cells
+              .filter((c) => c.isRevealed && drawnSet.has(c.bingoNumber!))
+              .map((c) => c.bingoNumber!) ?? [],
+          );
           return (
             <div className="flex flex-col gap-3">
               {/* zone[0]：開獎號碼 */}
@@ -69,7 +75,12 @@ export default function ScratchCard({ cardId }: Props) {
                   {card.zones[0]?.cells.map((cell) => (
                     <span
                       key={cell.id}
-                      className="w-7 h-7 flex items-center justify-center rounded-md bg-yellow-600 text-white text-xs font-black"
+                      className={[
+                        "w-7 h-7 flex items-center justify-center rounded-md text-xs font-black transition-all",
+                        confirmedNums.has(cell.bingoNumber!)
+                          ? "bg-yellow-400 text-red-900 ring-2 ring-yellow-300 scale-110"
+                          : "bg-yellow-600 text-white",
+                      ].join(" ")}
                     >
                       {cell.bingoNumber}
                     </span>

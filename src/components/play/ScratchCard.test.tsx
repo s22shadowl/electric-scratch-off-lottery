@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { useGameStore } from "@/stores/gameStore";
+import { useGameStore, REVEAL_THRESHOLD } from "@/stores/gameStore";
 import ScratchCard from "./ScratchCard";
 import type { GameConfig, BingoOptions } from "@/types";
 
@@ -177,5 +177,43 @@ describe("ScratchCard (bingo)", () => {
     render(<ScratchCard cardId={cardId} />);
     // gridSize=3 → zone[1]=9格，zone[0]=6格（已揭曉不計入）
     expect(screen.getByText(/0 \/ 9/)).toBeInTheDocument();
+  });
+
+  it("zone[1] 格揭曉且配對時，zone[0] 對應號碼應有高亮樣式", () => {
+    const cardId = useGameStore.getState().cards[0]!.id;
+    const card = useGameStore.getState().cards[0]!;
+    const drawnSet = new Set(card.zones[0]!.cells.map((c) => c.bingoNumber!));
+    // 找一個配對格（bingoNumber 在 drawnSet 中）
+    const matchedCell = card.zones[1]!.cells.find((c) =>
+      drawnSet.has(c.bingoNumber!),
+    );
+    if (!matchedCell) return; // 若無配對格跳過（理論上不會）
+    // 揭曉該配對格
+    useGameStore
+      .getState()
+      .updateCellProgress(cardId, matchedCell.id, REVEAL_THRESHOLD);
+    render(<ScratchCard cardId={cardId} />);
+    // zone[0] 對應號碼的 chip 應有亮黃背景
+    const chips = screen
+      .getAllByText(String(matchedCell.bingoNumber!))
+      .filter((el) => el.tagName === "SPAN");
+    // 至少一個 chip 有 bg-yellow-400（確認特效套用）
+    expect(chips.some((el) => el.className.includes("bg-yellow-400"))).toBe(
+      true,
+    );
+  });
+
+  it("zone[1] 格未揭曉時，zone[0] 號碼不應有高亮樣式", () => {
+    const cardId = useGameStore.getState().cards[0]!.id;
+    render(<ScratchCard cardId={cardId} />);
+    // zone[0] chip 有 w-7 class；BingoCellCanvas 內部 span 沒有
+    const zone0Chips = screen
+      .getAllByText(/^\d+$/)
+      .filter((el) => el.tagName === "SPAN" && el.className.includes("w-7"));
+    expect(zone0Chips.length).toBeGreaterThan(0);
+    zone0Chips.forEach((span) => {
+      expect(span.className).toContain("bg-yellow-600");
+      expect(span.className).not.toContain("bg-yellow-400");
+    });
   });
 });
