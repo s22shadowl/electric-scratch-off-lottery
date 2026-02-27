@@ -28,7 +28,8 @@ src/
 │   ├── canvas-utils.ts      # drawErase / drawSilverMask / calculateRevealedRatio
 │   ├── config-codec.ts      # encodeConfig / decodeConfig / buildPlayUrl / generateQRCode
 │   ├── symbol-pool.ts       # 10 種符號常數、assignSymbolsToPrizes
-│   └── prize-presets.ts     # DIFFICULTY_PRESETS, scalePrizesToTicketPrice, calculateRTP, classifyDifficulty
+│   ├── prize-presets.ts     # DIFFICULTY_PRESETS, scalePrizesToTicketPrice, calculateRTP, classifyDifficulty
+│   └── game-math.ts         # calculateRTP, classifyDifficulty, calcBingoLineProbabilities, computeWinnings(exported)
 ├── stores/gameStore.ts      # Zustand 狀態機（REVEAL_THRESHOLD = 0.7）
 ├── hooks/
 │   ├── useScratch.ts        # Canvas 刮除事件（willReadFrequently: true）
@@ -40,7 +41,8 @@ src/
 │   ├── CardPile.tsx
 │   ├── CardThumbnail.tsx
 │   ├── ScratchCard.tsx
-│   └── ScratchCellCanvas.tsx
+│   ├── ScratchCellCanvas.tsx
+│   └── BingoCellCanvas.tsx
 └── components/host/
     ├── DifficultySelector.tsx
     ├── EVDisplay.tsx
@@ -63,6 +65,7 @@ buildDeck(config)
      symbol → buildZone
      triple → buildTripleZones（3 zones × rowsPerCard cells）
      compare → buildCompareZones（3 zones × roundsPerCard cells）
+     bingo  → buildBingoZones（zone[0]=開獎號碼 auto-revealed, zone[1]=賓果格 scratch-off）
 ```
 
 ### GamePhase 狀態流
@@ -74,7 +77,7 @@ pile → scratching → results
 ### v2 型別架構（已實作）
 
 ```typescript
-type Mechanic = "symbol" | "triple" | "compare" // bingo 尚未實作
+type Mechanic = "symbol" | "triple" | "compare" | "bingo"
 interface CardTypeConfig {
   mechanic: Mechanic
   prizes: Prize[]
@@ -101,8 +104,12 @@ interface GameConfig {
 
 ## Session 工作流程
 
-- **設計與實作同一 session**：討論決策後立刻進入實作，不跨 session；如需離開先 commit
+- **每個 feature 一個 session**：討論決策後立刻進入實作；push 後結束 session，下個 feature 開新 session
 - **計畫工具**：使用 `everything-claude-code:plan`（Task subagent）；不使用內建 Plan Mode（`EnterPlanMode` 會寫入 `~/.claude/plans/` 並在每個新 session 自動全文掛載）
 - **Annotation cycle**：`/plan` 產出後可多輪標注修正並說「不要動手」，確認後再實作
+- **Plan 格式**：每個 Step 必須列出影響的檔案清單 + 修改方式（新增欄位/重構函式/加條件判斷等）
+- **Phase commit**：每個 Phase（邏輯獨立功能單元）完成後立即 commit
 - **Plan 輕量化**：計畫只記決策結果，不記實作細節；完成後決策結果移入 MEMORY.md，計畫本身丟棄
 - **暫存規格檔**：建立時告知用戶；刪除前必須與用戶確認
+- **Post-implementation 流程**：code-reviewer subagent → 修 HIGH/CRITICAL → commit + push → 結束 session
+- **Subagent 模式**：實作 + code-review 交給 Task subagent（worktree 隔離）；主 session 只負責需求討論與計畫確認
