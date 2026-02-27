@@ -13,6 +13,7 @@ export default function HostPage() {
     playUrl,
     qrCode,
     copied,
+    config,
     currentRTP,
     bingoRTP,
     setTitle,
@@ -239,7 +240,10 @@ export default function HostPage() {
           </section>
 
           {/* 即時 EV 顯示 */}
-          <EVDisplay rtp={bingoRTP ?? currentRTP} />
+          <EVDisplay
+            rtp={bingoRTP ?? currentRTP}
+            cardTypes={config?.cardTypes}
+          />
 
           {/* 特效開關 */}
           <section className="flex items-center justify-between">
