@@ -10,6 +10,7 @@ interface Props {
 export default function ScratchCard({ cardId }: Props) {
   const card = useGameStore((s) => s.cards.find((c) => c.id === cardId));
   const config = useGameStore((s) => s.config);
+  const revealCard = useGameStore((s) => s.revealCard);
 
   if (!card) return null;
 
@@ -161,9 +162,18 @@ export default function ScratchCard({ cardId }: Props) {
       {/* 進度提示 */}
       <footer className="mt-3 text-center">
         {!isCompleted && (
-          <p className="text-red-300 text-xs">
-            已刮開 {revealedCount} / {totalCount} 格
-          </p>
+          <div className="flex flex-col items-center gap-1.5">
+            <p className="text-red-300 text-xs">
+              已刮開 {revealedCount} / {totalCount} 格
+            </p>
+            <button
+              type="button"
+              onClick={() => revealCard(cardId)}
+              className="px-4 py-1.5 rounded-lg bg-yellow-400 text-red-900 text-xs font-bold hover:bg-yellow-300 transition-colors"
+            >
+              ⚡ 一鍵刮開
+            </button>
+          </div>
         )}
 
         {/* 中獎金額 */}

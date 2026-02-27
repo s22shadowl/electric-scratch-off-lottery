@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { useGameStore, REVEAL_THRESHOLD } from "./gameStore";
+import { useGameStore, REVEAL_THRESHOLD, computeWinnings } from "./gameStore";
 import type { GameConfig, BingoOptions } from "@/types";
 
 // ── 測試資料 ──────────────────────────────────────────────
@@ -434,6 +434,201 @@ describe("updateCellProgress (compare)", () => {
 
     const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
     expect(updated?.totalWinnings).toBe(expectedWinnings);
+  });
+});
+
+// ── computeWinnings ───────────────────────────────────────
+
+describe("computeWinnings", () => {
+  it("symbol：加總所有 isRevealed & isWin 格的獎金", () => {
+    useGameStore.getState().initGame(config);
+    const card = useGameStore.getState().cards[0]!;
+    // 找一個中獎格，手動設 isRevealed
+    const winCell = card.zones[0]!.cells.find((c) => c.prize.isWin);
+    if (!winCell) return; // 若這張沒中獎格就跳過
+    const fakeCard = {
+      ...card,
+      zones: [
+        {
+          ...card.zones[0]!,
+          cells: card.zones[0]!.cells.map((c) =>
+            c.id === winCell.id ? { ...c, isRevealed: true } : c,
+          ),
+        },
+      ],
+    };
+    expect(computeWinnings(fakeCard, "symbol")).toBe(winCell.prize.amount);
+  });
+
+  it("triple：全揭曉後計算三同列獎金", () => {
+    useGameStore.getState().initGame(tripleConfig);
+    const card = useGameStore.getState().cards[0]!;
+    const allRevealedZones = card.zones.map((zone) => ({
+      ...zone,
+      cells: zone.cells.map((c) => ({ ...c, isRevealed: true })),
+    }));
+    const fakeCard = { ...card, zones: allRevealedZones };
+    const expectedWinnings = card.zones[0]!.cells.reduce((sum, _, row) => {
+      const p0 = card.zones[0]!.cells[row]!.prize;
+      const p1 = card.zones[1]!.cells[row]!.prize;
+      const p2 = card.zones[2]!.cells[row]!.prize;
+      return p0.id === p1.id && p1.id === p2.id ? sum + p0.amount : sum;
+    }, 0);
+    expect(computeWinnings(fakeCard, "triple")).toBe(expectedWinnings);
+  });
+
+  it("compare：全揭曉後計算比大小獎金", () => {
+    useGameStore.getState().initGame(compareConfig);
+    const card = useGameStore.getState().cards[0]!;
+    const allRevealedZones = card.zones.map((zone) => ({
+      ...zone,
+      cells: zone.cells.map((c) => ({ ...c, isRevealed: true })),
+    }));
+    const fakeCard = { ...card, zones: allRevealedZones };
+    const expectedWinnings = card.zones[0]!.cells.reduce((sum, _, row) => {
+      const pv = card.zones[0]!.cells[row]!.compareValue!;
+      const dv = card.zones[1]!.cells[row]!.compareValue!;
+      const prize = card.zones[2]!.cells[row]!.prize;
+      return pv > dv ? sum + prize.amount : sum;
+    }, 0);
+    expect(computeWinnings(fakeCard, "compare")).toBe(expectedWinnings);
+  });
+
+  it("bingo：計算完成線數 × prizePerLine", () => {
+    useGameStore.getState().initGame(bingoConfig);
+    const card = useGameStore.getState().cards[0]!;
+    const g = BINGO_GRID_SIZE;
+    const drawnSet = new Set(card.zones[0]!.cells.map((c) => c.bingoNumber!));
+    const matched = card.zones[1]!.cells.map((c) =>
+      drawnSet.has(c.bingoNumber!),
+    );
+    let lines = 0;
+    for (let r = 0; r < g; r++) {
+      if (
+        Array.from({ length: g }, (_, c) => matched[r * g + c]).every(Boolean)
+      )
+        lines++;
+    }
+    for (let c = 0; c < g; c++) {
+      if (
+        Array.from({ length: g }, (_, r) => matched[r * g + c]).every(Boolean)
+      )
+        lines++;
+    }
+    if (Array.from({ length: g }, (_, i) => matched[i * g + i]).every(Boolean))
+      lines++;
+    if (
+      Array.from({ length: g }, (_, i) => matched[i * g + (g - 1 - i)]).every(
+        Boolean,
+      )
+    )
+      lines++;
+    const allRevealedZones = card.zones.map((zone) => ({
+      ...zone,
+      cells: zone.cells.map((c) => ({ ...c, isRevealed: true })),
+    }));
+    const fakeCard = { ...card, zones: allRevealedZones };
+    expect(computeWinnings(fakeCard, "bingo", BINGO_PRIZE_PER_LINE)).toBe(
+      lines * BINGO_PRIZE_PER_LINE,
+    );
+  });
+});
+
+// ── revealCard ────────────────────────────────────────────
+
+describe("revealCard", () => {
+  it("symbol：revealCard 後卡片狀態應為 completed", () => {
+    useGameStore.getState().initGame(config);
+    const cardId = useGameStore.getState().cards[0]!.id;
+    useGameStore.getState().selectCard(cardId);
+    useGameStore.getState().startScratching();
+    useGameStore.getState().revealCard(cardId);
+    const updated = useGameStore.getState().cards.find((c) => c.id === cardId);
+    expect(updated?.status).toBe("completed");
+  });
+
+  it("symbol：revealCard 後所有 cells 應 isRevealed=true", () => {
+    useGameStore.getState().initGame(config);
+    const cardId = useGameStore.getState().cards[0]!.id;
+    useGameStore.getState().revealCard(cardId);
+    const updated = useGameStore.getState().cards.find((c) => c.id === cardId);
+    updated?.zones.forEach((zone) => {
+      zone.cells.forEach((cell) => expect(cell.isRevealed).toBe(true));
+    });
+  });
+
+  it("bingo：revealCard 後只揭曉 zone[1]，zone[0] 狀態不變", () => {
+    useGameStore.getState().initGame(bingoConfig);
+    const cardId = useGameStore.getState().cards[0]!.id;
+    const zone0Before = useGameStore.getState().cards[0]!.zones[0]!.cells;
+    useGameStore.getState().revealCard(cardId);
+    const updated = useGameStore.getState().cards.find((c) => c.id === cardId)!;
+    // zone[0] 應保持原始狀態（不被 revealCard 修改）
+    updated.zones[0]!.cells.forEach((cell, i) => {
+      expect(cell.scratchProgress).toBe(zone0Before[i]!.scratchProgress);
+    });
+    // zone[1] 應全部揭曉
+    updated.zones[1]!.cells.forEach((cell) => {
+      expect(cell.isRevealed).toBe(true);
+    });
+  });
+
+  it("bingo：revealCard 後 totalWinnings 應正確計算", () => {
+    useGameStore.getState().initGame(bingoConfig);
+    const cardId = useGameStore.getState().cards[0]!.id;
+    const card = useGameStore.getState().cards[0]!;
+    const g = BINGO_GRID_SIZE;
+    const drawnSet = new Set(card.zones[0]!.cells.map((c) => c.bingoNumber!));
+    const matched = card.zones[1]!.cells.map((c) =>
+      drawnSet.has(c.bingoNumber!),
+    );
+    let lines = 0;
+    for (let r = 0; r < g; r++) {
+      if (
+        Array.from({ length: g }, (_, c) => matched[r * g + c]).every(Boolean)
+      )
+        lines++;
+    }
+    for (let c = 0; c < g; c++) {
+      if (
+        Array.from({ length: g }, (_, r) => matched[r * g + c]).every(Boolean)
+      )
+        lines++;
+    }
+    if (Array.from({ length: g }, (_, i) => matched[i * g + i]).every(Boolean))
+      lines++;
+    if (
+      Array.from({ length: g }, (_, i) => matched[i * g + (g - 1 - i)]).every(
+        Boolean,
+      )
+    )
+      lines++;
+    useGameStore.getState().revealCard(cardId);
+    const updated = useGameStore.getState().cards.find((c) => c.id === cardId);
+    expect(updated?.totalWinnings).toBe(lines * BINGO_PRIZE_PER_LINE);
+  });
+
+  it("對已完成卡片呼叫 revealCard 應為 no-op", () => {
+    useGameStore.getState().initGame(config);
+    const cardId = useGameStore.getState().cards[0]!.id;
+    useGameStore.getState().revealCard(cardId);
+    const after1 = useGameStore.getState().cards.find((c) => c.id === cardId);
+    useGameStore.getState().revealCard(cardId);
+    const after2 = useGameStore.getState().cards.find((c) => c.id === cardId);
+    // 物件參考相同（no-op → map 回傳原物件）
+    expect(after2).toBe(after1);
+  });
+
+  it("revealCard 後所有選取卡片完成時 phase 應切換為 results", () => {
+    useGameStore.getState().initGame(config);
+    const cards = useGameStore.getState().cards;
+    useGameStore.getState().selectCard(cards[0]!.id);
+    useGameStore.getState().selectCard(cards[1]!.id);
+    useGameStore.getState().startScratching();
+    useGameStore.getState().revealCard(cards[0]!.id);
+    expect(useGameStore.getState().phase).toBe("scratching");
+    useGameStore.getState().revealCard(cards[1]!.id);
+    expect(useGameStore.getState().phase).toBe("results");
   });
 });
 

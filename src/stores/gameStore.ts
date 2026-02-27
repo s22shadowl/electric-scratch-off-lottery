@@ -24,6 +24,7 @@ interface GameActions {
     cellId: string,
     progress: number,
   ) => void;
+  revealCard: (cardId: string) => void;
   setPhase: (phase: GamePhase) => void;
   toggleEffects: () => void;
 }
@@ -125,6 +126,24 @@ function resolveBingoWinnings(card: ScratchCard, prizePerLine: number): number {
   return lines * prizePerLine;
 }
 
+// ── 純函式：計算卡片完成後的獎金（呼叫端須保證 card 狀態已是最終狀態）────
+
+export function computeWinnings(
+  card: ScratchCard,
+  mechanic: Mechanic,
+  prizePerLine?: number,
+): number {
+  if (mechanic === "triple") return resolveTripleWinnings(card);
+  if (mechanic === "compare") return resolveCompareWinnings(card);
+  if (mechanic === "bingo")
+    return resolveBingoWinnings(card, prizePerLine ?? 0);
+  // symbol：加總已揭曉的中獎格
+  return card.zones
+    .flatMap((z) => z.cells)
+    .filter((c) => c.isRevealed && c.prize.isWin)
+    .reduce((sum, c) => sum + c.prize.amount, 0);
+}
+
 // ── 純函式：更新單張卡片（不可變）────────────────────────────
 
 function applyProgressToCard(
@@ -148,36 +167,15 @@ function applyProgressToCard(
     zone.cells.every((c) => c.isRevealed),
   );
 
-  let totalWinnings: number;
-  if (mechanic === "triple") {
-    // 三同：全部揭曉後計算列對列勝負；未完成時維持 0
-    totalWinnings = allRevealed
-      ? resolveTripleWinnings({ ...card, zones: updatedZones })
+  const updatedCard = { ...card, zones: updatedZones };
+  // triple/compare/bingo 延遲至全部揭曉後才計算；symbol 即時計算
+  const totalWinnings =
+    mechanic === "symbol" || allRevealed
+      ? computeWinnings(updatedCard, mechanic, prizePerLine)
       : 0;
-  } else if (mechanic === "compare") {
-    // 比大小：全部揭曉後依 compareValue 列對列計算；未完成時維持 0
-    totalWinnings = allRevealed
-      ? resolveCompareWinnings({ ...card, zones: updatedZones })
-      : 0;
-  } else if (mechanic === "bingo") {
-    // 賓果：zone[1] 全部揭曉後計算完成線數；未完成時維持 0
-    totalWinnings = allRevealed
-      ? resolveBingoWinnings(
-          { ...card, zones: updatedZones },
-          prizePerLine ?? 0,
-        )
-      : 0;
-  } else {
-    // symbol：即時加總已揭曉的中獎格
-    totalWinnings = updatedZones
-      .flatMap((z) => z.cells)
-      .filter((c) => c.isRevealed && c.prize.isWin)
-      .reduce((sum, c) => sum + c.prize.amount, 0);
-  }
 
   return {
-    ...card,
-    zones: updatedZones,
+    ...updatedCard,
     status: allRevealed ? "completed" : card.status,
     totalWinnings,
   };
@@ -241,6 +239,52 @@ export const useGameStore = create<GameStore>((set) => ({
             ? (cardTypeConfig?.mechanicOptions as BingoOptions).prizePerLine
             : undefined;
         return applyProgressToCard(c, cellId, progress, mechanic, prizePerLine);
+      });
+      const allCompleted =
+        state.selectedCardIds.length > 0 &&
+        state.selectedCardIds.every(
+          (id) => updatedCards.find((c) => c.id === id)?.status === "completed",
+        );
+      return {
+        cards: updatedCards,
+        phase: allCompleted ? "results" : state.phase,
+      };
+    }),
+
+  revealCard: (cardId) =>
+    set((state) => {
+      const updatedCards = state.cards.map((c) => {
+        if (c.id !== cardId) return c;
+        if (c.status === "completed") return c;
+        const cardTypeConfig = state.config.cardTypes[c.cardTypeIndex];
+        const mechanic = cardTypeConfig?.mechanic ?? "symbol";
+        const prizePerLine =
+          mechanic === "bingo"
+            ? (cardTypeConfig?.mechanicOptions as BingoOptions).prizePerLine
+            : undefined;
+        // bingo：只揭曉 zone[1]（zone[0] 已在 buildDeck 時自動揭曉）
+        // 其他玩法：揭曉全部 zones
+        const updatedZones = c.zones.map((zone, zi) => {
+          const shouldReveal = mechanic !== "bingo" || zi === 1;
+          if (!shouldReveal) return zone;
+          return {
+            ...zone,
+            cells: zone.cells.map((cell) => ({
+              ...cell,
+              scratchProgress: 1,
+              isRevealed: true,
+            })),
+          };
+        });
+        const updatedCard = {
+          ...c,
+          zones: updatedZones,
+          status: "completed" as const,
+        };
+        return {
+          ...updatedCard,
+          totalWinnings: computeWinnings(updatedCard, mechanic, prizePerLine),
+        };
       });
       const allCompleted =
         state.selectedCardIds.length > 0 &&

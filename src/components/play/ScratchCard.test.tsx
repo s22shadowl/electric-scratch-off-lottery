@@ -93,6 +93,26 @@ describe("ScratchCard", () => {
     const { container } = render(<ScratchCard cardId="non-existent" />);
     expect(container.firstChild).toBeNull();
   });
+
+  it("未完成時應顯示一鍵刮開按鈕", () => {
+    const cardId = useGameStore.getState().cards[0]!.id;
+    render(<ScratchCard cardId={cardId} />);
+    expect(
+      screen.getByRole("button", { name: /一鍵刮開/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("完成後不應顯示一鍵刮開按鈕", () => {
+    const cardId = useGameStore.getState().cards[0]!.id;
+    const cells = useGameStore.getState().cards[0]!.zones[0]!.cells;
+    cells.forEach((cell) => {
+      useGameStore.getState().updateCellProgress(cardId, cell.id, 1.0);
+    });
+    render(<ScratchCard cardId={cardId} />);
+    expect(
+      screen.queryByRole("button", { name: /一鍵刮開/ }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 // ── bingo 玩法 ─────────────────────────────────────────────
