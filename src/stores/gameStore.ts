@@ -153,6 +153,7 @@ function applyProgressToCard(
   mechanic: Mechanic,
   prizePerLine?: number,
 ): ScratchCard {
+  if (card.status === "completed") return card;
   const isRevealed = progress >= REVEAL_THRESHOLD;
   const updatedZones = card.zones.map((zone) => ({
     ...zone,

@@ -32,6 +32,8 @@ export default function PrizeEditor({
           type="button"
           onClick={onAdd}
           aria-label="新增獎項"
+          disabled={disabled}
+          tabIndex={disabled ? -1 : undefined}
           className="px-3 py-1 text-sm bg-yellow-400 text-red-900 font-bold rounded hover:bg-yellow-300 transition-colors"
         >
           ＋ 新增獎項
@@ -58,6 +60,8 @@ export default function PrizeEditor({
               onChange={(e) => onUpdate(prize.uid, "label", e.target.value)}
               placeholder="如：$500、謝謝參與"
               aria-label="獎項名稱"
+              disabled={disabled}
+              tabIndex={disabled ? -1 : undefined}
               className="px-2 py-1 rounded bg-red-900 border border-red-700 text-white placeholder-red-400 text-sm focus:outline-none focus:border-yellow-400"
             />
             <input
@@ -66,6 +70,8 @@ export default function PrizeEditor({
               onChange={(e) => onUpdate(prize.uid, "amount", e.target.value)}
               min="0"
               aria-label="獎項金額"
+              disabled={disabled}
+              tabIndex={disabled ? -1 : undefined}
               className="px-2 py-1 rounded bg-red-900 border border-red-700 text-white text-sm text-center focus:outline-none focus:border-yellow-400"
             />
             <input
@@ -74,13 +80,16 @@ export default function PrizeEditor({
               onChange={(e) => onUpdate(prize.uid, "weight", e.target.value)}
               min="0"
               aria-label="相對權重"
+              disabled={disabled}
+              tabIndex={disabled ? -1 : undefined}
               className="px-2 py-1 rounded bg-red-900 border border-red-700 text-white text-sm text-center focus:outline-none focus:border-yellow-400"
             />
             <button
               type="button"
               onClick={() => onRemove(prize.uid)}
               aria-label={`刪除獎項 ${prize.label}`}
-              disabled={prizes.length <= 1}
+              disabled={disabled || prizes.length <= 1}
+              tabIndex={disabled ? -1 : undefined}
               className="text-red-300 hover:text-white disabled:opacity-30 text-lg leading-none transition-colors"
             >
               ✕
