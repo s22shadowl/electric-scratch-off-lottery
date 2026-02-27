@@ -7,9 +7,15 @@ interface Props {
   cell: ScratchCell;
   cardId: string;
   isMatched: boolean; // bingoNumber 是否在開獎號碼集合內
+  size?: number; // 格子尺寸（px），預設 60
 }
 
-export default function BingoCellCanvas({ cell, cardId, isMatched }: Props) {
+export default function BingoCellCanvas({
+  cell,
+  cardId,
+  isMatched,
+  size = 60,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const updateCellProgress = useGameStore((s) => s.updateCellProgress);
 
@@ -33,7 +39,8 @@ export default function BingoCellCanvas({ cell, cardId, isMatched }: Props) {
     <div
       data-testid={`bingo-cell-${cell.id}`}
       data-matched={String(isMatched)}
-      className="relative w-[60px] h-[60px] rounded-lg overflow-hidden select-none"
+      className="relative rounded-lg overflow-hidden select-none"
+      style={{ width: size, height: size }}
     >
       {/* 底層：號碼內容 */}
       <div
@@ -46,7 +53,8 @@ export default function BingoCellCanvas({ cell, cardId, isMatched }: Props) {
       >
         <span
           className={[
-            "text-2xl font-black leading-none",
+            size >= 52 ? "text-2xl" : "text-xl",
+            "font-black leading-none",
             isMatched ? "text-white" : "text-slate-300",
           ].join(" ")}
         >

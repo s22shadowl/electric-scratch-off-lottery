@@ -32,7 +32,7 @@ export default function ScratchCard({ cardId }: Props) {
   return (
     <article
       data-testid={`scratch-card-${cardId}`}
-      className="relative bg-gradient-to-br from-red-700 to-red-900 rounded-2xl p-4 shadow-2xl border-2 border-red-600 w-full max-w-sm sm:w-fit"
+      className={`relative bg-gradient-to-br from-red-700 to-red-900 rounded-2xl p-4 shadow-2xl border-2 border-red-600 w-full sm:w-fit ${mechanic === "bingo" ? "max-w-xs" : "max-w-sm"}`}
     >
       {/* 卡片標題 */}
       <header className="text-center mb-3">
@@ -51,6 +51,10 @@ export default function ScratchCard({ cardId }: Props) {
             | BingoOptions
             | undefined;
           const gridSize = opts?.gridSize ?? 3;
+          const cellSize =
+            ({ 3: 64, 4: 52, 5: 44, 6: 36 } as Record<number, number>)[
+              gridSize
+            ] ?? 48;
           const drawnSet = new Set(
             card.zones[0]?.cells.map((c) => c.bingoNumber!) ?? [],
           );
@@ -65,7 +69,7 @@ export default function ScratchCard({ cardId }: Props) {
                   {card.zones[0]?.cells.map((cell) => (
                     <span
                       key={cell.id}
-                      className="w-8 h-8 flex items-center justify-center rounded-md bg-yellow-600 text-white text-sm font-black"
+                      className="w-7 h-7 flex items-center justify-center rounded-md bg-yellow-600 text-white text-xs font-black"
                     >
                       {cell.bingoNumber}
                     </span>
@@ -85,6 +89,7 @@ export default function ScratchCard({ cardId }: Props) {
                     cell={cell}
                     cardId={cardId}
                     isMatched={drawnSet.has(cell.bingoNumber!)}
+                    size={cellSize}
                   />
                 ))}
               </div>
