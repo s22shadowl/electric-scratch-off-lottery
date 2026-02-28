@@ -42,7 +42,7 @@ export default function CardThumbnail({ card, isSelected, onToggle }: Props) {
           backgroundRepeat: "repeat",
           backgroundSize: "64px 64px",
           mixBlendMode: "multiply",
-          opacity: 0.35,
+          opacity: 0.9,
         }}
       />
       {/* 閃光裝飾 */}

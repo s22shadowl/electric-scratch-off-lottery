@@ -10,6 +10,7 @@ import type {
   CompareOptions,
   BingoOptions,
 } from "@/types";
+import { assignSymbolsToPrizes } from "@/utils/symbol-pool";
 
 // 生成 4 碼大寫英文 session code
 export function generateSessionCode(): string {
@@ -251,18 +252,23 @@ export function buildCard(
   cardTypeIndex: number,
 ): ScratchCard {
   const normalized = normalizeProbabilities(cardTypeConfig.prizes);
+  // symbol / triple 玩法需為 prizes 分配符號 code，讓 cell.prize.symbolCode 有值供 sprite 渲染
+  const prizes =
+    cardTypeConfig.mechanic === "symbol" || cardTypeConfig.mechanic === "triple"
+      ? assignSymbolsToPrizes(normalized)
+      : normalized;
   const zones =
     cardTypeConfig.mechanic === "triple"
       ? buildTripleZones(
           cardId,
           (cardTypeConfig.mechanicOptions as TripleOptions).rowsPerCard,
-          normalized,
+          prizes,
         )
       : cardTypeConfig.mechanic === "compare"
         ? buildCompareZones(
             cardId,
             (cardTypeConfig.mechanicOptions as CompareOptions).roundsPerCard,
-            normalized,
+            prizes,
           )
         : cardTypeConfig.mechanic === "bingo"
           ? buildBingoZones(
@@ -274,7 +280,7 @@ export function buildCard(
                 cardId,
                 0,
                 (cardTypeConfig.mechanicOptions as SymbolOptions).cellsPerZone,
-                normalized,
+                prizes,
               ),
             ];
   return {

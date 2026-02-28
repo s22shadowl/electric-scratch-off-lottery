@@ -46,7 +46,7 @@ export default function ScratchCard({ cardId }: Props) {
           backgroundRepeat: "repeat",
           backgroundSize: "64px 64px",
           mixBlendMode: "multiply",
-          opacity: 0.35,
+          opacity: 0.9,
         }}
       />
       {/* 卡片標題 */}
