@@ -1,5 +1,6 @@
 import type { ScratchCard } from "@/types";
 import caishenUrl from "@/assets/mascot/caishen.png";
+import cloudTileUrl from "@/assets/decorations/cloud-tile.png";
 
 interface Props {
   card: ScratchCard;
@@ -25,13 +26,25 @@ export default function CardThumbnail({ card, isSelected, onToggle }: Props) {
       className={[
         "relative w-40 h-24 rounded-xl transition-all duration-200 cursor-pointer select-none",
         "bg-gradient-to-br from-red-600 to-red-800",
-        "border-2",
+        "border-2 card-emboss",
         isSelected
           ? "border-yellow-400 shadow-[0_0_16px_rgba(250,204,21,0.7)] scale-105 -translate-y-2"
           : "border-red-500 hover:border-yellow-300 hover:scale-102 hover:-translate-y-1",
         isDisabled ? "opacity-50 cursor-not-allowed" : "",
       ].join(" ")}
     >
+      {/* 祥雲紋路 */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 rounded-xl pointer-events-none"
+        style={{
+          backgroundImage: `url(${cloudTileUrl})`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "64px 64px",
+          mixBlendMode: "multiply",
+          opacity: 0.35,
+        }}
+      />
       {/* 閃光裝飾 */}
       <span className="absolute top-1.5 left-2 text-yellow-300 text-xs opacity-70">
         ✦
