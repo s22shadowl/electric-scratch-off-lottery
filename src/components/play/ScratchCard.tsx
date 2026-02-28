@@ -38,7 +38,7 @@ export default function ScratchCard({ cardId }: Props) {
     >
       {/* 卡片標題 */}
       <header className="text-center mb-3">
-        <h2 className="text-yellow-400 font-black text-sm tracking-widest drop-shadow">
+        <h2 className="text-yellow-400 font-black text-sm tracking-widest drop-shadow font-serif">
           ✦ 電子刮刮樂 ✦
         </h2>
         <p className="text-yellow-300/60 text-[10px] font-mono mt-0.5">

@@ -78,7 +78,7 @@ export default function PlayPage() {
     >
       {/* 頁首 */}
       <header className="text-center pt-6 pb-2">
-        <h1 className="text-2xl font-black text-yellow-400 drop-shadow-lg tracking-wide">
+        <h1 className="text-2xl font-black text-yellow-400 drop-shadow-lg tracking-wide font-serif">
           {config.sessionTitle}
         </h1>
       </header>
