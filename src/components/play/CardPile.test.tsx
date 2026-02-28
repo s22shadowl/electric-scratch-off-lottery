@@ -32,9 +32,24 @@ beforeEach(() => {
 describe("CardPile", () => {
   it("應渲染所有卡片", () => {
     render(<CardPile />);
-    expect(screen.getAllByRole("button")).toHaveLength(
+    expect(screen.getAllByRole("button", { name: /刮刮樂/ })).toHaveLength(
       config.cardTypes[0]!.count,
     );
+  });
+
+  it("應顯示 ⓘ 查看獎池按鈕", () => {
+    render(<CardPile />);
+    expect(
+      screen.getByRole("button", { name: /查看獎池/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("點擊 ⓘ 按鈕應開啟獎池 Modal", async () => {
+    render(<CardPile />);
+    await userEvent.click(screen.getByRole("button", { name: /查看獎池/ }));
+    expect(
+      screen.getByRole("dialog", { name: /獎池資訊/ }),
+    ).toBeInTheDocument();
   });
 
   it("點擊卡片應選取該卡", async () => {

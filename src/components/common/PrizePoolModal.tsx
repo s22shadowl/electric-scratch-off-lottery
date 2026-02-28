@@ -1,4 +1,12 @@
-import type { GameConfig, CardTypeConfig } from "@/types";
+import { useState } from "react";
+import { calcBingoLineProbabilities } from "@/utils/game-math";
+import type { CardTypeConfig, BingoOptions } from "@/types";
+
+interface PrizePoolModalProps {
+  cardTypes: CardTypeConfig[];
+  initialIndex?: number;
+  onClose: () => void;
+}
 
 const MECHANIC_LABELS: Record<string, string> = {
   symbol: "符號",
@@ -7,92 +15,152 @@ const MECHANIC_LABELS: Record<string, string> = {
   bingo: "賓果",
 };
 
-interface PrizePoolModalProps {
-  config: GameConfig;
-  onClose: () => void;
-}
-
 function PrizeTable({ cardType }: { cardType: CardTypeConfig }) {
-  const total = cardType.prizes.reduce((sum, p) => sum + p.probability, 0);
+  const { prizes } = cardType;
+  const totalWeight = prizes.reduce((sum, p) => sum + p.probability, 0);
+
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="border-b border-red-700 text-red-300 text-xs">
-          <th className="text-left py-1 pr-2">獎項</th>
-          <th className="text-right py-1 pr-2">金額</th>
-          <th className="text-right py-1">機率</th>
+        <tr className="border-b border-red-700">
+          <th className="text-left py-2 text-yellow-300 font-bold">獎項名稱</th>
+          <th className="text-right py-2 text-yellow-300 font-bold">金額</th>
+          <th className="text-right py-2 text-yellow-300 font-bold">機率</th>
         </tr>
       </thead>
       <tbody>
-        {cardType.prizes.map((p) => (
-          <tr key={p.id} className="border-b border-red-800/50">
-            <td className="py-1 pr-2 text-white">{p.label}</td>
-            <td className="py-1 pr-2 text-right text-yellow-300">
-              {p.amount > 0 ? `$${p.amount}` : "—"}
-            </td>
-            <td className="py-1 text-right text-red-200">
-              {total > 0
-                ? ((p.probability / total) * 100).toFixed(1)
-                : "0.0"}
-              %
-            </td>
-          </tr>
-        ))}
+        {prizes.map((prize) => {
+          const pct =
+            totalWeight > 0
+              ? ((prize.probability / totalWeight) * 100).toFixed(1)
+              : "0.0";
+          return (
+            <tr key={prize.id} className="border-b border-red-800">
+              <td className="py-2 text-white">{prize.label}</td>
+              <td className="py-2 text-right text-white">
+                {prize.amount > 0 ? `$${prize.amount}` : "—"}
+              </td>
+              <td className="py-2 text-right text-red-200">{pct}%</td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );
 }
 
-export default function PrizePoolModal({ config, onClose }: PrizePoolModalProps) {
-  const cardTypes = config.cardTypes;
+function BingoStats({ cardType }: { cardType: CardTypeConfig }) {
+  const opts = cardType.mechanicOptions as BingoOptions;
+  const { gridSize, drawnCount, prizePerLine } = opts;
+  const ticketPrice = cardType.ticketPrice ?? 100;
+
+  const probs = calcBingoLineProbabilities(gridSize, drawnCount);
+  const expectedLines = Object.entries(probs).reduce(
+    (sum, [k, p]) => sum + Number(k) * p,
+    0,
+  );
+  const expectedRTP =
+    ((prizePerLine * expectedLines) / ticketPrice) * 100;
+
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="flex justify-between border-b border-red-800 py-2">
+        <span className="text-yellow-300 font-bold">格子大小</span>
+        <span className="text-white">
+          {gridSize} × {gridSize}
+        </span>
+      </div>
+      <div className="flex justify-between border-b border-red-800 py-2">
+        <span className="text-yellow-300 font-bold">開獎號碼顆數</span>
+        <span className="text-white">{drawnCount} 顆</span>
+      </div>
+      <div className="flex justify-between border-b border-red-800 py-2">
+        <span className="text-yellow-300 font-bold">每條連線獎金</span>
+        <span className="text-white">${prizePerLine}</span>
+      </div>
+      <div className="flex justify-between border-b border-red-800 py-2">
+        <span className="text-yellow-300 font-bold">預期連線數</span>
+        <span className="text-white">{expectedLines.toFixed(2)} 條</span>
+      </div>
+      <div className="flex justify-between py-2">
+        <span className="text-yellow-300 font-bold">預期報酬率</span>
+        <span className="text-white">{expectedRTP.toFixed(1)}%</span>
+      </div>
+    </div>
+  );
+}
+
+export default function PrizePoolModal({
+  cardTypes,
+  initialIndex = 0,
+  onClose,
+}: PrizePoolModalProps) {
+  const [activeIndex, setActiveIndex] = useState(
+    Math.min(initialIndex, cardTypes.length - 1),
+  );
+
+  const activeCardType = cardTypes[activeIndex];
+  if (!activeCardType) return null;
+
+  const showTabs = cardTypes.length > 1;
 
   return (
     <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-label="獎池資訊"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
-      <div className="bg-red-950 border border-red-700 rounded-xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto text-white shadow-2xl">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-yellow-400">獎池資訊</h2>
+      {/* 背景遮罩 */}
+      <div
+        className="absolute inset-0 bg-black/60"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* 面板 */}
+      <div className="relative z-10 w-full max-w-md rounded-xl bg-red-950 border border-red-700 shadow-2xl">
+        {/* 標題列 */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-red-700">
+          <h2 className="text-lg font-bold text-yellow-300">獎池資訊</h2>
           <button
             type="button"
-            aria-label="關閉"
             onClick={onClose}
+            aria-label="關閉"
             className="text-red-300 hover:text-white transition-colors text-xl leading-none"
           >
-            ✕
+            ×
           </button>
         </div>
 
-        {/* Tab bar */}
-        {cardTypes.length > 1 && (
-          <div className="flex gap-2 mb-4 flex-wrap">
-            {cardTypes.map((ct) => (
-              <span
+        {/* Tab bar（多卡型才顯示） */}
+        {showTabs && (
+          <div className="flex border-b border-red-700">
+            {cardTypes.map((ct, i) => (
+              <button
                 key={ct.mechanic}
-                className="px-3 py-1 rounded-full bg-red-800 text-red-200 text-xs font-bold"
+                type="button"
+                onClick={() => setActiveIndex(i)}
+                className={`flex-1 py-2 text-sm font-bold transition-colors ${
+                  activeIndex === i
+                    ? "text-yellow-300 border-b-2 border-yellow-400"
+                    : "text-red-300 hover:text-white"
+                }`}
               >
-                {MECHANIC_LABELS[ct.mechanic] ?? ct.mechanic}（{ct.count}張）
-              </span>
+                {MECHANIC_LABELS[ct.mechanic] ?? ct.mechanic}
+              </button>
             ))}
           </div>
         )}
 
-        {cardTypes.map((ct) => (
-          <div key={ct.mechanic} className="mb-6 last:mb-0">
-            {cardTypes.length > 1 && (
-              <h3 className="text-sm font-bold text-yellow-300 mb-2">
-                {MECHANIC_LABELS[ct.mechanic] ?? ct.mechanic} ×{ct.count}
-              </h3>
-            )}
-            <PrizeTable cardType={ct} />
-          </div>
-        ))}
+        {/* 內容區 */}
+        <div className="px-5 py-4">
+          {activeCardType.mechanic === "bingo" ? (
+            <BingoStats cardType={activeCardType} />
+          ) : (
+            <PrizeTable cardType={activeCardType} />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,14 +1,21 @@
+import { useState } from "react";
 import { classifyDifficulty, DIFFICULTY_PRESETS } from "@/utils/prize-presets";
+import PrizePoolModal from "@/components/common/PrizePoolModal";
+import type { CardTypeConfig } from "@/types";
 
 interface EVDisplayProps {
   rtp: number | null;
+  cardTypes?: CardTypeConfig[];
   totalExpectedPayout?: number | null;
 }
 
 export default function EVDisplay({
   rtp,
+  cardTypes,
   totalExpectedPayout,
 }: EVDisplayProps) {
+  const [showPrizePool, setShowPrizePool] = useState(false);
+
   if (rtp === null) {
     return (
       <div
@@ -38,37 +45,58 @@ export default function EVDisplay({
   const housePositive = 1 - rtp > 0;
 
   return (
-    <div
-      data-testid="ev-display"
-      className={`rounded-lg border px-4 py-3 text-sm ${colorClass}`}
-    >
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <span className="text-xs opacity-70 block">
-            返還率（玩家平均拿回）
-          </span>
-          <span className="text-lg font-bold">{rtpPct}%</span>
+    <>
+      <div
+        data-testid="ev-display"
+        className={`rounded-lg border px-4 py-3 text-sm ${colorClass}`}
+      >
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <span className="text-xs opacity-70 block">
+              返還率（玩家平均拿回）
+            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-lg font-bold">{rtpPct}%</span>
+              {cardTypes && cardTypes.length > 0 && (
+                <button
+                  type="button"
+                  aria-label="查看獎池"
+                  onClick={() => setShowPrizePool(true)}
+                  className="opacity-70 hover:opacity-100 transition-opacity text-base leading-none"
+                >
+                  ⓘ
+                </button>
+              )}
+            </div>
+          </div>
+          <div>
+            <span className="text-xs opacity-70 block">
+              {housePositive ? "賺錢率（主持人抽成）" : "主持人倒貼"}
+            </span>
+            <span className="text-lg font-bold">
+              {housePositive ? "" : "-"}
+              {Math.abs(parseFloat(housePct))}%
+            </span>
+          </div>
+          <div className="text-right">
+            <span className="text-xs opacity-70 block">難度</span>
+            <span className="font-bold">{diffLabel}</span>
+          </div>
         </div>
-        <div>
-          <span className="text-xs opacity-70 block">
-            {housePositive ? "賺錢率（主持人抽成）" : "主持人倒貼"}
-          </span>
-          <span className="text-lg font-bold">
-            {housePositive ? "" : "-"}
-            {Math.abs(parseFloat(housePct))}%
-          </span>
-        </div>
-        <div className="text-right">
-          <span className="text-xs opacity-70 block">難度</span>
-          <span className="font-bold">{diffLabel}</span>
-        </div>
+        {totalExpectedPayout != null && (
+          <div className="mt-2 flex items-center justify-between border-t border-current/20 pt-2">
+            <span className="text-xs opacity-70">整場預期支出</span>
+            <span className="font-bold">${Math.round(totalExpectedPayout)}</span>
+          </div>
+        )}
       </div>
-      {totalExpectedPayout != null && (
-        <div className="mt-2 flex items-center justify-between border-t border-current/20 pt-2">
-          <span className="text-xs opacity-70">整場預期支出</span>
-          <span className="font-bold">${Math.round(totalExpectedPayout)}</span>
-        </div>
+
+      {showPrizePool && cardTypes && cardTypes.length > 0 && (
+        <PrizePoolModal
+          cardTypes={cardTypes}
+          onClose={() => setShowPrizePool(false)}
+        />
       )}
-    </div>
+    </>
   );
 }

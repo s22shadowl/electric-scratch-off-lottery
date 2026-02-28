@@ -13,6 +13,7 @@ export default function HostPage() {
     playUrl,
     qrCode,
     copied,
+    config,
     currentRTP,
     bingoRTP,
     totalExpectedPayout,
@@ -242,6 +243,7 @@ export default function HostPage() {
           {/* 即時 EV 顯示 */}
           <EVDisplay
             rtp={bingoRTP ?? currentRTP}
+            cardTypes={config?.cardTypes}
             totalExpectedPayout={totalExpectedPayout}
           />
 

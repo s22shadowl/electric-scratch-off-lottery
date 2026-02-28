@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useGameStore } from "@/stores/gameStore";
 import CardThumbnail from "./CardThumbnail";
+import PrizePoolModal from "@/components/common/PrizePoolModal";
 
 export default function CardPile() {
   const cards = useGameStore((s) => s.cards);
@@ -7,6 +9,9 @@ export default function CardPile() {
   const selectCard = useGameStore((s) => s.selectCard);
   const deselectCard = useGameStore((s) => s.deselectCard);
   const startScratching = useGameStore((s) => s.startScratching);
+  const config = useGameStore((s) => s.config);
+
+  const [showPrizePool, setShowPrizePool] = useState(false);
 
   const selectedCount = selectedIds.length;
 
@@ -25,8 +30,25 @@ export default function CardPile() {
         <p className="text-yellow-300 text-lg font-bold drop-shadow">
           從牌堆中選擇你的刮刮樂
         </p>
-        <p className="text-red-300 text-sm mt-1">點擊卡片選取，可複選</p>
+        <div className="flex items-center justify-center gap-2 mt-1">
+          <p className="text-red-300 text-sm">點擊卡片選取，可複選</p>
+          <button
+            type="button"
+            aria-label="查看獎池"
+            onClick={() => setShowPrizePool(true)}
+            className="text-red-300 hover:text-yellow-300 transition-colors text-base leading-none"
+          >
+            ⓘ
+          </button>
+        </div>
       </div>
+
+      {showPrizePool && (
+        <PrizePoolModal
+          cardTypes={config.cardTypes}
+          onClose={() => setShowPrizePool(false)}
+        />
+      )}
 
       {/* 牌堆 */}
       <div className="flex flex-wrap justify-center gap-4">
