@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { SYMBOL_POOL, getSymbolByCode, assignSymbolsToPrizes } from "./symbol-pool";
+import {
+  SYMBOL_POOL,
+  getSymbolByCode,
+  assignSymbolsToPrizes,
+} from "./symbol-pool";
 import type { Prize } from "@/types";
 
 const makePrize = (id: string, amount: number): Prize => ({
@@ -26,6 +30,11 @@ describe("SYMBOL_POOL", () => {
       expect(typeof s.emoji).toBe("string");
       expect(typeof s.label).toBe("string");
     });
+  });
+
+  it("應有 6 個符號有 spriteFile", () => {
+    const withSprite = SYMBOL_POOL.filter((s) => s.spriteFile !== undefined);
+    expect(withSprite).toHaveLength(6);
   });
 });
 

@@ -139,4 +139,20 @@ describe("ScratchCellCanvas", () => {
       screen.getByTestId(`particle-canvas-${cell.id}`),
     ).toBeInTheDocument();
   });
+
+  it("symbolCode 有 sprite 且已揭曉時應渲染 img（alt 為 symbol.label）", () => {
+    const cell = makeCell({
+      isRevealed: true,
+      prize: {
+        id: "p-star",
+        label: "星星",
+        amount: 0,
+        probability: 1,
+        isWin: false,
+        symbolCode: "STAR",
+      },
+    });
+    render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
+    expect(screen.getByRole("img", { name: "星星" })).toBeInTheDocument();
+  });
 });

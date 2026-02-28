@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback } from "react";
 import { useScratch } from "@/hooks/useScratch";
 import { useParticles } from "@/hooks/useParticles";
 import { useGameStore } from "@/stores/gameStore";
+import { getSymbolByCode } from "@/utils/symbol-pool";
 import type { ScratchCell } from "@/types";
 
 interface Props {
@@ -66,24 +67,58 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
               : "bg-gradient-to-br from-red-900 to-red-950",
         ].join(" ")}
       >
-        <span
-          className={[
-            "font-black leading-none",
-            isNumberCell
-              ? "text-3xl text-white"
-              : isWin
-                ? "text-lg text-yellow-300"
-                : "text-lg text-red-400",
-            winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
-          ].join(" ")}
-        >
-          {displayLabel}
-        </span>
-        {!isNumberCell && cell.prize.symbolCode && (
-          <span className="text-[9px] text-red-500 tracking-widest mt-0.5">
-            {cell.prize.symbolCode}
-          </span>
-        )}
+        {(() => {
+          if (isNumberCell) {
+            // compare 玩法：數字格
+            return (
+              <span
+                className={[
+                  "font-black leading-none text-3xl text-white",
+                  winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
+                ].join(" ")}
+              >
+                {displayLabel}
+              </span>
+            );
+          }
+          const symbol = cell.prize.symbolCode
+            ? getSymbolByCode(cell.prize.symbolCode)
+            : undefined;
+          if (symbol?.spriteFile) {
+            // symbol 玩法：有 sprite 圖
+            return (
+              <>
+                <img
+                  src={symbol.spriteFile}
+                  alt={symbol.label}
+                  width={48}
+                  height={48}
+                  className={[
+                    "object-contain",
+                    winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
+                  ].join(" ")}
+                />
+                {cell.prize.amount > 0 && (
+                  <span className="text-[10px] text-yellow-300 font-bold mt-0.5">
+                    {cell.prize.label}
+                  </span>
+                )}
+              </>
+            );
+          }
+          // fallback：無 sprite，顯示文字
+          return (
+            <span
+              className={[
+                "font-black leading-none",
+                isWin ? "text-lg text-yellow-300" : "text-lg text-red-400",
+                winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
+              ].join(" ")}
+            >
+              {displayLabel}
+            </span>
+          );
+        })()}
       </div>
 
       {/* 頂層：Canvas 刮除遮罩（揭曉後以 CSS 淡出） */}
