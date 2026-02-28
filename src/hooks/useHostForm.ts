@@ -125,7 +125,9 @@ const defaultForm: HostFormState = {
     newPrize("uid-2", "$500", "500", "10"),
   ],
   cardCount: "10",
-  cellsPerZone: "6",
+  cellsPerZone: String(
+    FEATURES.FIXED_CARD_SIZES ? FIXED_SIZE_DEFAULTS.cellsPerZone : 6,
+  ),
   effectsEnabled: true,
   allowReturnToPile: false,
   difficultyPreset: "standard",

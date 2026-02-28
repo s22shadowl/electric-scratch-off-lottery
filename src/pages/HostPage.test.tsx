@@ -7,7 +7,12 @@ import { FEATURES } from "@/config/features";
 
 vi.mock("@/config/features", () => ({
   FEATURES: { FIXED_CARD_SIZES: true },
-  FIXED_SIZE_DEFAULTS: { gridSize: 5, rowsPerCard: 3, roundsPerCard: 3 },
+  FIXED_SIZE_DEFAULTS: {
+    gridSize: 5,
+    rowsPerCard: 3,
+    roundsPerCard: 3,
+    cellsPerZone: 4,
+  },
 }));
 
 // clipboard mock
@@ -184,11 +189,11 @@ describe("HostPage", () => {
     });
   });
 
-  it("各欄位旁應有 ⓘ 說明按鈕", () => {
+  it("各欄位旁應有 ⓘ 說明按鈕（FIXED_CARD_SIZES=true 時每張格數欄位隱藏）", () => {
     renderPage();
     const tooltipBtns = screen.getAllByRole("button", { name: "說明" });
-    // 至少有：總牌數、每張格數、票面價格、粒子特效、允許返回牌堆、難度預設
-    expect(tooltipBtns.length).toBeGreaterThanOrEqual(6);
+    // 總牌數、票面價格、粒子特效、允許返回牌堆、難度預設（每張格數在 flag=true 時隱藏）
+    expect(tooltipBtns.length).toBeGreaterThanOrEqual(5);
   });
 
   it("點擊總牌數旁 ⓘ 後應顯示說明文字", async () => {
@@ -210,5 +215,16 @@ describe("HostPage", () => {
     renderPage();
     await userEvent.click(screen.getByRole("radio", { name: /三同/ }));
     expect(screen.getByLabelText("列數（1–9）")).toBeInTheDocument();
+  });
+
+  it("FIXED_CARD_SIZES=true 時 symbol 玩法不應顯示每張格數欄位", () => {
+    renderPage();
+    expect(screen.queryByLabelText("每張格數（1–9）")).not.toBeInTheDocument();
+  });
+
+  it("FIXED_CARD_SIZES=false 時 symbol 玩法應顯示每張格數欄位", () => {
+    features.FIXED_CARD_SIZES = false;
+    renderPage();
+    expect(screen.getByLabelText("每張格數（1–9）")).toBeInTheDocument();
   });
 });

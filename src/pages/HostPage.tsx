@@ -224,7 +224,7 @@ export default function HostPage() {
                     />
                   </div>
                 ) : null
-              ) : (
+              ) : !FEATURES.FIXED_CARD_SIZES ? (
                 <div>
                   <div className="flex items-center gap-1 mb-1">
                     <label
@@ -245,7 +245,7 @@ export default function HostPage() {
                     className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                   />
                 </div>
-              )}
+              ) : null}
             </div>
 
             <div className="mt-3">
