@@ -13,15 +13,52 @@ export interface Symbol {
   emoji: string;
   label: string;
   spriteFile?: string;
+  spriteLabel?: string; // alt text，描述實際圖片內容（與 label 遊戲名稱區分）
 }
 
 export const SYMBOL_POOL: Symbol[] = [
-  { code: "STAR", emoji: "⭐", label: "星星", spriteFile: symCoinUrl },
-  { code: "MONEY", emoji: "💰", label: "金袋", spriteFile: symYuanbaoUrl },
-  { code: "DIAMOND", emoji: "💎", label: "鑽石", spriteFile: symRuyiUrl },
-  { code: "CLOVER", emoji: "🍀", label: "幸運草", spriteFile: symFuUrl },
-  { code: "BELL", emoji: "🔔", label: "鈴鐺", spriteFile: symFirecrackersUrl },
-  { code: "CHERRY", emoji: "🍒", label: "櫻桃", spriteFile: symHongbaoUrl },
+  {
+    code: "STAR",
+    emoji: "⭐",
+    label: "星星",
+    spriteFile: symCoinUrl,
+    spriteLabel: "金幣",
+  },
+  {
+    code: "MONEY",
+    emoji: "💰",
+    label: "金袋",
+    spriteFile: symYuanbaoUrl,
+    spriteLabel: "元寶",
+  },
+  {
+    code: "DIAMOND",
+    emoji: "💎",
+    label: "鑽石",
+    spriteFile: symRuyiUrl,
+    spriteLabel: "如意",
+  },
+  {
+    code: "CLOVER",
+    emoji: "🍀",
+    label: "幸運草",
+    spriteFile: symFuUrl,
+    spriteLabel: "福字",
+  },
+  {
+    code: "BELL",
+    emoji: "🔔",
+    label: "鈴鐺",
+    spriteFile: symFirecrackersUrl,
+    spriteLabel: "鞭炮",
+  },
+  {
+    code: "CHERRY",
+    emoji: "🍒",
+    label: "櫻桃",
+    spriteFile: symHongbaoUrl,
+    spriteLabel: "紅包",
+  },
   { code: "CROWN", emoji: "👑", label: "皇冠" },
   { code: "SUN", emoji: "☀️", label: "太陽" },
   { code: "DRAGON", emoji: "🐉", label: "龍" },

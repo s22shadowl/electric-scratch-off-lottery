@@ -32,7 +32,8 @@ export default function CardPile() {
       <div className="text-center">
         <img
           src={caishenUrl}
-          alt="財神"
+          alt=""
+          aria-hidden={true}
           width={80}
           height={80}
           className="mx-auto mb-2 drop-shadow-lg"

@@ -36,6 +36,12 @@ describe("SYMBOL_POOL", () => {
     const withSprite = SYMBOL_POOL.filter((s) => s.spriteFile !== undefined);
     expect(withSprite).toHaveLength(6);
   });
+
+  it("有 spriteFile 的符號應有 spriteLabel", () => {
+    SYMBOL_POOL.filter((s) => s.spriteFile !== undefined).forEach((s) => {
+      expect(typeof s.spriteLabel).toBe("string");
+    });
+  });
 });
 
 describe("getSymbolByCode", () => {

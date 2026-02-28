@@ -19,6 +19,71 @@ function getWinLevel(amount: number, maxPrize: number): 0 | 1 | 2 | 3 {
   return 1;
 }
 
+interface CellContentProps {
+  isNumberCell: boolean;
+  cell: ScratchCell;
+  winLevel: 0 | 1 | 2 | 3;
+  displayLabel: string;
+}
+
+function CellContent({ isNumberCell, cell, winLevel, displayLabel }: CellContentProps) {
+  // compare 玩法：數字格
+  if (isNumberCell) {
+    return (
+      <span
+        className={[
+          "font-black leading-none text-3xl text-white",
+          winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
+        ].join(" ")}
+      >
+        {displayLabel}
+      </span>
+    );
+  }
+
+  const symbol = cell.prize.symbolCode
+    ? getSymbolByCode(cell.prize.symbolCode)
+    : undefined;
+
+  // symbol 玩法：有 sprite 圖
+  if (symbol?.spriteFile) {
+    return (
+      <>
+        <img
+          src={symbol.spriteFile}
+          // 未揭曉時隱藏，避免 screen reader 在刮開前洩漏獎項內容
+          alt={cell.isRevealed ? (symbol.spriteLabel ?? symbol.label) : ""}
+          aria-hidden={!cell.isRevealed || undefined}
+          width={48}
+          height={48}
+          className={[
+            "object-contain",
+            winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
+          ].join(" ")}
+        />
+        {cell.isRevealed && cell.prize.amount > 0 && (
+          <span className="text-[10px] text-yellow-300 font-bold mt-0.5">
+            {cell.prize.label}
+          </span>
+        )}
+      </>
+    );
+  }
+
+  // fallback：無 sprite，顯示文字
+  return (
+    <span
+      className={[
+        "font-black leading-none",
+        cell.prize.isWin ? "text-lg text-yellow-300" : "text-lg text-red-400",
+        winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
+      ].join(" ")}
+    >
+      {displayLabel}
+    </span>
+  );
+}
+
 export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particleCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -67,58 +132,12 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
               : "bg-gradient-to-br from-red-900 to-red-950",
         ].join(" ")}
       >
-        {(() => {
-          if (isNumberCell) {
-            // compare 玩法：數字格
-            return (
-              <span
-                className={[
-                  "font-black leading-none text-3xl text-white",
-                  winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
-                ].join(" ")}
-              >
-                {displayLabel}
-              </span>
-            );
-          }
-          const symbol = cell.prize.symbolCode
-            ? getSymbolByCode(cell.prize.symbolCode)
-            : undefined;
-          if (symbol?.spriteFile) {
-            // symbol 玩法：有 sprite 圖
-            return (
-              <>
-                <img
-                  src={symbol.spriteFile}
-                  alt={symbol.label}
-                  width={48}
-                  height={48}
-                  className={[
-                    "object-contain",
-                    winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
-                  ].join(" ")}
-                />
-                {cell.prize.amount > 0 && (
-                  <span className="text-[10px] text-yellow-300 font-bold mt-0.5">
-                    {cell.prize.label}
-                  </span>
-                )}
-              </>
-            );
-          }
-          // fallback：無 sprite，顯示文字
-          return (
-            <span
-              className={[
-                "font-black leading-none",
-                isWin ? "text-lg text-yellow-300" : "text-lg text-red-400",
-                winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
-              ].join(" ")}
-            >
-              {displayLabel}
-            </span>
-          );
-        })()}
+        <CellContent
+          isNumberCell={isNumberCell}
+          cell={cell}
+          winLevel={winLevel}
+          displayLabel={displayLabel}
+        />
       </div>
 
       {/* 頂層：Canvas 刮除遮罩（揭曉後以 CSS 淡出） */}

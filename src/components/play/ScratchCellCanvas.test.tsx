@@ -140,7 +140,7 @@ describe("ScratchCellCanvas", () => {
     ).toBeInTheDocument();
   });
 
-  it("symbolCode 有 sprite 且已揭曉時應渲染 img（alt 為 symbol.label）", () => {
+  it("symbolCode 有 sprite 且已揭曉時應渲染 img（alt 為 spriteLabel）", () => {
     const cell = makeCell({
       isRevealed: true,
       prize: {
@@ -153,6 +153,28 @@ describe("ScratchCellCanvas", () => {
       },
     });
     render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
-    expect(screen.getByRole("img", { name: "星星" })).toBeInTheDocument();
+    // STAR 的 spriteLabel 為「金幣」（圖片實際內容）
+    expect(screen.getByRole("img", { name: "金幣" })).toBeInTheDocument();
+  });
+
+  it("symbolCode 有 sprite 且未揭曉時 img 應 aria-hidden 且 alt 為空", () => {
+    const cell = makeCell({
+      isRevealed: false,
+      prize: {
+        id: "p-star",
+        label: "星星",
+        amount: 0,
+        probability: 1,
+        isWin: false,
+        symbolCode: "STAR",
+      },
+    });
+    const { container } = render(
+      <ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />,
+    );
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img).toHaveAttribute("aria-hidden", "true");
+    expect(img).toHaveAttribute("alt", "");
   });
 });
