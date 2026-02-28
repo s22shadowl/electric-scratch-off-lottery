@@ -77,7 +77,9 @@ function TripleRules() {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-bold text-yellow-300">🎲 三同玩法</h3>
-      <p className="text-red-100 text-sm">每列三格，三格顯示相同符號才算中獎。</p>
+      <p className="text-red-100 text-sm">
+        每列三格，三格顯示相同符號才算中獎。
+      </p>
 
       <ol className="space-y-1 list-none">
         <Step number="1" text="刮開格子，每列有三個" />
@@ -148,13 +150,14 @@ function CompareRules() {
 }
 
 function BingoRules() {
-  const highlightCells = [false, false, true, false, true, false, true, false, false];
   const diag = [0, 4, 8];
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-bold text-yellow-300">🎯 賓果玩法</h3>
-      <p className="text-red-100 text-sm">刮開開獎號碼，在賓果格找連線，連越多獎越多！</p>
+      <p className="text-red-100 text-sm">
+        刮開開獎號碼，在賓果格找連線，連越多獎越多！
+      </p>
 
       <ol className="space-y-1 list-none">
         <Step number="1" text="刮開上方的開獎號碼區（逐格刮）" />
@@ -215,7 +218,7 @@ export default function RulesModal({ cardTypes, onClose }: RulesModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="玩法說明"
+      aria-labelledby="rules-modal-title"
     >
       {/* 背景遮罩 */}
       <div
@@ -228,7 +231,12 @@ export default function RulesModal({ cardTypes, onClose }: RulesModalProps) {
       <div className="relative z-10 w-full max-w-md rounded-xl bg-red-950 border border-red-700 shadow-2xl max-h-[90vh] flex flex-col">
         {/* 標題列 */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-red-700 flex-shrink-0">
-          <h2 className="text-lg font-bold text-yellow-300">玩法說明</h2>
+          <h2
+            id="rules-modal-title"
+            className="text-lg font-bold text-yellow-300"
+          >
+            玩法說明
+          </h2>
           <button
             type="button"
             onClick={onClose}

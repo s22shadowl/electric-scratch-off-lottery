@@ -82,6 +82,7 @@ export default function HostPage() {
           {/* 難度預設 */}
           <div>
             <div className="flex items-center gap-1 mb-1">
+              <span className="text-xs text-red-200">難度預設</span>
               <InfoTooltip content={HOST_HELP_TEXT.difficultyPreset} />
             </div>
             <DifficultySelector
@@ -140,7 +141,6 @@ export default function HostPage() {
                   onChange={(e) => setCardCount(e.target.value)}
                   min="1"
                   max="200"
-                  aria-label="總牌數"
                   className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                 />
               </div>
@@ -161,7 +161,6 @@ export default function HostPage() {
                       id="grid-size"
                       value={form.gridSize}
                       onChange={(e) => setGridSize(e.target.value)}
-                      aria-label="賓果格大小"
                       className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                     >
                       {([3, 4, 5, 6] as const).map((n) => (
@@ -187,7 +186,6 @@ export default function HostPage() {
                       value={form.prizePerLine}
                       onChange={(e) => setPrizePerLine(e.target.value)}
                       min="0"
-                      aria-label="每線獎金"
                       className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                     />
                   </div>
@@ -218,9 +216,6 @@ export default function HostPage() {
                     onChange={(e) => setRowsPerCard(e.target.value)}
                     min="1"
                     max="9"
-                    aria-label={
-                      form.mechanic === "compare" ? "回合數" : "三同列數"
-                    }
                     className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                   />
                 </div>
@@ -242,7 +237,6 @@ export default function HostPage() {
                     onChange={(e) => setCellsPerZone(e.target.value)}
                     min="1"
                     max="9"
-                    aria-label="每張格數"
                     className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                   />
                 </div>
@@ -262,7 +256,6 @@ export default function HostPage() {
                 value={form.ticketPrice}
                 onChange={(e) => setTicketPrice(e.target.value)}
                 min="1"
-                aria-label="票面價格"
                 className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
               />
             </div>

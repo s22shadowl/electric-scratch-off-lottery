@@ -15,7 +15,7 @@ export default function InfoTooltip({
 
   useEffect(() => {
     if (!visible) return;
-    const handleMouseDown = (e: MouseEvent) => {
+    const handlePointerDown = (e: PointerEvent) => {
       if (
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
@@ -23,11 +23,14 @@ export default function InfoTooltip({
         setVisible(false);
       }
     };
-    document.addEventListener("mousedown", handleMouseDown);
-    return () => document.removeEventListener("mousedown", handleMouseDown);
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [visible]);
 
-  const positionClasses: Record<string, string> = {
+  const positionClasses: Record<
+    NonNullable<InfoTooltipProps["position"]>,
+    string
+  > = {
     top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
     bottom: "top-full left-1/2 -translate-x-1/2 mt-2",
     right: "left-full top-1/2 -translate-y-1/2 ml-2",
@@ -39,7 +42,7 @@ export default function InfoTooltip({
         type="button"
         aria-label="說明"
         aria-expanded={visible}
-        aria-describedby={visible ? tooltipId : undefined}
+        aria-controls={tooltipId}
         onClick={() => setVisible((v) => !v)}
         className="text-red-300 hover:text-yellow-300 transition-colors text-sm leading-none"
       >

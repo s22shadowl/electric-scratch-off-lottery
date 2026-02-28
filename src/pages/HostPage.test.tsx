@@ -113,13 +113,17 @@ describe("HostPage", () => {
   it("選擇賓果玩法後應顯示每線獎金輸入框", async () => {
     renderPage();
     await userEvent.click(screen.getByRole("radio", { name: /賓果/ }));
-    expect(screen.getByLabelText("每線獎金")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("每線獎金", { exact: false }),
+    ).toBeInTheDocument();
   });
 
   it("選擇賓果玩法後票面價格欄位應可見", async () => {
     renderPage();
     await userEvent.click(screen.getByRole("radio", { name: /賓果/ }));
-    expect(screen.getByLabelText("票面價格")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("票面價格", { exact: false }),
+    ).toBeInTheDocument();
   });
 
   it("選擇賓果玩法後 PrizeEditor 應顯示 disabled 遮罩", async () => {
@@ -130,7 +134,9 @@ describe("HostPage", () => {
 
   it("非賓果玩法時票面價格欄位應可見", () => {
     renderPage();
-    expect(screen.getByLabelText("票面價格")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("票面價格", { exact: false }),
+    ).toBeInTheDocument();
   });
 
   it("特效開關應可切換", async () => {
