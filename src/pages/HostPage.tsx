@@ -1,4 +1,5 @@
 import { useHostForm } from "@/hooks/useHostForm";
+import { FEATURES } from "@/config/features";
 import PrizeEditor from "@/components/host/PrizeEditor";
 import SharePanel from "@/components/host/SharePanel";
 import DifficultySelector from "@/components/host/DifficultySelector";
@@ -147,29 +148,31 @@ export default function HostPage() {
 
               {form.mechanic === "bingo" ? (
                 <>
-                  <div>
-                    <div className="flex items-center gap-1 mb-1">
-                      <label
-                        htmlFor="grid-size"
-                        className="text-xs text-red-200"
+                  {!FEATURES.FIXED_CARD_SIZES && (
+                    <div>
+                      <div className="flex items-center gap-1 mb-1">
+                        <label
+                          htmlFor="grid-size"
+                          className="text-xs text-red-200"
+                        >
+                          賓果格大小
+                        </label>
+                        <InfoTooltip content={HOST_HELP_TEXT.gridSize} />
+                      </div>
+                      <select
+                        id="grid-size"
+                        value={form.gridSize}
+                        onChange={(e) => setGridSize(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                       >
-                        賓果格大小
-                      </label>
-                      <InfoTooltip content={HOST_HELP_TEXT.gridSize} />
+                        {([3, 4, 5, 6] as const).map((n) => (
+                          <option key={n} value={String(n)}>
+                            {n}×{n}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    <select
-                      id="grid-size"
-                      value={form.gridSize}
-                      onChange={(e) => setGridSize(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
-                    >
-                      {([3, 4, 5, 6] as const).map((n) => (
-                        <option key={n} value={String(n)}>
-                          {n}×{n}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  )}
                   <div>
                     <div className="flex items-center gap-1 mb-1">
                       <label
@@ -191,34 +194,36 @@ export default function HostPage() {
                   </div>
                 </>
               ) : form.mechanic === "triple" || form.mechanic === "compare" ? (
-                <div>
-                  <div className="flex items-center gap-1 mb-1">
-                    <label
-                      htmlFor="rows-per-card"
-                      className="text-xs text-red-200"
-                    >
-                      {form.mechanic === "compare"
-                        ? "回合數（1–9）"
-                        : "列數（1–9）"}
-                    </label>
-                    <InfoTooltip
-                      content={
-                        form.mechanic === "compare"
-                          ? HOST_HELP_TEXT.roundsPerCard
-                          : HOST_HELP_TEXT.rowsPerCard
-                      }
+                !FEATURES.FIXED_CARD_SIZES ? (
+                  <div>
+                    <div className="flex items-center gap-1 mb-1">
+                      <label
+                        htmlFor="rows-per-card"
+                        className="text-xs text-red-200"
+                      >
+                        {form.mechanic === "compare"
+                          ? "回合數（1–9）"
+                          : "列數（1–9）"}
+                      </label>
+                      <InfoTooltip
+                        content={
+                          form.mechanic === "compare"
+                            ? HOST_HELP_TEXT.roundsPerCard
+                            : HOST_HELP_TEXT.rowsPerCard
+                        }
+                      />
+                    </div>
+                    <input
+                      id="rows-per-card"
+                      type="number"
+                      value={form.rowsPerCard}
+                      onChange={(e) => setRowsPerCard(e.target.value)}
+                      min="1"
+                      max="9"
+                      className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                     />
                   </div>
-                  <input
-                    id="rows-per-card"
-                    type="number"
-                    value={form.rowsPerCard}
-                    onChange={(e) => setRowsPerCard(e.target.value)}
-                    min="1"
-                    max="9"
-                    className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
-                  />
-                </div>
+                ) : null
               ) : (
                 <div>
                   <div className="flex items-center gap-1 mb-1">

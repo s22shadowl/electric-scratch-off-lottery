@@ -3,6 +3,12 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import HostPage from "./HostPage";
+import { FEATURES } from "@/config/features";
+
+vi.mock("@/config/features", () => ({
+  FEATURES: { FIXED_CARD_SIZES: true },
+  FIXED_SIZE_DEFAULTS: { gridSize: 5, rowsPerCard: 3, roundsPerCard: 3 },
+}));
 
 // clipboard mock
 const writeTextMock = vi.fn().mockResolvedValue(undefined);
@@ -18,8 +24,11 @@ const renderPage = () =>
     </MemoryRouter>,
   );
 
+const features = FEATURES as { FIXED_CARD_SIZES: boolean };
+
 beforeEach(() => {
   writeTextMock.mockClear();
+  features.FIXED_CARD_SIZES = true;
 });
 
 describe("HostPage", () => {
@@ -104,7 +113,14 @@ describe("HostPage", () => {
     expect(screen.getByRole("radio", { name: /賓果/ })).toBeInTheDocument();
   });
 
-  it("選擇賓果玩法後應顯示格子大小選擇", async () => {
+  it("FIXED_CARD_SIZES=true 時選擇賓果玩法後不應顯示格子大小選擇", async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole("radio", { name: /賓果/ }));
+    expect(screen.queryByLabelText("賓果格大小")).not.toBeInTheDocument();
+  });
+
+  it("FIXED_CARD_SIZES=false 時選擇賓果玩法後應顯示格子大小選擇", async () => {
+    features.FIXED_CARD_SIZES = false;
     renderPage();
     await userEvent.click(screen.getByRole("radio", { name: /賓果/ }));
     expect(screen.getByLabelText("賓果格大小")).toBeInTheDocument();
@@ -183,11 +199,16 @@ describe("HostPage", () => {
     expect(screen.getByRole("tooltip")).toBeInTheDocument();
   });
 
-  it("選擇三同玩法後應顯示列數說明 tooltip", async () => {
+  it("FIXED_CARD_SIZES=true 時選擇三同玩法後不應顯示列數欄位", async () => {
     renderPage();
     await userEvent.click(screen.getByRole("radio", { name: /三同/ }));
-    const tooltipBtns = screen.getAllByRole("button", { name: "說明" });
-    await userEvent.click(tooltipBtns[0]!);
-    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+    expect(screen.queryByLabelText("列數（1–9）")).not.toBeInTheDocument();
+  });
+
+  it("FIXED_CARD_SIZES=false 時選擇三同玩法後應顯示列數欄位", async () => {
+    features.FIXED_CARD_SIZES = false;
+    renderPage();
+    await userEvent.click(screen.getByRole("radio", { name: /三同/ }));
+    expect(screen.getByLabelText("列數（1–9）")).toBeInTheDocument();
   });
 });
