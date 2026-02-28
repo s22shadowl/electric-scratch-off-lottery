@@ -3,6 +3,7 @@ import { useGameStore } from "@/stores/gameStore";
 import CardThumbnail from "./CardThumbnail";
 import PrizePoolModal from "@/components/common/PrizePoolModal";
 import RulesModal from "@/components/common/RulesModal";
+import caishenUrl from "@/assets/mascot/caishen.png";
 
 export default function CardPile() {
   const cards = useGameStore((s) => s.cards);
@@ -29,6 +30,13 @@ export default function CardPile() {
     <section className="flex flex-col items-center gap-8 py-8 px-4">
       {/* 標題提示 */}
       <div className="text-center">
+        <img
+          src={caishenUrl}
+          alt="財神"
+          width={80}
+          height={80}
+          className="mx-auto mb-2 drop-shadow-lg"
+        />
         <p className="text-yellow-300 text-lg font-bold drop-shadow">
           從牌堆中選擇你的刮刮樂
         </p>

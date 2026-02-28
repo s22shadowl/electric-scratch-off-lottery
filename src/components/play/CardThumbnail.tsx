@@ -1,4 +1,5 @@
 import type { ScratchCard } from "@/types";
+import caishenUrl from "@/assets/mascot/caishen.png";
 
 interface Props {
   card: ScratchCard;
@@ -41,9 +42,14 @@ export default function CardThumbnail({ card, isSelected, onToggle }: Props) {
 
       {/* 財神圖示 */}
       <div className="flex flex-col items-center justify-center h-full gap-0.5">
-        <span className="text-2xl leading-none" role="img" aria-hidden="true">
-          🧧
-        </span>
+        <img
+          src={caishenUrl}
+          alt=""
+          aria-hidden={true}
+          width={40}
+          height={40}
+          className="object-contain"
+        />
         <span className="text-yellow-300 text-xs font-bold tracking-widest drop-shadow">
           刮刮樂
         </span>
