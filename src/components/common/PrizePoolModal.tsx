@@ -138,7 +138,7 @@ export default function PrizePoolModal({
           <div className="flex border-b border-red-700">
             {cardTypes.map((ct, i) => (
               <button
-                key={i}
+                key={ct.mechanic}
                 type="button"
                 onClick={() => setActiveIndex(i)}
                 className={`flex-1 py-2 text-sm font-bold transition-colors ${

@@ -6,9 +6,14 @@ import type { CardTypeConfig } from "@/types";
 interface EVDisplayProps {
   rtp: number | null;
   cardTypes?: CardTypeConfig[];
+  totalExpectedPayout?: number | null;
 }
 
-export default function EVDisplay({ rtp, cardTypes }: EVDisplayProps) {
+export default function EVDisplay({
+  rtp,
+  cardTypes,
+  totalExpectedPayout,
+}: EVDisplayProps) {
   const [showPrizePool, setShowPrizePool] = useState(false);
 
   if (rtp === null) {
@@ -78,6 +83,12 @@ export default function EVDisplay({ rtp, cardTypes }: EVDisplayProps) {
             <span className="font-bold">{diffLabel}</span>
           </div>
         </div>
+        {totalExpectedPayout != null && (
+          <div className="mt-2 flex items-center justify-between border-t border-current/20 pt-2">
+            <span className="text-xs opacity-70">整場預期支出</span>
+            <span className="font-bold">${Math.round(totalExpectedPayout)}</span>
+          </div>
+        )}
       </div>
 
       {showPrizePool && cardTypes && cardTypes.length > 0 && (

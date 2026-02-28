@@ -16,6 +16,7 @@ export default function HostPage() {
     config,
     currentRTP,
     bingoRTP,
+    totalExpectedPayout,
     setTitle,
     updatePrize,
     addPrize,
@@ -194,7 +195,9 @@ export default function HostPage() {
                     onChange={(e) => setRowsPerCard(e.target.value)}
                     min="1"
                     max="9"
-                    aria-label="三同列數"
+                    aria-label={
+                      form.mechanic === "compare" ? "回合數" : "三同列數"
+                    }
                     className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                   />
                 </div>
@@ -243,6 +246,7 @@ export default function HostPage() {
           <EVDisplay
             rtp={bingoRTP ?? currentRTP}
             cardTypes={config?.cardTypes}
+            totalExpectedPayout={totalExpectedPayout}
           />
 
           {/* 特效開關 */}

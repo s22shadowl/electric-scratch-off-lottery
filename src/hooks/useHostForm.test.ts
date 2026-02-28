@@ -356,4 +356,66 @@ describe("useHostForm", () => {
     });
     expect(result.current.bingoRTP!).toBeGreaterThan(0);
   });
+
+  it("bingo gridSize 變更應更新 bingoRTP", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => {
+      result.current.setMechanic("bingo");
+      result.current.setGridSize("3");
+      result.current.setPrizePerLine("100");
+      result.current.setTicketPrice("100");
+    });
+    const rtp3 = result.current.bingoRTP;
+    act(() => result.current.setGridSize("6"));
+    const rtp6 = result.current.bingoRTP;
+    expect(rtp3).not.toBeNull();
+    expect(rtp6).not.toBeNull();
+    expect(rtp3).not.toBeCloseTo(rtp6!, 3);
+  });
+
+  it("bingo prizePerLine 變更應更新 bingoRTP", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => {
+      result.current.setMechanic("bingo");
+      result.current.setPrizePerLine("100");
+    });
+    const rtp100 = result.current.bingoRTP;
+    act(() => result.current.setPrizePerLine("200"));
+    const rtp200 = result.current.bingoRTP;
+    expect(rtp200).toBeCloseTo(rtp100! * 2, 5);
+  });
+
+  it("bingo cardCount 變更不影響 bingoRTP（per-card RTP 與牌數無關）", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setMechanic("bingo"));
+    const rtpBefore = result.current.bingoRTP;
+    act(() => result.current.setCardCount("50"));
+    expect(result.current.bingoRTP).toBe(rtpBefore);
+  });
+
+  it("totalExpectedPayout = RTP × ticketPrice × cardCount", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => {
+      result.current.setTitle("測試");
+      result.current.setCardCount("10");
+      result.current.setTicketPrice("100");
+    });
+    const rtp = result.current.currentRTP;
+    expect(result.current.totalExpectedPayout).toBeCloseTo(rtp! * 100 * 10, 2);
+  });
+
+  it("cardCount 變更應更新 totalExpectedPayout", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setCardCount("10"));
+    const pay10 = result.current.totalExpectedPayout;
+    act(() => result.current.setCardCount("20"));
+    const pay20 = result.current.totalExpectedPayout;
+    expect(pay20).toBeCloseTo(pay10! * 2, 2);
+  });
+
+  it("ticketPrice 無效時 totalExpectedPayout 應為 null", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setTicketPrice("0"));
+    expect(result.current.totalExpectedPayout).toBeNull();
+  });
 });
