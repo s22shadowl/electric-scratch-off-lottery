@@ -109,4 +109,31 @@ describe("CardPile", () => {
       screen.getByRole("dialog", { name: /獎池資訊/ }),
     ).toBeInTheDocument();
   });
+
+  it("應顯示「玩法說明」按鈕", () => {
+    render(<CardPile />);
+    expect(
+      screen.getByRole("button", { name: "玩法說明" }),
+    ).toBeInTheDocument();
+  });
+
+  it("點擊「玩法說明」按鈕後應開啟 RulesModal", async () => {
+    render(<CardPile />);
+    await userEvent.click(screen.getByRole("button", { name: "玩法說明" }));
+    expect(
+      screen.getByRole("dialog", { name: "玩法說明" }),
+    ).toBeInTheDocument();
+  });
+
+  it("關閉 RulesModal 後 dialog 應消失", async () => {
+    render(<CardPile />);
+    await userEvent.click(screen.getByRole("button", { name: "玩法說明" }));
+    expect(
+      screen.getByRole("dialog", { name: "玩法說明" }),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "關閉" }));
+    expect(
+      screen.queryByRole("dialog", { name: "玩法說明" }),
+    ).not.toBeInTheDocument();
+  });
 });

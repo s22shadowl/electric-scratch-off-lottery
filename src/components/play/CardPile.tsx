@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useGameStore } from "@/stores/gameStore";
 import CardThumbnail from "./CardThumbnail";
 import PrizePoolModal from "@/components/common/PrizePoolModal";
+import RulesModal from "@/components/common/RulesModal";
 
 export default function CardPile() {
   const cards = useGameStore((s) => s.cards);
@@ -12,6 +13,7 @@ export default function CardPile() {
   const config = useGameStore((s) => s.config);
 
   const [showPrizePool, setShowPrizePool] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const selectedCount = selectedIds.length;
 
@@ -40,6 +42,14 @@ export default function CardPile() {
           >
             ⓘ
           </button>
+          <button
+            type="button"
+            aria-label="玩法說明"
+            onClick={() => setShowRules(true)}
+            className="text-red-300 hover:text-yellow-300 transition-colors text-sm"
+          >
+            ？玩法說明
+          </button>
         </div>
       </div>
 
@@ -47,6 +57,13 @@ export default function CardPile() {
         <PrizePoolModal
           cardTypes={config.cardTypes}
           onClose={() => setShowPrizePool(false)}
+        />
+      )}
+
+      {showRules && (
+        <RulesModal
+          cardTypes={config.cardTypes}
+          onClose={() => setShowRules(false)}
         />
       )}
 
