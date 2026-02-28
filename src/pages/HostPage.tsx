@@ -3,6 +3,8 @@ import PrizeEditor from "@/components/host/PrizeEditor";
 import SharePanel from "@/components/host/SharePanel";
 import DifficultySelector from "@/components/host/DifficultySelector";
 import EVDisplay from "@/components/host/EVDisplay";
+import InfoTooltip from "@/components/ui/InfoTooltip";
+import { HOST_HELP_TEXT } from "@/utils/host-help-text";
 
 const BASE_URL = window.location.origin;
 
@@ -78,10 +80,15 @@ export default function HostPage() {
           />
 
           {/* 難度預設 */}
-          <DifficultySelector
-            value={form.difficultyPreset}
-            onChange={setDifficultyPreset}
-          />
+          <div>
+            <div className="flex items-center gap-1 mb-1">
+              <InfoTooltip content={HOST_HELP_TEXT.difficultyPreset} />
+            </div>
+            <DifficultySelector
+              value={form.difficultyPreset}
+              onChange={setDifficultyPreset}
+            />
+          </div>
 
           {/* 牌局設定：玩法 / 總牌數 / 格數參數 / 票面價格 */}
           <section>
@@ -120,12 +127,12 @@ export default function HostPage() {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label
-                  htmlFor="card-count"
-                  className="block text-xs text-red-200 mb-1"
-                >
-                  總牌數
-                </label>
+                <div className="flex items-center gap-1 mb-1">
+                  <label htmlFor="card-count" className="text-xs text-red-200">
+                    總牌數
+                  </label>
+                  <InfoTooltip content={HOST_HELP_TEXT.cardCount} />
+                </div>
                 <input
                   id="card-count"
                   type="number"
@@ -141,12 +148,15 @@ export default function HostPage() {
               {form.mechanic === "bingo" ? (
                 <>
                   <div>
-                    <label
-                      htmlFor="grid-size"
-                      className="block text-xs text-red-200 mb-1"
-                    >
-                      賓果格大小
-                    </label>
+                    <div className="flex items-center gap-1 mb-1">
+                      <label
+                        htmlFor="grid-size"
+                        className="text-xs text-red-200"
+                      >
+                        賓果格大小
+                      </label>
+                      <InfoTooltip content={HOST_HELP_TEXT.gridSize} />
+                    </div>
                     <select
                       id="grid-size"
                       value={form.gridSize}
@@ -162,12 +172,15 @@ export default function HostPage() {
                     </select>
                   </div>
                   <div>
-                    <label
-                      htmlFor="prize-per-line"
-                      className="block text-xs text-red-200 mb-1"
-                    >
-                      每線獎金（元）
-                    </label>
+                    <div className="flex items-center gap-1 mb-1">
+                      <label
+                        htmlFor="prize-per-line"
+                        className="text-xs text-red-200"
+                      >
+                        每線獎金（元）
+                      </label>
+                      <InfoTooltip content={HOST_HELP_TEXT.prizePerLine} />
+                    </div>
                     <input
                       id="prize-per-line"
                       type="number"
@@ -181,14 +194,23 @@ export default function HostPage() {
                 </>
               ) : form.mechanic === "triple" || form.mechanic === "compare" ? (
                 <div>
-                  <label
-                    htmlFor="rows-per-card"
-                    className="block text-xs text-red-200 mb-1"
-                  >
-                    {form.mechanic === "compare"
-                      ? "回合數（1–9）"
-                      : "列數（1–9）"}
-                  </label>
+                  <div className="flex items-center gap-1 mb-1">
+                    <label
+                      htmlFor="rows-per-card"
+                      className="text-xs text-red-200"
+                    >
+                      {form.mechanic === "compare"
+                        ? "回合數（1–9）"
+                        : "列數（1–9）"}
+                    </label>
+                    <InfoTooltip
+                      content={
+                        form.mechanic === "compare"
+                          ? HOST_HELP_TEXT.roundsPerCard
+                          : HOST_HELP_TEXT.rowsPerCard
+                      }
+                    />
+                  </div>
                   <input
                     id="rows-per-card"
                     type="number"
@@ -204,12 +226,15 @@ export default function HostPage() {
                 </div>
               ) : (
                 <div>
-                  <label
-                    htmlFor="cells-per-zone"
-                    className="block text-xs text-red-200 mb-1"
-                  >
-                    每張格數（1–9）
-                  </label>
+                  <div className="flex items-center gap-1 mb-1">
+                    <label
+                      htmlFor="cells-per-zone"
+                      className="text-xs text-red-200"
+                    >
+                      每張格數（1–9）
+                    </label>
+                    <InfoTooltip content={HOST_HELP_TEXT.cellsPerZone} />
+                  </div>
                   <input
                     id="cells-per-zone"
                     type="number"
@@ -225,12 +250,12 @@ export default function HostPage() {
             </div>
 
             <div className="mt-3">
-              <label
-                htmlFor="ticket-price"
-                className="block text-xs text-red-200 mb-1"
-              >
-                票面價格（元）
-              </label>
+              <div className="flex items-center gap-1 mb-1">
+                <label htmlFor="ticket-price" className="text-xs text-red-200">
+                  票面價格（元）
+                </label>
+                <InfoTooltip content={HOST_HELP_TEXT.ticketPrice} />
+              </div>
               <input
                 id="ticket-price"
                 type="number"
@@ -252,7 +277,10 @@ export default function HostPage() {
 
           {/* 特效開關 */}
           <section className="flex items-center justify-between">
-            <span className="text-sm text-red-200">粒子特效（預設）</span>
+            <span className="flex items-center gap-1 text-sm text-red-200">
+              粒子特效（預設）
+              <InfoTooltip content={HOST_HELP_TEXT.effectsEnabled} />
+            </span>
             <button
               type="button"
               role="switch"
@@ -272,7 +300,10 @@ export default function HostPage() {
 
           {/* 允許返回牌堆開關 */}
           <section className="flex items-center justify-between">
-            <span className="text-sm text-red-200">允許返回牌堆</span>
+            <span className="flex items-center gap-1 text-sm text-red-200">
+              允許返回牌堆
+              <InfoTooltip content={HOST_HELP_TEXT.allowReturnToPile} />
+            </span>
             <button
               type="button"
               role="switch"

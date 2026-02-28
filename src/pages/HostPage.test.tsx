@@ -161,4 +161,27 @@ describe("HostPage", () => {
       expect(() => new URL(urlInput.value)).not.toThrow();
     });
   });
+
+  it("各欄位旁應有 ⓘ 說明按鈕", () => {
+    renderPage();
+    const tooltipBtns = screen.getAllByRole("button", { name: "說明" });
+    // 至少有：總牌數、每張格數、票面價格、粒子特效、允許返回牌堆、難度預設
+    expect(tooltipBtns.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it("點擊總牌數旁 ⓘ 後應顯示說明文字", async () => {
+    renderPage();
+    const tooltipBtns = screen.getAllByRole("button", { name: "說明" });
+    // 總牌數是表單第一個 tooltip
+    await userEvent.click(tooltipBtns[0]!);
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  });
+
+  it("選擇三同玩法後應顯示列數說明 tooltip", async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole("radio", { name: /三同/ }));
+    const tooltipBtns = screen.getAllByRole("button", { name: "說明" });
+    await userEvent.click(tooltipBtns[0]!);
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  });
 });
