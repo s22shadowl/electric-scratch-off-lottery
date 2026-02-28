@@ -62,9 +62,9 @@ export default function EVDisplay({
                   type="button"
                   aria-label="查看獎池"
                   onClick={() => setShowPrizePool(true)}
-                  className="opacity-70 hover:opacity-100 transition-opacity text-base leading-none"
+                  className="text-xs border border-current/50 rounded-full px-1.5 py-0.5 ml-1 hover:border-current hover:opacity-100 opacity-80 transition-all"
                 >
-                  ⓘ
+                  ⓘ 獎池
                 </button>
               )}
             </div>
@@ -86,7 +86,9 @@ export default function EVDisplay({
         {totalExpectedPayout != null && (
           <div className="mt-2 flex items-center justify-between border-t border-current/20 pt-2">
             <span className="text-xs opacity-70">整場預期支出</span>
-            <span className="font-bold">${Math.round(totalExpectedPayout)}</span>
+            <span className="font-bold">
+              ${Math.round(totalExpectedPayout)}
+            </span>
           </div>
         )}
       </div>
