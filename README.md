@@ -99,7 +99,7 @@ npm run build    # 建置正式版本
 
 - [x] **game-math.ts 集中**：calculateRTP、classifyDifficulty、calcBingoLineProbabilities 集中至 game-math.ts
 - [x] **獎池查看**：玩家可在刮刮樂中點 ⓘ 圖示查看本張獎池；主持人亦可在設定後點 ⓘ 預覽獎池分布；EVDisplay 新增整場預期支出（隨牌數即時更新）
-- [ ] **Bingo UX 優化**：RTP 正確計算（prizePerLine × 連線期望值）、一鍵刮開、版型手機優先、開獎號碼配對特效
+- [x] **Bingo UX 優化**：RTP 正確計算（prizePerLine × 連線期望值）、一鍵刮開、版型手機優先、開獎號碼配對特效
 - [ ] **返回牌堆按鈕**：結果頁加入「返回牌堆」按鈕（可開關），讓玩家繼續選牌；主持人可在設定時關閉此功能（單次遊玩模式）
 - [ ] **Bingo 後續優化**：開獎號碼區改為逐格刮開（目前版本自動全部顯示）
 
