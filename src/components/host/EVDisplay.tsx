@@ -2,9 +2,13 @@ import { classifyDifficulty, DIFFICULTY_PRESETS } from "@/utils/prize-presets";
 
 interface EVDisplayProps {
   rtp: number | null;
+  totalExpectedPayout?: number | null;
 }
 
-export default function EVDisplay({ rtp }: EVDisplayProps) {
+export default function EVDisplay({
+  rtp,
+  totalExpectedPayout,
+}: EVDisplayProps) {
   if (rtp === null) {
     return (
       <div
@@ -20,9 +24,7 @@ export default function EVDisplay({ rtp }: EVDisplayProps) {
   const housePct = ((1 - rtp) * 100).toFixed(0);
   const difficulty = classifyDifficulty(rtp);
   const diffLabel =
-    difficulty === "custom"
-      ? "自訂"
-      : DIFFICULTY_PRESETS[difficulty].label;
+    difficulty === "custom" ? "自訂" : DIFFICULTY_PRESETS[difficulty].label;
 
   let colorClass: string;
   if (rtp >= 1.0) {
@@ -33,7 +35,7 @@ export default function EVDisplay({ rtp }: EVDisplayProps) {
     colorClass = "text-orange-400 border-orange-600 bg-orange-900/20";
   }
 
-  const housePositive = (1 - rtp) > 0;
+  const housePositive = 1 - rtp > 0;
 
   return (
     <div
@@ -42,7 +44,9 @@ export default function EVDisplay({ rtp }: EVDisplayProps) {
     >
       <div className="flex items-center justify-between gap-4">
         <div>
-          <span className="text-xs opacity-70 block">返還率（玩家平均拿回）</span>
+          <span className="text-xs opacity-70 block">
+            返還率（玩家平均拿回）
+          </span>
           <span className="text-lg font-bold">{rtpPct}%</span>
         </div>
         <div>
@@ -50,7 +54,8 @@ export default function EVDisplay({ rtp }: EVDisplayProps) {
             {housePositive ? "賺錢率（主持人抽成）" : "主持人倒貼"}
           </span>
           <span className="text-lg font-bold">
-            {housePositive ? "" : "-"}{Math.abs(parseFloat(housePct))}%
+            {housePositive ? "" : "-"}
+            {Math.abs(parseFloat(housePct))}%
           </span>
         </div>
         <div className="text-right">
@@ -58,6 +63,12 @@ export default function EVDisplay({ rtp }: EVDisplayProps) {
           <span className="font-bold">{diffLabel}</span>
         </div>
       </div>
+      {totalExpectedPayout != null && (
+        <div className="mt-2 flex items-center justify-between border-t border-current/20 pt-2">
+          <span className="text-xs opacity-70">整場預期支出</span>
+          <span className="font-bold">${Math.round(totalExpectedPayout)}</span>
+        </div>
+      )}
     </div>
   );
 }

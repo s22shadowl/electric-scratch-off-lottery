@@ -165,6 +165,16 @@ export function useHostForm(baseUrl: string) {
     return (expectedLines * prizePerLine) / price;
   }, [form.mechanic, form.ticketPrice, form.gridSize, form.prizePerLine]);
 
+  // 整場預期支出（RTP × 票面價格 × 牌數）
+  const totalExpectedPayout = useMemo<number | null>(() => {
+    const rtp = bingoRTP ?? currentRTP;
+    if (rtp === null) return null;
+    const price = parseInt(form.ticketPrice, 10);
+    const count = parseInt(form.cardCount, 10);
+    if (!price || price < 1 || !count || count < 1) return null;
+    return rtp * price * count;
+  }, [bingoRTP, currentRTP, form.ticketPrice, form.cardCount]);
+
   // 表單合法時自動更新 URL 與 QR Code
   useEffect(() => {
     const config = draftToConfig(form);
@@ -276,6 +286,7 @@ export function useHostForm(baseUrl: string) {
     config,
     currentRTP,
     bingoRTP,
+    totalExpectedPayout,
     setTitle,
     updatePrize,
     addPrize,

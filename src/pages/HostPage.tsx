@@ -15,6 +15,7 @@ export default function HostPage() {
     copied,
     currentRTP,
     bingoRTP,
+    totalExpectedPayout,
     setTitle,
     updatePrize,
     addPrize,
@@ -239,7 +240,10 @@ export default function HostPage() {
           </section>
 
           {/* 即時 EV 顯示 */}
-          <EVDisplay rtp={bingoRTP ?? currentRTP} />
+          <EVDisplay
+            rtp={bingoRTP ?? currentRTP}
+            totalExpectedPayout={totalExpectedPayout}
+          />
 
           {/* 特效開關 */}
           <section className="flex items-center justify-between">
