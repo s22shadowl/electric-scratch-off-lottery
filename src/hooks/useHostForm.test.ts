@@ -21,6 +21,7 @@ const validForm: HostFormState = {
   cardCount: "10",
   cellsPerZone: "6",
   effectsEnabled: true,
+  allowReturnToPile: false,
   difficultyPreset: "standard",
   ticketPrice: "100",
   mechanic: "symbol",
@@ -191,6 +192,16 @@ describe("draftToConfig", () => {
     expect(
       draftToConfig({ ...validForm, mechanic: "bingo", prizePerLine: "-1" }),
     ).toBeNull();
+  });
+
+  it("allowReturnToPile=false 時輸出應包含 allowReturnToPile: false", () => {
+    const config = draftToConfig({ ...validForm, allowReturnToPile: false });
+    expect(config?.allowReturnToPile).toBe(false);
+  });
+
+  it("allowReturnToPile=true 時輸出應包含 allowReturnToPile: true", () => {
+    const config = draftToConfig({ ...validForm, allowReturnToPile: true });
+    expect(config?.allowReturnToPile).toBe(true);
   });
 });
 
@@ -417,5 +428,23 @@ describe("useHostForm", () => {
     const { result } = renderHook(() => useHostForm(BASE));
     act(() => result.current.setTicketPrice("0"));
     expect(result.current.totalExpectedPayout).toBeNull();
+  });
+
+  it("allowReturnToPile 預設值應為 false", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    expect(result.current.form.allowReturnToPile).toBe(false);
+  });
+
+  it("toggleAllowReturnToPile 應切換 allowReturnToPile 為 true", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.toggleAllowReturnToPile());
+    expect(result.current.form.allowReturnToPile).toBe(true);
+  });
+
+  it("toggleAllowReturnToPile 連續兩次應回到 false", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.toggleAllowReturnToPile());
+    act(() => result.current.toggleAllowReturnToPile());
+    expect(result.current.form.allowReturnToPile).toBe(false);
   });
 });

@@ -104,6 +104,7 @@ export interface GameConfig {
   sessionTitle: string;
   cardTypes: CardTypeConfig[]; // 取代舊有的扁平欄位
   effectsEnabled: boolean;
+  allowReturnToPile?: boolean;
 }
 
 // 玩家端執行狀態（Zustand store）

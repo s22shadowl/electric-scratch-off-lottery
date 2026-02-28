@@ -30,6 +30,7 @@ export interface HostFormState {
   cardCount: string;
   cellsPerZone: string;
   effectsEnabled: boolean;
+  allowReturnToPile: boolean;
   difficultyPreset: DifficultyPreset;
   ticketPrice: string; // input 字串，提交時轉 number
   mechanic: Mechanic;
@@ -100,6 +101,7 @@ export function draftToConfig(form: HostFormState): GameConfig | null {
       },
     ],
     effectsEnabled: form.effectsEnabled,
+    allowReturnToPile: form.allowReturnToPile,
   };
 }
 
@@ -124,6 +126,7 @@ const defaultForm: HostFormState = {
   cardCount: "10",
   cellsPerZone: "6",
   effectsEnabled: true,
+  allowReturnToPile: false,
   difficultyPreset: "standard",
   ticketPrice: "100",
   mechanic: "symbol",
@@ -238,6 +241,10 @@ export function useHostForm(baseUrl: string) {
     setForm((f) => ({ ...f, effectsEnabled: !f.effectsEnabled }));
   }, []);
 
+  const toggleAllowReturnToPile = useCallback(() => {
+    setForm((f) => ({ ...f, allowReturnToPile: !f.allowReturnToPile }));
+  }, []);
+
   const setDifficultyPreset = useCallback(
     (preset: DifficultyPreset) => {
       const price = parseInt(form.ticketPrice, 10) || 100;
@@ -294,6 +301,7 @@ export function useHostForm(baseUrl: string) {
     setCardCount,
     setCellsPerZone,
     toggleEffects,
+    toggleAllowReturnToPile,
     setDifficultyPreset,
     setTicketPrice,
     setMechanic,

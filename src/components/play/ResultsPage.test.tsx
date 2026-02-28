@@ -221,4 +221,40 @@ describe("ResultsPage", () => {
       );
     });
   });
+
+  it("allowReturnToPile=true 時應顯示「返回牌堆」按鈕", () => {
+    useGameStore.getState().initGame({ ...config, allowReturnToPile: true });
+    setupResultsPhase(0);
+    useGameStore.setState({
+      config: { ...useGameStore.getState().config, allowReturnToPile: true },
+    });
+    render(<ResultsPage />);
+    expect(screen.getByTestId("return-to-pile-btn")).toBeInTheDocument();
+  });
+
+  it("allowReturnToPile=false 時不應顯示「返回牌堆」按鈕", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    expect(screen.queryByTestId("return-to-pile-btn")).not.toBeInTheDocument();
+  });
+
+  it("allowReturnToPile=undefined 時不應顯示「返回牌堆」按鈕", () => {
+    setupResultsPhase(0);
+    const currentConfig = useGameStore.getState().config;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { allowReturnToPile: _arp, ...configWithout } = currentConfig;
+    useGameStore.setState({ config: configWithout as typeof currentConfig });
+    render(<ResultsPage />);
+    expect(screen.queryByTestId("return-to-pile-btn")).not.toBeInTheDocument();
+  });
+
+  it("點擊「返回牌堆」按鈕應呼叫 returnToPile（phase 變回 pile）", () => {
+    setupResultsPhase(0);
+    useGameStore.setState({
+      config: { ...useGameStore.getState().config, allowReturnToPile: true },
+    });
+    render(<ResultsPage />);
+    fireEvent.click(screen.getByTestId("return-to-pile-btn"));
+    expect(useGameStore.getState().phase).toBe("pile");
+  });
 });

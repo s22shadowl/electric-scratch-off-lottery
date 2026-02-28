@@ -241,6 +241,31 @@ describe("decodeConfig", () => {
     const decoded = decodeConfig(encoded);
     expect(decoded.cardTypes[0]?.ticketPrice).toBe(100);
   });
+
+  it("含 allowReturnToPile: true 的 config 應能 encode/decode（round-trip）", () => {
+    const configWithReturn: GameConfig = {
+      ...config,
+      allowReturnToPile: true,
+    };
+    const decoded = decodeConfig(encodeConfig(configWithReturn));
+    expect(decoded.allowReturnToPile).toBe(true);
+  });
+
+  it("缺少 allowReturnToPile 的舊格式應能正常解碼（向下相容）", () => {
+    // 建立沒有 allowReturnToPile 的舊格式（現有 config 本身沒有這個欄位）
+    const encoded = encodeConfig(config);
+    const decoded = decodeConfig(encoded);
+    // allowReturnToPile 可以是 undefined 或缺少，不應拋出錯誤
+    expect(decoded.allowReturnToPile).toBeUndefined();
+  });
+
+  it("allowReturnToPile 為非布林值時應拋出錯誤", () => {
+    const broken = encodeConfig({
+      ...config,
+      allowReturnToPile: "yes" as unknown as boolean,
+    });
+    expect(() => decodeConfig(broken)).toThrow(/allowReturnToPile/);
+  });
 });
 
 // ── buildPlayUrl ──────────────────────────────────────────

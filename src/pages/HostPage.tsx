@@ -24,6 +24,7 @@ export default function HostPage() {
     setCardCount,
     setCellsPerZone,
     toggleEffects,
+    toggleAllowReturnToPile,
     setDifficultyPreset,
     setTicketPrice,
     setMechanic,
@@ -264,6 +265,26 @@ export default function HostPage() {
               <span
                 className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
                   form.effectsEnabled ? "left-7" : "left-1"
+                }`}
+              />
+            </button>
+          </section>
+
+          {/* 允許返回牌堆開關 */}
+          <section className="flex items-center justify-between">
+            <span className="text-sm text-red-200">允許返回牌堆</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={form.allowReturnToPile}
+              onClick={toggleAllowReturnToPile}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                form.allowReturnToPile ? "bg-yellow-400" : "bg-red-700"
+              }`}
+            >
+              <span
+                className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                  form.allowReturnToPile ? "left-7" : "left-1"
                 }`}
               />
             </button>

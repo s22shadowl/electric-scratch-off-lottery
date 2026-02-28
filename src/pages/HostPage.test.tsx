@@ -135,10 +135,22 @@ describe("HostPage", () => {
 
   it("特效開關應可切換", async () => {
     renderPage();
-    const toggle = screen.getByRole("switch");
+    const toggles = screen.getAllByRole("switch");
+    // 第一個 switch 是「粒子特效」開關
+    const toggle = toggles[0]!;
     const before = toggle.getAttribute("aria-checked");
     await userEvent.click(toggle);
     expect(toggle.getAttribute("aria-checked")).not.toBe(before);
+  });
+
+  it("允許返回牌堆開關應可切換", async () => {
+    renderPage();
+    const toggles = screen.getAllByRole("switch");
+    // 第二個 switch 是「允許返回牌堆」開關
+    const toggle = toggles[1]!;
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+    await userEvent.click(toggle);
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
   });
 
   it("分享面板的 URL 應可解析為合法 URL", async () => {

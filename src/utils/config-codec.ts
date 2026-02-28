@@ -154,6 +154,14 @@ function validateConfig(raw: unknown): GameConfig {
     throw new Error("effectsEnabled 必須為布林值");
   }
 
+  // allowReturnToPile 若存在，必須為布林值（缺少時不報錯，backward compat）
+  if (
+    obj["allowReturnToPile"] !== undefined &&
+    typeof obj["allowReturnToPile"] !== "boolean"
+  ) {
+    throw new Error("allowReturnToPile 必須為布林值");
+  }
+
   // migration：舊格式缺少 ticketPrice 時補預設值 100
   const migratedCardTypes = (obj["cardTypes"] as CardTypeConfig[]).map((ct) =>
     ct.ticketPrice === undefined ? { ...ct, ticketPrice: 100 } : ct,

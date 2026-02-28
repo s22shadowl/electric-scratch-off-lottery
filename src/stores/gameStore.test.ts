@@ -632,6 +632,36 @@ describe("revealCard", () => {
   });
 });
 
+// ── returnToPile ──────────────────────────────────────────
+
+describe("returnToPile", () => {
+  it("returnToPile 後 phase 應為 pile", () => {
+    useGameStore.getState().initGame(config);
+    useGameStore.getState().selectCard(useGameStore.getState().cards[0]!.id);
+    useGameStore.getState().startScratching();
+    useGameStore.getState().setPhase("results");
+    useGameStore.getState().returnToPile();
+    expect(useGameStore.getState().phase).toBe("pile");
+  });
+
+  it("returnToPile 後 selectedCardIds 應為空陣列", () => {
+    useGameStore.getState().initGame(config);
+    useGameStore.getState().selectCard(useGameStore.getState().cards[0]!.id);
+    useGameStore.getState().returnToPile();
+    expect(useGameStore.getState().selectedCardIds).toEqual([]);
+  });
+
+  it("returnToPile 後 cards 應為全新牌堆（所有卡片狀態為 in-pile）", () => {
+    useGameStore.getState().initGame(config);
+    const cardId = useGameStore.getState().cards[0]!.id;
+    useGameStore.getState().selectCard(cardId);
+    useGameStore.getState().startScratching();
+    useGameStore.getState().returnToPile();
+    const cards = useGameStore.getState().cards;
+    expect(cards.every((c) => c.status === "in-pile")).toBe(true);
+  });
+});
+
 // ── updateCellProgress (bingo) ────────────────────────────
 
 const BINGO_GRID_SIZE = 3;

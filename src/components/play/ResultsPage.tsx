@@ -7,6 +7,8 @@ import ScratchCard from "./ScratchCard";
 export default function ResultsPage() {
   const selectedCardIds = useGameStore((s) => s.selectedCardIds);
   const cards = useGameStore((s) => s.cards);
+  const config = useGameStore((s) => s.config);
+  const returnToPile = useGameStore((s) => s.returnToPile);
   const [detailCardId, setDetailCardId] = useState<string | null>(null);
   const [summaryCapturing, setSummaryCapturing] = useState(false);
   const [cardCapturing, setCardCapturing] = useState(false);
@@ -114,7 +116,7 @@ export default function ResultsPage() {
       </div>
 
       {/* 截圖結果按鈕 */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 flex flex-col items-center gap-3">
         <button
           data-testid="capture-summary-btn"
           onClick={handleCaptureSummary}
@@ -128,6 +130,15 @@ export default function ResultsPage() {
         >
           {summaryCapturing ? "截圖中…" : "📷 截圖結果"}
         </button>
+        {config.allowReturnToPile && (
+          <button
+            data-testid="return-to-pile-btn"
+            onClick={returnToPile}
+            className="px-6 py-2 rounded-xl font-bold text-sm border transition-all bg-transparent text-red-300 border-red-600/50 hover:bg-red-900/30 cursor-pointer"
+          >
+            ↩ 返回牌堆
+          </button>
+        )}
       </div>
 
       {/* 卡片詳細 Modal */}

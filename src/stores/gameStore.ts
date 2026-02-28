@@ -27,6 +27,7 @@ interface GameActions {
   revealCard: (cardId: string) => void;
   setPhase: (phase: GamePhase) => void;
   toggleEffects: () => void;
+  returnToPile: () => void;
 }
 
 // ── 初始狀態 ──────────────────────────────────────────────
@@ -302,4 +303,12 @@ export const useGameStore = create<GameStore>((set) => ({
 
   toggleEffects: () =>
     set((state) => ({ effectsEnabled: !state.effectsEnabled })),
+
+  returnToPile: () =>
+    set((state) => ({
+      phase: "pile",
+      selectedCardIds: [],
+      cards: buildDeck(state.config),
+      effectsEnabled: state.config.effectsEnabled,
+    })),
 }));
