@@ -20,9 +20,8 @@ export default defineConfig({
         "src/types/**",
       ],
       thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 80,
+        "src/utils/**": { lines: 90, functions: 90, branches: 90 },
+        "src/stores/**": { lines: 90, functions: 90, branches: 90 },
       },
     },
   },

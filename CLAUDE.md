@@ -8,7 +8,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **不可變資料**：所有 store action、utility 函式一律回傳新物件
 - **SDD 主導**：`types/index.ts` 是規格錨點，介面確認後再實作
-- **TDD 輔助**：每個 utility / hook / store action 均有對應測試，覆蓋率維持 80%+
+- **TDD 輔助**：每個 utility / hook / store action 均有對應測試；`src/utils/**` 和 `src/stores/**` 覆蓋率維持 90%+
+- **測試責任分界**：
+  - 單元測試負責：props → 渲染輸出、state 變化、event callback、條件渲染
+  - 手動驗證負責：Canvas 繪製、CSS 動畫、touch 事件、Web API（截圖、分享）— 這類行為 jsdom 無法有效模擬，強行覆蓋只會產生無意義的 mock
 - **元件大小**：單一檔案不超過 400 行，Canvas 邏輯抽離至 hook
 
 ## Session 工作流程
@@ -20,6 +23,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Phase commit**：每個 Phase（邏輯獨立功能單元）完成後立即 commit
 - **Plan 輕量化**：計畫只記決策結果，不記實作細節；完成後決策結果移入 MEMORY.md，計畫本身丟棄
 - **暫存規格檔**：建立時告知用戶；刪除前必須與用戶確認
-- **Post-implementation 流程**：code-reviewer subagent → 修 HIGH/CRITICAL → commit + push → 結束 session
+- **Post-implementation 流程**：code-reviewer subagent → 修 HIGH/CRITICAL/MEDIUM → commit + push → 結束 session
 - **Subagent 模式**：實作 + code-review 交給 Task subagent（worktree 隔離）；主 session 只負責需求討論與計畫確認
 - **Worktree subagent commit**：subagent prompt 末尾必須明確要求執行 `git add <files> && git commit`，否則變更只停留在 working directory，merge 時會出現 "Already up to date"（分支無新 commit）
