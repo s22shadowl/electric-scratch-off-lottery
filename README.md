@@ -25,12 +25,15 @@
 
 ```bash
 npm install
-npm run dev      # 啟動開發伺服器 http://localhost:5173
-npm test         # 執行測試
-npm run build    # 建置正式版本
+npm run dev           # 開發伺服器 http://localhost:5173
+npm run build
+npm run preview
+npm run typecheck     # npx tsc --noEmit
+npm run lint
+npm test              # vitest
+npx vitest run src/path/to/file.test.ts   # 單一測試檔
+npx vitest run --coverage
 ```
-
----
 
 ## 使用流程
 
@@ -51,17 +54,17 @@ npm run build    # 建置正式版本
 
 ## 技術堆疊
 
-| 分類 | 技術 |
-|---|---|
-| 前端框架 | React 19 + Vite 6 |
-| 語言 | TypeScript（strict）|
-| 樣式 | TailwindCSS 4 |
-| 狀態管理 | Zustand 5 |
-| 刮除效果 | 原生 Canvas API（`destination-out`）|
-| 設定傳遞 | base64url URL 參數 |
-| QR Code | `qrcode` |
-| 截圖 | `html-to-image` |
-| 測試 | Vitest + Testing Library |
+| 分類     | 技術                                 |
+| -------- | ------------------------------------ |
+| 前端框架 | React 19 + Vite 6                    |
+| 語言     | TypeScript（strict）                 |
+| 樣式     | TailwindCSS 4                        |
+| 狀態管理 | Zustand 5                            |
+| 刮除效果 | 原生 Canvas API（`destination-out`） |
+| 設定傳遞 | base64url URL 參數                   |
+| QR Code  | `qrcode`                             |
+| 截圖     | `html-to-image`                      |
+| 測試     | Vitest + Testing Library             |
 
 ---
 
@@ -82,18 +85,18 @@ npm run build    # 建置正式版本
 
 **難度預設**（四種，於主持人介面選擇）
 
-| 預設 | 賺錢率 | 說明 |
-|---|---|---|
-| 慷慨 | 高（期望值正）| 兒童活動、暖場 |
-| 標準 | 約持平 | 一般聚會 |
-| 保守 | 小負 | 競爭感更強 |
-| 真實難度 | 負（仿台灣彩券）| 賺錢率 3–18%，貼近真實體驗 |
+| 預設     | 賺錢率           | 說明                       |
+| -------- | ---------------- | -------------------------- |
+| 慷慨     | 高（期望值正）   | 兒童活動、暖場             |
+| 標準     | 約持平           | 一般聚會                   |
+| 保守     | 小負             | 競爭感更強                 |
+| 真實難度 | 負（仿台灣彩券） | 賺錢率 3–18%，貼近真實體驗 |
 
 **新玩法**
 
 - [x] **三同（Triple Match）**：刮開 3 區，全同即中，10 種符號池
 - [x] **比大小（High-Low）**：3 欄（你的號碼 / 莊家號碼 / 獎金），你大於莊即中，平手算輸，結果預先決定
-- [x] **賓果（Bingo）**：3×3～6×6 可設定；2 個區域（開獎號碼自動顯示 + 賓果格刮除）；可重複中獎（多條線多重獎）；獎金以 prizePerLine × 連線數計算
+- [x] **賓果（Bingo）**：3×3 ～ 6×6 可設定；2 個區域（開獎號碼自動顯示 + 賓果格刮除）；可重複中獎（多條線多重獎）；獎金以 prizePerLine × 連線數計算
 
 **工具與 UX**
 
@@ -115,3 +118,27 @@ npm run build    # 建置正式版本
 - [ ] 列印支援（`@media print`）
 - [ ] 鍵盤無障礙（空白鍵 / Enter 直接揭曉）
 - [ ] CI/CD Pipeline + pre-commit hooks（GitHub Actions + husky/lint-staged：lint、typecheck、test 全自動化，PR 合併前強制通過）
+
+### 核心刮除機制
+
+- Canvas 覆蓋銀色遮罩層，`pointermove` 以 `destination-out` 清除
+- `getImageData` 取樣計算已刮比例，達 **70%（REVEAL_THRESHOLD）** 自動揭曉
+- `getContext('2d', { willReadFrequently: true })` 避免瀏覽器效能警告
+
+### Predetermined Outcome 架構
+
+```
+buildDeck(config)
+  → 每張卡先 drawPrize() 決定獎項結果
+  → 再 buildCard(result) 依 mechanic 分支產生符合結果的圖案
+     symbol → buildZone
+     triple → buildTripleZones（3 zones × rowsPerCard cells）
+     compare → buildCompareZones（3 zones × roundsPerCard cells）
+     bingo  → buildBingoZones（zone[0]=開獎號碼 auto-revealed, zone[1]=賓果格 scratch-off）
+```
+
+### GamePhase 狀態流
+
+```
+pile → scratching → results
+```
