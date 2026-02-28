@@ -487,10 +487,11 @@ describe("buildCard (bingo)", () => {
     expect(card.zones[1]!.cells).toHaveLength(gridSize * gridSize);
   });
 
-  it("zone[0] 所有 cells 應在 build time 已揭曉（isRevealed=true）", () => {
+  it("zone[0] 所有 cells 初始應為未揭曉（isRevealed=false，需逐格刮開）", () => {
     const card = buildCard(bingoCardType, "card-b", "TEST-01", 0);
     card.zones[0]!.cells.forEach((cell) => {
-      expect(cell.isRevealed).toBe(true);
+      expect(cell.isRevealed).toBe(false);
+      expect(cell.scratchProgress).toBe(0);
     });
   });
 

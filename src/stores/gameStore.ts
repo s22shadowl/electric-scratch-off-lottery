@@ -87,7 +87,9 @@ function resolveBingoWinnings(card: ScratchCard, prizePerLine: number): number {
   const [zone0, zone1] = card.zones;
   if (!zone0 || !zone1) return 0;
 
-  const drawnSet = new Set(zone0.cells.map((c) => c.bingoNumber!));
+  const drawnSet = new Set(
+    zone0.cells.filter((c) => c.isRevealed).map((c) => c.bingoNumber!),
+  );
   const gridSize = Math.round(Math.sqrt(zone1.cells.length));
   const matched = zone1.cells.map((c) => drawnSet.has(c.bingoNumber!));
 
@@ -264,20 +266,15 @@ export const useGameStore = create<GameStore>((set) => ({
           mechanic === "bingo"
             ? (cardTypeConfig?.mechanicOptions as BingoOptions).prizePerLine
             : undefined;
-        // bingo：只揭曉 zone[1]（zone[0] 已在 buildDeck 時自動揭曉）
-        // 其他玩法：揭曉全部 zones
-        const updatedZones = c.zones.map((zone, zi) => {
-          const shouldReveal = mechanic !== "bingo" || zi === 1;
-          if (!shouldReveal) return zone;
-          return {
-            ...zone,
-            cells: zone.cells.map((cell) => ({
-              ...cell,
-              scratchProgress: 1,
-              isRevealed: true,
-            })),
-          };
-        });
+        // 揭曉全部 zones（bingo 的 zone[0] 也需要全部揭曉）
+        const updatedZones = c.zones.map((zone) => ({
+          ...zone,
+          cells: zone.cells.map((cell) => ({
+            ...cell,
+            scratchProgress: 1,
+            isRevealed: true,
+          })),
+        }));
         const updatedCard = {
           ...c,
           zones: updatedZones,

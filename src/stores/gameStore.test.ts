@@ -557,17 +557,16 @@ describe("revealCard", () => {
     });
   });
 
-  it("bingo：revealCard 後只揭曉 zone[1]，zone[0] 狀態不變", () => {
+  it("bingo：revealCard 後 zone[0] 和 zone[1] 均應全部揭曉", () => {
     useGameStore.getState().initGame(bingoConfig);
     const cardId = useGameStore.getState().cards[0]!.id;
-    const zone0Before = useGameStore.getState().cards[0]!.zones[0]!.cells;
     useGameStore.getState().revealCard(cardId);
     const updated = useGameStore.getState().cards.find((c) => c.id === cardId)!;
-    // zone[0] 應保持原始狀態（不被 revealCard 修改）
-    updated.zones[0]!.cells.forEach((cell, i) => {
-      expect(cell.scratchProgress).toBe(zone0Before[i]!.scratchProgress);
+    // zone[0] 和 zone[1] 均應全部揭曉
+    updated.zones[0]!.cells.forEach((cell) => {
+      expect(cell.isRevealed).toBe(true);
+      expect(cell.scratchProgress).toBe(1);
     });
-    // zone[1] 應全部揭曉
     updated.zones[1]!.cells.forEach((cell) => {
       expect(cell.isRevealed).toBe(true);
     });
@@ -697,12 +696,12 @@ const bingoConfig: GameConfig = {
 };
 
 describe("updateCellProgress (bingo)", () => {
-  it("zone[0] 開獎號碼在建牌時已全部 isRevealed", () => {
+  it("zone[0] 開獎號碼在建牌時初始為未揭曉（isRevealed=false，需逐格刮開）", () => {
     useGameStore.getState().initGame(bingoConfig);
     const card = useGameStore.getState().cards[0]!;
     card.zones[0]!.cells.forEach((cell) => {
-      expect(cell.isRevealed).toBe(true);
-      expect(cell.scratchProgress).toBe(1);
+      expect(cell.isRevealed).toBe(false);
+      expect(cell.scratchProgress).toBe(0);
     });
   });
 
@@ -735,9 +734,21 @@ describe("updateCellProgress (bingo)", () => {
     expect(updated?.status).not.toBe("completed");
   });
 
-  it("zone[1] 全部揭曉後 status 應為 completed", () => {
+  it("zone[0] + zone[1] 全部揭曉後 status 應為 completed（F1：兩個 zone 都需刮開）", () => {
     useGameStore.getState().initGame(bingoConfig);
     const card = useGameStore.getState().cards[0]!;
+    // 揭曉 zone[0]（開獎號碼）
+    card.zones[0]!.cells.forEach((cell) => {
+      useGameStore
+        .getState()
+        .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+    });
+    // 此時只有 zone[0] 揭曉，不應 completed
+    const midUpdate = useGameStore
+      .getState()
+      .cards.find((c) => c.id === card.id);
+    expect(midUpdate?.status).not.toBe("completed");
+    // 揭曉 zone[1]（賓果格）
     card.zones[1]!.cells.forEach((cell) => {
       useGameStore
         .getState()
@@ -747,12 +758,12 @@ describe("updateCellProgress (bingo)", () => {
     expect(updated?.status).toBe("completed");
   });
 
-  it("全部揭曉後 totalWinnings 應等於完成線數 × prizePerLine", () => {
+  it("zone[0] + zone[1] 全部揭曉後 totalWinnings 應等於完成線數 × prizePerLine", () => {
     useGameStore.getState().initGame(bingoConfig);
     const card = useGameStore.getState().cards[0]!;
     const g = BINGO_GRID_SIZE;
 
-    // 從建牌結果計算預期獎金
+    // 從建牌結果計算預期獎金（全部 zone[0] 號碼均為 drawnSet）
     const drawnSet = new Set(card.zones[0]!.cells.map((c) => c.bingoNumber!));
     const gridCells = card.zones[1]!.cells;
     const matched = gridCells.map((c) => drawnSet.has(c.bingoNumber!));
@@ -781,6 +792,12 @@ describe("updateCellProgress (bingo)", () => {
 
     const expectedWinnings = lines * BINGO_PRIZE_PER_LINE;
 
+    // 揭曉 zone[0] 和 zone[1] 全部格
+    card.zones[0]!.cells.forEach((cell) => {
+      useGameStore
+        .getState()
+        .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+    });
     card.zones[1]!.cells.forEach((cell) => {
       useGameStore
         .getState()

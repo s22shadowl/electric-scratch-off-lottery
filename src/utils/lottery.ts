@@ -205,7 +205,7 @@ function buildBingoZones(cardId: string, options: BingoOptions): ScratchZone[] {
     return pool.slice(0, n);
   }
 
-  // zone[0]：開獎號碼（全部 isRevealed=true）
+  // zone[0]：開獎號碼（初始未揭曉，需逐格刮開）
   const drawnNums = sampleWithoutReplacement(drawnCount);
   const drawnCells: ScratchCell[] = drawnNums.map((num, i) => ({
     id: `${cardId}-zone-0-cell-${i}`,
@@ -216,8 +216,8 @@ function buildBingoZones(cardId: string, options: BingoOptions): ScratchZone[] {
       probability: 1,
       isWin: false,
     },
-    scratchProgress: 1,
-    isRevealed: true,
+    scratchProgress: 0,
+    isRevealed: false,
     bingoNumber: num,
   }));
 

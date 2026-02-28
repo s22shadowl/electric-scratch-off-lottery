@@ -160,60 +160,55 @@ describe("ScratchCard (bingo)", () => {
     });
   });
 
-  it("zone[0] 開獎號碼應顯示在畫面上", () => {
+  it("zone[0] 開獎號碼應以 BingoCellCanvas 渲染（scratch-off）", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     render(<ScratchCard cardId={cardId} />);
     const card = useGameStore.getState().cards[0]!;
-    // zone[0] 的號碼應以文字顯示（已揭曉）
+    // zone[0] 的每格應有 data-testid=bingo-cell-{id}（BingoCellCanvas 渲染）
     card.zones[0]!.cells.forEach((cell) => {
-      expect(
-        screen.getAllByText(String(cell.bingoNumber!)).length,
-      ).toBeGreaterThanOrEqual(1);
+      expect(screen.getByTestId(`bingo-cell-${cell.id}`)).toBeInTheDocument();
     });
   });
 
-  it("進度提示只計算 zone[1] 格數", () => {
+  it("進度提示計算 zone[0] + zone[1] 格數（兩個 zone 均需刮開）", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     render(<ScratchCard cardId={cardId} />);
-    // gridSize=3 → zone[1]=9格，zone[0]=6格（已揭曉不計入）
-    expect(screen.getByText(/0 \/ 9/)).toBeInTheDocument();
+    // gridSize=3 → zone[0]=6格 + zone[1]=9格 = 15格
+    expect(screen.getByText(/0 \/ 15/)).toBeInTheDocument();
   });
 
-  it("zone[1] 格揭曉且配對時，zone[0] 對應號碼應有高亮樣式", () => {
+  it("zone[0] 格揭曉後，zone[1] 對應號碼的格子應有高亮（D1：drawnSet 即時更新）", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     const card = useGameStore.getState().cards[0]!;
-    const drawnSet = new Set(card.zones[0]!.cells.map((c) => c.bingoNumber!));
-    // 找一個配對格（bingoNumber 在 drawnSet 中）
-    const matchedCell = card.zones[1]!.cells.find((c) =>
-      drawnSet.has(c.bingoNumber!),
+    // 找一個 zone[0] 格，其號碼也出現在 zone[1]
+    const zone0Nums = new Set(card.zones[0]!.cells.map((c) => c.bingoNumber!));
+    const matchedZone1Cell = card.zones[1]!.cells.find((c) =>
+      zone0Nums.has(c.bingoNumber!),
     );
-    if (!matchedCell) return; // 若無配對格跳過（理論上不會）
-    // 揭曉該配對格
+    if (!matchedZone1Cell) return; // 理論上必有配對
+    const matchedNum = matchedZone1Cell.bingoNumber!;
+    // 找 zone[0] 中含該號碼的格
+    const zone0Cell = card.zones[0]!.cells.find(
+      (c) => c.bingoNumber === matchedNum,
+    )!;
+    // 揭曉 zone[0] 的該格
     useGameStore
       .getState()
-      .updateCellProgress(cardId, matchedCell.id, REVEAL_THRESHOLD);
+      .updateCellProgress(cardId, zone0Cell.id, REVEAL_THRESHOLD);
     render(<ScratchCard cardId={cardId} />);
-    // zone[0] 對應號碼的 chip 應有亮黃背景
-    const chips = screen
-      .getAllByText(String(matchedCell.bingoNumber!))
-      .filter((el) => el.tagName === "SPAN");
-    // 至少一個 chip 有 bg-yellow-400（確認特效套用）
-    expect(chips.some((el) => el.className.includes("bg-yellow-400"))).toBe(
-      true,
-    );
+    // zone[1] 中對應號碼的格子（BingoCellCanvas）應有 data-matched=true
+    const zone1CellEl = screen.getByTestId(`bingo-cell-${matchedZone1Cell.id}`);
+    expect(zone1CellEl.getAttribute("data-matched")).toBe("true");
   });
 
-  it("zone[1] 格未揭曉時，zone[0] 號碼不應有高亮樣式", () => {
+  it("zone[0] 格未揭曉時，zone[1] 中對應格子不應高亮（data-matched=false）", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     render(<ScratchCard cardId={cardId} />);
-    // zone[0] chip 有 w-7 class；BingoCellCanvas 內部 span 沒有
-    const zone0Chips = screen
-      .getAllByText(/^\d+$/)
-      .filter((el) => el.tagName === "SPAN" && el.className.includes("w-7"));
-    expect(zone0Chips.length).toBeGreaterThan(0);
-    zone0Chips.forEach((span) => {
-      expect(span.className).toContain("bg-yellow-600");
-      expect(span.className).not.toContain("bg-yellow-400");
+    const card = useGameStore.getState().cards[0]!;
+    // zone[0] 全未揭曉，所有 zone[1] 格應 data-matched=false
+    card.zones[1]!.cells.forEach((cell) => {
+      const el = screen.getByTestId(`bingo-cell-${cell.id}`);
+      expect(el.getAttribute("data-matched")).toBe("false");
     });
   });
 });

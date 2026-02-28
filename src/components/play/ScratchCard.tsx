@@ -23,9 +23,11 @@ export default function ScratchCard({ cardId }: Props) {
     0,
   );
 
-  // bingo：進度只計算 zone[1]（zone[0] 已自動揭曉，不算在刮除進度內）
-  const scratchZone = mechanic === "bingo" ? card.zones[1] : card.zones[0];
-  const scratchCells = scratchZone?.cells ?? [];
+  // bingo：進度計算 zone[0] + zone[1] 全部格（兩個 zone 都需刮開）
+  const scratchCells =
+    mechanic === "bingo"
+      ? [...(card.zones[0]?.cells ?? []), ...(card.zones[1]?.cells ?? [])]
+      : (card.zones[0]?.cells ?? []);
   const revealedCount = scratchCells.filter((c) => c.isRevealed).length;
   const totalCount = scratchCells.length;
 
@@ -55,35 +57,28 @@ export default function ScratchCard({ cardId }: Props) {
             ({ 3: 64, 4: 52, 5: 44, 6: 36 } as Record<number, number>)[
               gridSize
             ] ?? 48;
+          // 只含已揭曉的 zone[0] 格（D1：刮開後即時更新 drawnSet）
           const drawnSet = new Set(
-            card.zones[0]?.cells.map((c) => c.bingoNumber!) ?? [],
-          );
-          // 已揭曉且命中開獎號碼的賓果格 → zone[0] 對應號碼顯示特效
-          const confirmedNums = new Set(
-            card.zones[1]?.cells
-              .filter((c) => c.isRevealed && drawnSet.has(c.bingoNumber!))
+            card.zones[0]?.cells
+              .filter((c) => c.isRevealed)
               .map((c) => c.bingoNumber!) ?? [],
           );
           return (
             <div className="flex flex-col gap-3">
-              {/* zone[0]：開獎號碼 */}
+              {/* zone[0]：開獎號碼（scratch-off，逐格刮開） */}
               <div>
                 <p className="text-yellow-400/70 text-[10px] text-center mb-1 tracking-widest">
                   開獎號碼
                 </p>
                 <div className="flex flex-wrap gap-1.5 justify-center">
                   {card.zones[0]?.cells.map((cell) => (
-                    <span
+                    <BingoCellCanvas
                       key={cell.id}
-                      className={[
-                        "w-7 h-7 flex items-center justify-center rounded-md text-xs font-black transition-all",
-                        confirmedNums.has(cell.bingoNumber!)
-                          ? "bg-yellow-400 text-red-900 ring-2 ring-yellow-300 scale-110"
-                          : "bg-yellow-600 text-white",
-                      ].join(" ")}
-                    >
-                      {cell.bingoNumber}
-                    </span>
+                      cell={cell}
+                      cardId={cardId}
+                      isMatched={cell.isRevealed}
+                      size={36}
+                    />
                   ))}
                 </div>
               </div>
