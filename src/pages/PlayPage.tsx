@@ -1,19 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { decodeConfig } from "@/utils/config-codec";
 import { useGameStore } from "@/stores/gameStore";
 import CardPile from "@/components/play/CardPile";
 import ScratchCard from "@/components/play/ScratchCard";
 import ResultsPage from "@/components/play/ResultsPage";
+import SplashOverlay from "@/components/play/SplashOverlay";
 import type { GameConfig } from "@/types";
 
 export default function PlayPage() {
   const [searchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<GameConfig | null>(null);
+  const [showSplash, setShowSplash] = useState(false);
+  const splashDismissedRef = useRef(false);
+
   const initGame = useGameStore((s) => s.initGame);
   const phase = useGameStore((s) => s.phase);
   const selectedCardIds = useGameStore((s) => s.selectedCardIds);
+  const cards = useGameStore((s) => s.cards);
+  const effectsEnabled = useGameStore((s) => s.effectsEnabled);
+
+  const selectedCards = selectedCardIds
+    .map((id) => cards.find((c) => c.id === id))
+    .filter((c): c is NonNullable<typeof c> => c !== undefined);
+  const totalWinnings = selectedCards.reduce((s, c) => s + c.totalWinnings, 0);
+  const winningCount = selectedCards.filter((c) => c.totalWinnings > 0).length;
 
   useEffect(() => {
     const encoded = searchParams.get("config");
@@ -29,6 +41,25 @@ export default function PlayPage() {
       setError(`設定解析失敗：${e instanceof Error ? e.message : "未知錯誤"}`);
     }
   }, [searchParams, initGame]);
+
+  useEffect(() => {
+    if (phase === "results" && !splashDismissedRef.current) {
+      setShowSplash(true);
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        splashDismissedRef.current = true;
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+    if (phase !== "results") {
+      splashDismissedRef.current = false;
+    }
+  }, [phase]);
+
+  const handleDismiss = () => {
+    setShowSplash(false);
+    splashDismissedRef.current = true;
+  };
 
   if (error) {
     return (
@@ -61,7 +92,16 @@ export default function PlayPage() {
           ))}
         </section>
       )}
-      {phase === "results" && <ResultsPage />}
+      {phase === "results" && showSplash && (
+        <SplashOverlay
+          totalWinnings={totalWinnings}
+          winningCount={winningCount}
+          totalCount={selectedCards.length}
+          effectsEnabled={effectsEnabled}
+          onDismiss={handleDismiss}
+        />
+      )}
+      {phase === "results" && !showSplash && <ResultsPage />}
     </main>
   );
 }

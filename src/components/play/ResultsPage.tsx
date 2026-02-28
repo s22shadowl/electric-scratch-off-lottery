@@ -86,7 +86,7 @@ export default function ResultsPage() {
 
         {/* 卡片摘要格 */}
         <div className="flex flex-wrap justify-center gap-3 mb-8 max-w-2xl mx-auto">
-          {selectedCards.map((card) => (
+          {selectedCards.map((card, index) => (
             <button
               key={card.id}
               data-testid={`result-card-${card.id}`}
@@ -97,6 +97,10 @@ export default function ResultsPage() {
                   ? "bg-yellow-400/20 border-yellow-400 text-yellow-300"
                   : "bg-red-900/40 border-red-700 text-red-300",
               ].join(" ")}
+              style={{
+                animation: "fade-in-up 300ms ease-out forwards",
+                animationDelay: `${index * 80}ms`,
+              }}
             >
               <div className="text-xs font-mono opacity-70 mb-0.5">
                 {card.serialNumber}

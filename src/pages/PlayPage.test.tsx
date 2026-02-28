@@ -1,5 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import {
+  render,
+  screen,
+  waitFor,
+  act,
+  fireEvent,
+} from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { useGameStore } from "@/stores/gameStore";
 import { encodeConfig } from "@/utils/config-codec";
@@ -38,6 +44,10 @@ const renderWithRoute = (search: string) =>
 
 beforeEach(() => {
   useGameStore.setState(useGameStore.getInitialState());
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("PlayPage", () => {
@@ -82,7 +92,7 @@ describe("PlayPage", () => {
     });
   });
 
-  it("phase 為 results 時應渲染 ResultsPage", async () => {
+  it("phase 為 results 時應先渲染 SplashOverlay", async () => {
     const encoded = encodeConfig(config);
     renderWithRoute(`?config=${encoded}`);
     await waitFor(() => {
@@ -91,6 +101,42 @@ describe("PlayPage", () => {
     await act(async () => {
       useGameStore.getState().setPhase("results");
     });
+    expect(screen.getByTestId("splash-overlay")).toBeInTheDocument();
+    expect(screen.queryByTestId("results-page")).not.toBeInTheDocument();
+  });
+
+  it("點擊 SplashOverlay 後應顯示 ResultsPage", async () => {
+    const encoded = encodeConfig(config);
+    renderWithRoute(`?config=${encoded}`);
+    await waitFor(() => {
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
+    });
+    await act(async () => {
+      useGameStore.getState().setPhase("results");
+    });
+    const splash = screen.getByTestId("splash-overlay");
+    await act(async () => {
+      fireEvent.click(splash);
+    });
+    expect(screen.queryByTestId("splash-overlay")).not.toBeInTheDocument();
+    expect(screen.getByTestId("results-page")).toBeInTheDocument();
+  });
+
+  it("phase 為 results 時 SplashOverlay 應在 1500ms 後自動消失並顯示 ResultsPage", async () => {
+    const encoded = encodeConfig(config);
+    renderWithRoute(`?config=${encoded}`);
+    await waitFor(() => {
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
+    });
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    await act(async () => {
+      useGameStore.getState().setPhase("results");
+    });
+    expect(screen.getByTestId("splash-overlay")).toBeInTheDocument();
+    await act(async () => {
+      vi.advanceTimersByTime(1500);
+    });
+    expect(screen.queryByTestId("splash-overlay")).not.toBeInTheDocument();
     expect(screen.getByTestId("results-page")).toBeInTheDocument();
   });
 });
