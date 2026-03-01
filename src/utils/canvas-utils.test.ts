@@ -4,39 +4,12 @@ import {
   TOUCH_BRUSH_RADIUS,
   drawErase,
   drawSilverMask,
-  drawAntiCounterfeitPattern,
   calculateRevealedRatio,
   seededRand,
   getCellPerturbation,
 } from "./canvas-utils";
 
 // ── Mock Canvas Context 工廠 ───────────────────────────────
-
-function makeMockCtxFull() {
-  return {
-    globalCompositeOperation: "source-over" as string,
-    globalAlpha: 1,
-    strokeStyle: "" as string,
-    lineWidth: 1,
-    save: vi.fn(),
-    restore: vi.fn(),
-    beginPath: vi.fn(),
-    moveTo: vi.fn(),
-    lineTo: vi.fn(),
-    stroke: vi.fn(),
-    arc: vi.fn(),
-    fill: vi.fn(),
-    fillRect: vi.fn(),
-    fillStyle: "" as string | CanvasGradient | CanvasPattern,
-    createLinearGradient: vi.fn(() => ({
-      addColorStop: vi.fn(),
-    })) as unknown as CanvasRenderingContext2D["createLinearGradient"],
-    getImageData: vi.fn(() => ({
-      data: new Uint8ClampedArray(16 * 4),
-    })) as unknown as CanvasRenderingContext2D["getImageData"],
-    putImageData: vi.fn(),
-  };
-}
 
 function makeMockCtx(alphaValues?: number[]) {
   const pixelCount = 16; // 4×4 grid for testing
@@ -217,50 +190,5 @@ describe("calculateRevealedRatio", () => {
       0,
     );
     expect(ratio).toBe(0);
-  });
-});
-
-// ── drawAntiCounterfeitPattern ────────────────────────────
-
-describe("drawAntiCounterfeitPattern", () => {
-  it("應呼叫 save 和 restore（狀態包裹）", () => {
-    const ctx = makeMockCtxFull();
-    drawAntiCounterfeitPattern(
-      ctx as unknown as CanvasRenderingContext2D,
-      200,
-      120,
-    );
-    expect(ctx.save).toHaveBeenCalled();
-    expect(ctx.restore).toHaveBeenCalled();
-  });
-
-  it("應呼叫 stroke 繪製波浪線", () => {
-    const ctx = makeMockCtxFull();
-    drawAntiCounterfeitPattern(
-      ctx as unknown as CanvasRenderingContext2D,
-      200,
-      120,
-    );
-    expect(ctx.stroke).toHaveBeenCalled();
-  });
-
-  it("strokeStyle 應為粉紫色 #B06EC8", () => {
-    const ctx = makeMockCtxFull();
-    drawAntiCounterfeitPattern(
-      ctx as unknown as CanvasRenderingContext2D,
-      200,
-      120,
-    );
-    expect(ctx.strokeStyle).toBe("#B06EC8");
-  });
-
-  it("globalAlpha 應設為 0.35", () => {
-    const ctx = makeMockCtxFull();
-    drawAntiCounterfeitPattern(
-      ctx as unknown as CanvasRenderingContext2D,
-      200,
-      120,
-    );
-    expect(ctx.globalAlpha).toBe(0.35);
   });
 });

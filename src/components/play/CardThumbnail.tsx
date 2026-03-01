@@ -1,19 +1,19 @@
-import type { ScratchCard } from "@/types"
-import caishenUrl from "@/assets/mascot/caishen.png"
-import cloudTileUrl from "@/assets/decorations/cloud-tile.png"
+import type { ScratchCard } from "@/types";
+import caishenUrl from "@/assets/mascot/caishen.png";
 
 interface Props {
-  card: ScratchCard
-  isSelected: boolean
-  onToggle: (cardId: string) => void
+  card: ScratchCard;
+  isSelected: boolean;
+  onToggle: (cardId: string) => void;
 }
 
 export default function CardThumbnail({ card, isSelected, onToggle }: Props) {
-  const isDisabled = card.status === "completed" || card.status === "scratching"
+  const isDisabled =
+    card.status === "completed" || card.status === "scratching";
 
   const handleClick = () => {
-    if (!isDisabled) onToggle(card.id)
-  }
+    if (!isDisabled) onToggle(card.id);
+  };
 
   return (
     <button
@@ -32,18 +32,6 @@ export default function CardThumbnail({ card, isSelected, onToggle }: Props) {
         isDisabled ? "opacity-50 cursor-not-allowed" : "",
       ].join(" ")}
     >
-      {/* 祥雲紋路 */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 rounded-xl pointer-events-none"
-        style={{
-          backgroundImage: `url(${cloudTileUrl})`,
-          backgroundRepeat: "repeat",
-          backgroundSize: "64px 64px",
-          // mixBlendMode: "multiply",
-          opacity: 0.9,
-        }}
-      />
       {/* 閃光裝飾 */}
       <span className="absolute top-1.5 left-2 text-yellow-300 text-xs opacity-70">
         ✦
@@ -75,5 +63,5 @@ export default function CardThumbnail({ card, isSelected, onToggle }: Props) {
         <div className="absolute inset-0 rounded-xl bg-yellow-400/10 pointer-events-none" />
       )}
     </button>
-  )
+  );
 }

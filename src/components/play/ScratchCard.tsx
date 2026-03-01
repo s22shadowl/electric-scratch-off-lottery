@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { useGameStore } from "@/stores/gameStore";
 import ScratchCellCanvas from "./ScratchCellCanvas";
 import BingoCellCanvas from "./BingoCellCanvas";
-import cloudTileUrl from "@/assets/decorations/cloud-tile.png";
 import caishenUrl from "@/assets/mascot/caishen.png";
 import type { BingoOptions } from "@/types";
 
@@ -87,19 +86,11 @@ export default function ScratchCard({ cardId }: Props) {
     <article
       data-testid={`scratch-card-${cardId}`}
       className={`relative bg-gradient-to-br from-red-700 to-red-900 rounded-2xl p-2 shadow-2xl border-2 border-yellow-500/70 card-emboss w-full sm:w-fit ${mechanic === "bingo" ? "max-w-xs" : "max-w-sm"}`}
+      style={{
+        backgroundImage:
+          "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.04) 10px, rgba(255,255,255,0.04) 12px)",
+      }}
     >
-      {/* 祥雲紋路 */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 rounded-2xl pointer-events-none"
-        style={{
-          backgroundImage: `url(${cloudTileUrl})`,
-          backgroundRepeat: "repeat",
-          backgroundSize: "64px 64px",
-          // mixBlendMode: "multiply",
-          opacity: 0.9,
-        }}
-      />
       {/* 卡片標題 */}
       <header className="flex justify-between items-center mb-3 gap-2">
         <span className="text-yellow-300/80 text-[10px] font-mono shrink-0">

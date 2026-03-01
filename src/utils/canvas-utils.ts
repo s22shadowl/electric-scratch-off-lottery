@@ -42,46 +42,6 @@ export function getCellPerturbation(cellId: string): CellPerturbation {
   return { rotation, skewX, alignH, alignV, scale, offsetX, offsetY };
 }
 
-// 在銀色遮罩上繪製防偽底紋（粉紫斜線波浪），刮除時隨銀色層一起消除
-export function drawAntiCounterfeitPattern(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-): void {
-  ctx.save();
-  ctx.globalCompositeOperation = "source-over";
-  ctx.globalAlpha = 0.35;
-  ctx.strokeStyle = "#B06EC8";
-  ctx.lineWidth = 0.9;
-
-  const spacing = 8; // 線距（px）
-  const amplitude = 2.5; // 波浪振幅
-  const frequency = 0.28; // 波浪頻率
-
-  // 45° 斜向波浪線，覆蓋整個 canvas
-  for (let start = -height; start <= width; start += spacing) {
-    ctx.beginPath();
-    let started = false;
-    for (let t = 0; t <= width + height; t += 2) {
-      const x = start + t;
-      const y = t + amplitude * Math.sin(t * frequency);
-      if (x >= 0 && x <= width && y >= 0 && y <= height) {
-        if (!started) {
-          ctx.moveTo(x, y);
-          started = true;
-        } else {
-          ctx.lineTo(x, y);
-        }
-      } else if (started && y > height) {
-        break;
-      }
-    }
-    if (started) ctx.stroke();
-  }
-
-  ctx.restore();
-}
-
 // ── Canvas 常數 ──────────────────────────────────────────────────────────────
 export const BRUSH_RADIUS = 24;
 export const TOUCH_BRUSH_RADIUS = 40; // 手指觸控用
