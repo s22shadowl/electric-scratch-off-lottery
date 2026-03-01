@@ -50,13 +50,16 @@ export default function ScratchCard({ cardId }: Props) {
         }}
       />
       {/* 卡片標題 */}
-      <header className="text-center mb-3">
-        <h2 className="text-yellow-400 font-black text-sm tracking-widest drop-shadow font-serif">
-          ✦ 電子刮刮樂 ✦
+      <header className="flex justify-between items-center mb-3 gap-2">
+        <span className="text-yellow-300/80 text-[10px] font-mono shrink-0">
+          NT${cardTypeConfig?.ticketPrice.toLocaleString() ?? "—"}
+        </span>
+        <h2 className="text-yellow-400 font-black text-sm tracking-widest drop-shadow font-serif text-center">
+          ✦ {config.sessionTitle} ✦
         </h2>
-        <p className="text-yellow-300/60 text-[10px] font-mono mt-0.5">
+        <span className="text-yellow-300/60 text-[10px] font-mono shrink-0">
           {card.serialNumber}
-        </p>
+        </span>
       </header>
 
       {/* 刮除格：bingo=開獎區+格子 / triple/compare=row-first / symbol=flex-wrap */}

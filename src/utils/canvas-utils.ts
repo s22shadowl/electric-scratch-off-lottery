@@ -15,20 +15,32 @@ export function drawErase(
   ctx.fill();
 }
 
-// 填充銀色金屬漸層遮罩
+// 填充銀色金屬漸層遮罩（水平漸層 + 像素 noise 模擬鋁箔質感）
 export function drawSilverMask(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
 ): void {
   ctx.globalCompositeOperation = "source-over";
-  const gradient = ctx.createLinearGradient(0, 0, width, height);
-  gradient.addColorStop(0, "#C8C8C8");
-  gradient.addColorStop(0.3, "#E8E8E8");
-  gradient.addColorStop(0.6, "#B0B0B0");
-  gradient.addColorStop(1, "#D0D0D0");
+  const gradient = ctx.createLinearGradient(0, 0, width, 0);
+  gradient.addColorStop(0, "#9A9A9A");
+  gradient.addColorStop(0.25, "#D8D8D8");
+  gradient.addColorStop(0.5, "#F0F0F0");
+  gradient.addColorStop(0.75, "#D8D8D8");
+  gradient.addColorStop(1, "#9A9A9A");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
+
+  // 像素 noise ±30：模擬金屬鋁箔顆粒感
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const n = (Math.random() - 0.5) * 60;
+    data[i]! = Math.min(255, Math.max(0, data[i]! + n));
+    data[i + 1]! = Math.min(255, Math.max(0, data[i + 1]! + n));
+    data[i + 2]! = Math.min(255, Math.max(0, data[i + 2]! + n));
+  }
+  ctx.putImageData(imageData, 0, 0);
 }
 
 // 計算已刮除（透明）像素的比例（0–1）

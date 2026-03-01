@@ -32,6 +32,7 @@ function makeMockCtx(alphaValues?: number[]) {
     getImageData: vi.fn(() => ({
       data,
     })) as unknown as CanvasRenderingContext2D["getImageData"],
+    putImageData: vi.fn(),
   };
 }
 

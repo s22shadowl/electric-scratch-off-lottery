@@ -18,6 +18,7 @@ vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
   getImageData: vi.fn(() => ({
     data: new Uint8ClampedArray(16 * 4).fill(255),
   })),
+  putImageData: vi.fn(),
 } as unknown as CanvasRenderingContext2D);
 
 function makeCell(overrides: Partial<ScratchCell> = {}): ScratchCell {
