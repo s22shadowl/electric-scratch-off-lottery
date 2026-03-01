@@ -107,6 +107,14 @@ export interface GameConfig {
   allowReturnToPile?: boolean;
 }
 
+// Theme Layout 元件共用 props
+export interface ThemeLayoutProps {
+  card: ScratchCard;
+  cardTypeConfig: CardTypeConfig;
+  config: GameConfig;
+  maxPrize: number;
+}
+
 // 玩家端執行狀態（Zustand store）
 export type GamePhase = "pile" | "scratching" | "results";
 

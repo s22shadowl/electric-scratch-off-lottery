@@ -1,44 +1,44 @@
-import { useRef, useEffect, useCallback } from "react";
-import { useScratch } from "@/hooks/useScratch";
-import { useParticles } from "@/hooks/useParticles";
-import { useGameStore } from "@/stores/gameStore";
-import { getSymbolByCode } from "@/utils/symbol-pool";
-import { getCellPerturbation } from "@/utils/canvas-utils";
-import type { ScratchCell } from "@/types";
+import { useRef, useEffect, useCallback } from "react"
+import { useScratch } from "@/hooks/useScratch"
+import { useParticles } from "@/hooks/useParticles"
+import { useGameStore } from "@/stores/gameStore"
+import { getSymbolByCode } from "@/utils/symbol-pool"
+import { getCellPerturbation } from "@/utils/canvas-utils"
+import type { ScratchCell } from "@/types"
 
 const ALIGN_H = {
   left: "flex-start",
   center: "center",
   right: "flex-end",
-} as const;
+} as const
 const ALIGN_V = {
   top: "flex-start",
   center: "center",
   bottom: "flex-end",
-} as const;
+} as const
 
 interface Props {
-  cell: ScratchCell;
-  cardId: string;
-  maxPrize: number;
-  alwaysShowAmount?: boolean;
-  width?: number;
-  height?: number;
+  cell: ScratchCell
+  cardId: string
+  maxPrize: number
+  alwaysShowAmount?: boolean
+  width?: number
+  height?: number
 }
 
 function getWinLevel(amount: number, maxPrize: number): 0 | 1 | 2 | 3 {
-  if (amount === 0 || maxPrize === 0) return 0;
-  const ratio = amount / maxPrize;
-  if (ratio > 0.5) return 3;
-  if (ratio > 0.1) return 2;
-  return 1;
+  if (amount === 0 || maxPrize === 0) return 0
+  const ratio = amount / maxPrize
+  if (ratio > 0.5) return 3
+  if (ratio > 0.1) return 2
+  return 1
 }
 
 interface CellContentProps {
-  isNumberCell: boolean;
-  cell: ScratchCell;
-  winLevel: 0 | 1 | 2 | 3;
-  displayLabel: string;
+  isNumberCell: boolean
+  cell: ScratchCell
+  winLevel: 0 | 1 | 2 | 3
+  displayLabel: string
 }
 
 function CellContent({
@@ -58,12 +58,12 @@ function CellContent({
       >
         {displayLabel}
       </span>
-    );
+    )
   }
 
   const symbol = cell.prize.symbolCode
     ? getSymbolByCode(cell.prize.symbolCode)
-    : undefined;
+    : undefined
 
   // symbol 玩法：有 sprite 圖
   if (symbol?.spriteFile) {
@@ -87,7 +87,7 @@ function CellContent({
           </span>
         )}
       </>
-    );
+    )
   }
 
   // fallback：無 sprite，顯示文字
@@ -100,7 +100,7 @@ function CellContent({
     >
       {displayLabel}
     </span>
-  );
+  )
 }
 
 export default function ScratchCellCanvas({
@@ -111,41 +111,41 @@ export default function ScratchCellCanvas({
   width = 130,
   height = 80,
 }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particleCanvasRef = useRef<HTMLCanvasElement>(null);
-  const updateCellProgress = useGameStore((s) => s.updateCellProgress);
-  const effectsEnabled = useGameStore((s) => s.effectsEnabled);
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const particleCanvasRef = useRef<HTMLCanvasElement>(null)
+  const updateCellProgress = useGameStore((s) => s.updateCellProgress)
+  const effectsEnabled = useGameStore((s) => s.effectsEnabled)
 
-  const { emit } = useParticles(particleCanvasRef, effectsEnabled);
+  const { emit } = useParticles(particleCanvasRef, effectsEnabled)
 
   const handleProgress = useCallback(
     (progress: number) => {
-      updateCellProgress(cardId, cell.id, progress);
+      updateCellProgress(cardId, cell.id, progress)
     },
     [cardId, cell.id, updateCellProgress],
-  );
+  )
 
   const { handlePointerDown, handlePointerMove, handlePointerUp, initCanvas } =
-    useScratch(canvasRef, { onProgress: handleProgress, onScratch: emit });
+    useScratch(canvasRef, { onProgress: handleProgress, onScratch: emit })
 
   // 元件掛載後繪製銀色遮罩
   useEffect(() => {
-    if (!cell.isRevealed) initCanvas();
-  }, [cell.isRevealed, initCanvas]);
+    if (!cell.isRevealed) initCanvas()
+  }, [cell.isRevealed, initCanvas])
 
   // compare 玩法：compareValue 定義時為數字格（玩家/莊家），否則為一般獎項格
-  const isNumberCell = cell.compareValue !== undefined;
-  const isWin = isNumberCell ? false : cell.prize.isWin;
+  const isNumberCell = cell.compareValue !== undefined
+  const isWin = isNumberCell ? false : cell.prize.isWin
   const winLevel =
-    cell.isRevealed && isWin ? getWinLevel(cell.prize.amount, maxPrize) : 0;
+    cell.isRevealed && isWin ? getWinLevel(cell.prize.amount, maxPrize) : 0
   const displayLabel = isNumberCell
     ? String(cell.compareValue)
     : cell.prize.amount > 0 || alwaysShowAmount
       ? `$${cell.prize.amount.toLocaleString()}`
-      : cell.prize.label;
+      : cell.prize.label
 
-  const p = getCellPerturbation(cell.id);
-  const contentTransform = `rotate(${p.rotation}deg) skewX(${p.skewX}deg) translate(${p.offsetX}px, ${p.offsetY}px) scale(${p.scale})`;
+  const p = getCellPerturbation(cell.id)
+  const contentTransform = `rotate(${p.rotation}deg) skewX(${p.skewX}deg) translate(${p.offsetX}px, ${p.offsetY}px) scale(${p.scale})`
 
   return (
     <div
@@ -157,7 +157,7 @@ export default function ScratchCellCanvas({
       <div
         className={[
           "absolute inset-0 flex flex-col rounded-lg border-2 border-red-600",
-          isNumberCell ? "bg-slate-600" : "bg-rose-50",
+          isNumberCell ? "bg-slate-600" : "bg-pink-100",
         ].join(" ")}
         style={{
           alignItems: ALIGN_H[p.alignH],
@@ -247,5 +247,5 @@ export default function ScratchCellCanvas({
         </>
       )}
     </div>
-  );
+  )
 }

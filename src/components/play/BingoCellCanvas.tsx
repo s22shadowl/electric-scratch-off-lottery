@@ -1,25 +1,25 @@
-import { useRef, useEffect, useCallback } from "react";
-import { useScratch } from "@/hooks/useScratch";
-import { useGameStore } from "@/stores/gameStore";
-import { getCellPerturbation } from "@/utils/canvas-utils";
-import type { ScratchCell } from "@/types";
+import { useRef, useEffect, useCallback } from "react"
+import { useScratch } from "@/hooks/useScratch"
+import { useGameStore } from "@/stores/gameStore"
+import { getCellPerturbation } from "@/utils/canvas-utils"
+import type { ScratchCell } from "@/types"
 
 const ALIGN_H = {
   left: "flex-start",
   center: "center",
   right: "flex-end",
-} as const;
+} as const
 const ALIGN_V = {
   top: "flex-start",
   center: "center",
   bottom: "flex-end",
-} as const;
+} as const
 
 interface Props {
-  cell: ScratchCell;
-  cardId: string;
-  isMatched: boolean; // bingoNumber 是否在開獎號碼集合內
-  size?: number; // 格子尺寸（px），預設 60
+  cell: ScratchCell
+  cardId: string
+  isMatched: boolean // bingoNumber 是否在開獎號碼集合內
+  size?: number // 格子尺寸（px），預設 60
 }
 
 export default function BingoCellCanvas({
@@ -28,26 +28,26 @@ export default function BingoCellCanvas({
   isMatched,
   size = 60,
 }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const updateCellProgress = useGameStore((s) => s.updateCellProgress);
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const updateCellProgress = useGameStore((s) => s.updateCellProgress)
 
   const handleProgress = useCallback(
     (progress: number) => {
-      updateCellProgress(cardId, cell.id, progress);
+      updateCellProgress(cardId, cell.id, progress)
     },
     [cardId, cell.id, updateCellProgress],
-  );
+  )
 
   const { handlePointerDown, handlePointerMove, handlePointerUp, initCanvas } =
-    useScratch(canvasRef, { onProgress: handleProgress });
+    useScratch(canvasRef, { onProgress: handleProgress })
 
   useEffect(() => {
-    if (!cell.isRevealed) initCanvas();
-  }, [cell.isRevealed, initCanvas]);
+    if (!cell.isRevealed) initCanvas()
+  }, [cell.isRevealed, initCanvas])
 
-  const num = cell.bingoNumber ?? 0;
-  const p = getCellPerturbation(cell.id);
-  const numTransform = `rotate(${p.rotation}deg) skewX(${p.skewX}deg) translate(${p.offsetX}px, ${p.offsetY}px) scale(${p.scale})`;
+  const num = cell.bingoNumber ?? 0
+  const p = getCellPerturbation(cell.id)
+  const numTransform = `rotate(${p.rotation}deg) skewX(${p.skewX}deg) translate(${p.offsetX}px, ${p.offsetY}px) scale(${p.scale})`
 
   return (
     <div
@@ -60,7 +60,7 @@ export default function BingoCellCanvas({
       <div
         className={[
           "absolute inset-0 flex rounded-lg border-2 border-red-600",
-          isMatched ? "bg-yellow-300" : "bg-rose-50",
+          isMatched ? "bg-yellow-300" : "bg-pink-100",
         ].join(" ")}
         style={{
           alignItems: ALIGN_V[p.alignV],
@@ -105,5 +105,5 @@ export default function BingoCellCanvas({
         />
       )}
     </div>
-  );
+  )
 }
