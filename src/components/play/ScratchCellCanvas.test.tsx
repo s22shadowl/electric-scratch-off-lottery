@@ -8,8 +8,16 @@ import type { ScratchCell } from "@/types";
 HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
 vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
   globalCompositeOperation: "source-over",
+  globalAlpha: 1,
+  strokeStyle: "",
+  lineWidth: 1,
   fillStyle: "",
+  save: vi.fn(),
+  restore: vi.fn(),
   beginPath: vi.fn(),
+  moveTo: vi.fn(),
+  lineTo: vi.fn(),
+  stroke: vi.fn(),
   arc: vi.fn(),
   fill: vi.fn(),
   fillRect: vi.fn(),

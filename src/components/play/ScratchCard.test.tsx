@@ -8,8 +8,16 @@ import type { GameConfig, BingoOptions } from "@/types";
 HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
 vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
   globalCompositeOperation: "source-over",
+  globalAlpha: 1,
+  strokeStyle: "",
+  lineWidth: 1,
   fillStyle: "",
+  save: vi.fn(),
+  restore: vi.fn(),
   beginPath: vi.fn(),
+  moveTo: vi.fn(),
+  lineTo: vi.fn(),
+  stroke: vi.fn(),
   arc: vi.fn(),
   fill: vi.fn(),
   fillRect: vi.fn(),
@@ -73,10 +81,10 @@ describe("ScratchCard", () => {
     });
   });
 
-  it("未完成時應顯示進度提示", () => {
+  it("應顯示玩法規則提示文字", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     render(<ScratchCard cardId={cardId} />);
-    expect(screen.getByText(/已刮開/)).toBeInTheDocument();
+    expect(screen.getByText(/刮出相同符號即中獎/)).toBeInTheDocument();
   });
 
   it("所有格揭曉後應顯示結果", () => {
@@ -169,13 +177,6 @@ describe("ScratchCard (bingo)", () => {
     card.zones[0]!.cells.forEach((cell) => {
       expect(screen.getByTestId(`bingo-cell-${cell.id}`)).toBeInTheDocument();
     });
-  });
-
-  it("進度提示計算 zone[0] + zone[1] 格數（兩個 zone 均需刮開）", () => {
-    const cardId = useGameStore.getState().cards[0]!.id;
-    render(<ScratchCard cardId={cardId} />);
-    // gridSize=3 → zone[0]=6格 + zone[1]=9格 = 15格
-    expect(screen.getByText(/0 \/ 15/)).toBeInTheDocument();
   });
 
   it("zone[0] 格揭曉後，zone[1] 對應號碼的格子應有高亮（D1：drawnSet 即時更新）", () => {

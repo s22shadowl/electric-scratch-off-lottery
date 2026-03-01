@@ -3,6 +3,7 @@ import type { RefObject } from "react";
 import {
   drawErase,
   drawSilverMask,
+  drawAntiCounterfeitPattern,
   calculateRevealedRatio,
   BRUSH_RADIUS,
   TOUCH_BRUSH_RADIUS,
@@ -53,6 +54,7 @@ export function useScratch(
     canvas.height = Math.round(cssH * dpr);
     ctx.scale(dpr, dpr);
     drawSilverMask(ctx, cssW, cssH); // CSS px 尺寸（非實體像素）
+    drawAntiCounterfeitPattern(ctx, cssW, cssH);
   }, [canvasRef, getCtx]);
 
   const handlePointerDown = useCallback(
