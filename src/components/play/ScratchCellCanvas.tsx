@@ -26,7 +26,12 @@ interface CellContentProps {
   displayLabel: string;
 }
 
-function CellContent({ isNumberCell, cell, winLevel, displayLabel }: CellContentProps) {
+function CellContent({
+  isNumberCell,
+  cell,
+  winLevel,
+  displayLabel,
+}: CellContentProps) {
   // compare 玩法：數字格
   if (isNumberCell) {
     return (
@@ -114,7 +119,9 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
     cell.isRevealed && isWin ? getWinLevel(cell.prize.amount, maxPrize) : 0;
   const displayLabel = isNumberCell
     ? String(cell.compareValue)
-    : cell.prize.label;
+    : cell.prize.amount > 0
+      ? `$${cell.prize.amount.toLocaleString()}`
+      : cell.prize.label;
 
   return (
     <div
@@ -126,7 +133,7 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
         className={[
           "absolute inset-0 flex flex-col items-center justify-center rounded-lg",
           isNumberCell
-            ? "bg-gradient-to-br from-slate-700 to-slate-900"
+            ? ""
             : isWin
               ? "bg-gradient-to-br from-yellow-700 to-yellow-900"
               : "bg-gradient-to-br from-red-900 to-red-950",

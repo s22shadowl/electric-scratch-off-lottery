@@ -158,6 +158,28 @@ describe("ScratchCellCanvas", () => {
     expect(screen.getByRole("img", { name: "金幣" })).toBeInTheDocument();
   });
 
+  it("中獎格揭曉後應顯示 $XXX 格式金額", () => {
+    const cell = makeCell({
+      isRevealed: true,
+      prize: {
+        id: "p-win",
+        label: "大獎",
+        amount: 1000,
+        probability: 1,
+        isWin: true,
+      },
+    });
+    render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
+    expect(screen.getByText("$1,000")).toBeInTheDocument();
+  });
+
+  it("未中獎格揭曉後應顯示 label 文字而非 $0", () => {
+    const cell = makeCell({ isRevealed: true });
+    render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
+    expect(screen.getByText("謝謝")).toBeInTheDocument();
+    expect(screen.queryByText("$0")).not.toBeInTheDocument();
+  });
+
   it("symbolCode 有 sprite 且未揭曉時 img 應 aria-hidden 且 alt 為空", () => {
     const cell = makeCell({
       isRevealed: false,
