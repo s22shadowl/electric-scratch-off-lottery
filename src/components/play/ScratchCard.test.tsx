@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { useGameStore, REVEAL_THRESHOLD } from "@/stores/gameStore";
+import { useGameStore } from "@/stores/gameStore";
 import ScratchCard from "./ScratchCard";
 import type { GameConfig, BingoOptions } from "@/types";
 
@@ -169,48 +169,31 @@ describe("ScratchCard (bingo)", () => {
     });
   });
 
-  it("zone[0] 開獎號碼應以 BingoCellCanvas 渲染（scratch-off）", () => {
+  it("zone[0] 開獎號碼應永遠可見（靜態文字，無 BingoCellCanvas）", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     render(<ScratchCard cardId={cardId} />);
     const card = useGameStore.getState().cards[0]!;
-    // zone[0] 的每格應有 data-testid=bingo-cell-{id}（BingoCellCanvas 渲染）
+    // zone[0] 改為靜態顯示，data-testid=zone0-num-{id}
     card.zones[0]!.cells.forEach((cell) => {
-      expect(screen.getByTestId(`bingo-cell-${cell.id}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`zone0-num-${cell.id}`)).toBeInTheDocument();
+    });
+    // zone[0] 不再用 BingoCellCanvas，其 testid 不應存在
+    card.zones[0]!.cells.forEach((cell) => {
+      expect(
+        screen.queryByTestId(`bingo-cell-${cell.id}`),
+      ).not.toBeInTheDocument();
     });
   });
 
-  it("zone[0] 格揭曉後，zone[1] 對應號碼的格子應有高亮（D1：drawnSet 即時更新）", () => {
-    const cardId = useGameStore.getState().cards[0]!.id;
-    const card = useGameStore.getState().cards[0]!;
-    // 找一個 zone[0] 格，其號碼也出現在 zone[1]
-    const zone0Nums = new Set(card.zones[0]!.cells.map((c) => c.bingoNumber!));
-    const matchedZone1Cell = card.zones[1]!.cells.find((c) =>
-      zone0Nums.has(c.bingoNumber!),
-    );
-    if (!matchedZone1Cell) return; // 理論上必有配對
-    const matchedNum = matchedZone1Cell.bingoNumber!;
-    // 找 zone[0] 中含該號碼的格
-    const zone0Cell = card.zones[0]!.cells.find(
-      (c) => c.bingoNumber === matchedNum,
-    )!;
-    // 揭曉 zone[0] 的該格
-    useGameStore
-      .getState()
-      .updateCellProgress(cardId, zone0Cell.id, REVEAL_THRESHOLD);
-    render(<ScratchCard cardId={cardId} />);
-    // zone[1] 中對應號碼的格子（BingoCellCanvas）應有 data-matched=true
-    const zone1CellEl = screen.getByTestId(`bingo-cell-${matchedZone1Cell.id}`);
-    expect(zone1CellEl.getAttribute("data-matched")).toBe("true");
-  });
-
-  it("zone[0] 格未揭曉時，zone[1] 中對應格子不應高亮（data-matched=false）", () => {
+  it("zone[0] 號碼全部可見，zone[1] 對應格初始即高亮", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     render(<ScratchCard cardId={cardId} />);
     const card = useGameStore.getState().cards[0]!;
-    // zone[0] 全未揭曉，所有 zone[1] 格應 data-matched=false
+    const drawnNums = new Set(card.zones[0]!.cells.map((c) => c.bingoNumber!));
     card.zones[1]!.cells.forEach((cell) => {
       const el = screen.getByTestId(`bingo-cell-${cell.id}`);
-      expect(el.getAttribute("data-matched")).toBe("false");
+      const expected = drawnNums.has(cell.bingoNumber!);
+      expect(el.getAttribute("data-matched")).toBe(String(expected));
     });
   });
 });

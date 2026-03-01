@@ -87,9 +87,7 @@ function resolveBingoWinnings(card: ScratchCard, prizePerLine: number): number {
   const [zone0, zone1] = card.zones;
   if (!zone0 || !zone1) return 0;
 
-  const drawnSet = new Set(
-    zone0.cells.filter((c) => c.isRevealed).map((c) => c.bingoNumber!),
-  );
+  const drawnSet = new Set(zone0.cells.map((c) => c.bingoNumber!));
   const gridSize = Math.round(Math.sqrt(zone1.cells.length));
   const matched = zone1.cells.map((c) => drawnSet.has(c.bingoNumber!));
 
@@ -167,9 +165,10 @@ function applyProgressToCard(
     ),
   }));
 
-  const allRevealed = updatedZones.every((zone) =>
-    zone.cells.every((c) => c.isRevealed),
-  );
+  const allRevealed =
+    mechanic === "bingo"
+      ? (updatedZones[1]?.cells.every((c) => c.isRevealed) ?? false)
+      : updatedZones.every((zone) => zone.cells.every((c) => c.isRevealed));
 
   const updatedCard = { ...card, zones: updatedZones };
   // triple/compare/bingo 延遲至全部揭曉後才計算；symbol 即時計算
