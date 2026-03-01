@@ -165,6 +165,7 @@ function applyProgressToCard(
     ),
   }));
 
+  // bingo：zone[0] 在 UI 中永遠可見（不需刮除），只需 zone[1]（賓果格）全揭即完成
   const allRevealed =
     mechanic === "bingo"
       ? (updatedZones[1]?.cells.every((c) => c.isRevealed) ?? false)

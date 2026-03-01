@@ -6,6 +6,18 @@ import caishenUrl from "@/assets/mascot/caishen.png";
 import type { BingoOptions } from "@/types";
 import { getCellPerturbation } from "@/utils/canvas-utils";
 
+// ── Symbol 格子尺寸（依 getCellPerturbation.size 對應）────────────────────
+const SYMBOL_CELL_SIZES = {
+  small: [114, 72],
+  medium: [130, 80],
+  large: [140, 88],
+} as const;
+
+function symbolCellSize(cellId: string): { width: number; height: number } {
+  const [w, h] = SYMBOL_CELL_SIZES[getCellPerturbation(cellId).size];
+  return { width: w, height: h };
+}
+
 // ── Zone blob 形狀（0-100 坐標，等同百分比） ───────────────────────────────
 const BLOB: Record<string, { css: string; svg: string }> = {
   triple: {
@@ -244,73 +256,55 @@ export default function ScratchCard({ cardId }: Props) {
         </div>
       ) : card.zones[0]!.cells.length === 4 ? (
         /* Symbol 4格：財神居中，上排左右各1、下排偏右非對稱 */
-        (() => {
-          const SIZES = { small: [114, 72], medium: [130, 80], large: [140, 88] } as const;
-          const sz = (cell: (typeof card.zones[0]!.cells)[number]) => {
-            const s = getCellPerturbation(cell.id).size;
-            return { width: SIZES[s][0], height: SIZES[s][1] };
-          };
-          return (
-            <div className="flex flex-col gap-2 items-center">
-              <div className="flex items-center gap-3">
-                <ScratchCellCanvas
-                  cell={card.zones[0]!.cells[0]!}
-                  cardId={cardId}
-                  maxPrize={maxPrize}
-                  {...sz(card.zones[0]!.cells[0]!)}
-                />
-                <img
-                  src={caishenUrl}
-                  alt=""
-                  aria-hidden="true"
-                  className="w-24 h-24 object-contain"
-                />
-                <ScratchCellCanvas
-                  cell={card.zones[0]!.cells[1]!}
-                  cardId={cardId}
-                  maxPrize={maxPrize}
-                  {...sz(card.zones[0]!.cells[1]!)}
-                />
-              </div>
-              <div className="flex gap-2 self-end pr-2">
-                <ScratchCellCanvas
-                  cell={card.zones[0]!.cells[2]!}
-                  cardId={cardId}
-                  maxPrize={maxPrize}
-                  {...sz(card.zones[0]!.cells[2]!)}
-                />
-                <ScratchCellCanvas
-                  cell={card.zones[0]!.cells[3]!}
-                  cardId={cardId}
-                  maxPrize={maxPrize}
-                  {...sz(card.zones[0]!.cells[3]!)}
-                />
-              </div>
-            </div>
-          );
-        })()
+        <div className="flex flex-col gap-2 items-center">
+          <div className="flex items-center gap-3">
+            <ScratchCellCanvas
+              cell={card.zones[0]!.cells[0]!}
+              cardId={cardId}
+              maxPrize={maxPrize}
+              {...symbolCellSize(card.zones[0]!.cells[0]!.id)}
+            />
+            <img
+              src={caishenUrl}
+              alt=""
+              aria-hidden="true"
+              className="w-24 h-24 object-contain"
+            />
+            <ScratchCellCanvas
+              cell={card.zones[0]!.cells[1]!}
+              cardId={cardId}
+              maxPrize={maxPrize}
+              {...symbolCellSize(card.zones[0]!.cells[1]!.id)}
+            />
+          </div>
+          <div className="flex gap-2 self-end pr-2">
+            <ScratchCellCanvas
+              cell={card.zones[0]!.cells[2]!}
+              cardId={cardId}
+              maxPrize={maxPrize}
+              {...symbolCellSize(card.zones[0]!.cells[2]!.id)}
+            />
+            <ScratchCellCanvas
+              cell={card.zones[0]!.cells[3]!}
+              cardId={cardId}
+              maxPrize={maxPrize}
+              {...symbolCellSize(card.zones[0]!.cells[3]!.id)}
+            />
+          </div>
+        </div>
       ) : (
         /* fallback：非 4 格時維持 flex-wrap */
-        (() => {
-          const SIZES = { small: [114, 72], medium: [130, 80], large: [140, 88] } as const;
-          return (
-            <div className="flex flex-wrap gap-2 justify-center">
-              {card.zones[0]!.cells.map((cell) => {
-                const s = getCellPerturbation(cell.id).size;
-                return (
-                  <ScratchCellCanvas
-                    key={cell.id}
-                    cell={cell}
-                    cardId={cardId}
-                    maxPrize={maxPrize}
-                    width={SIZES[s][0]}
-                    height={SIZES[s][1]}
-                  />
-                );
-              })}
-            </div>
-          );
-        })()
+        <div className="flex flex-wrap gap-2 justify-center">
+          {card.zones[0]!.cells.map((cell) => (
+            <ScratchCellCanvas
+              key={cell.id}
+              cell={cell}
+              cardId={cardId}
+              maxPrize={maxPrize}
+              {...symbolCellSize(cell.id)}
+            />
+          ))}
+        </div>
       )}
 
       {/* 規則提示 */}

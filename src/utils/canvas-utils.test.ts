@@ -97,12 +97,16 @@ describe("getCellPerturbation", () => {
     }
   });
 
-  it("size 應為 small/medium/large 之一", () => {
+  it("size 應為 small/medium/large 之一，且三種值均可被產生", () => {
     for (const id of ["a", "b", "c", "d", "e"]) {
       expect(["small", "medium", "large"]).toContain(
         getCellPerturbation(id).size,
       );
     }
+    // 足量 seed 可覆蓋全部三種尺寸（seeded PRNG 確定性，30 個 ID 必然涵蓋）
+    const ids = Array.from({ length: 30 }, (_, i) => `cell-${i}`);
+    const sizes = new Set(ids.map((id) => getCellPerturbation(id).size));
+    expect(sizes).toEqual(new Set(["small", "medium", "large"]));
   });
 });
 

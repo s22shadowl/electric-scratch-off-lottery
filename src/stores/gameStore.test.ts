@@ -696,7 +696,7 @@ const bingoConfig: GameConfig = {
 };
 
 describe("updateCellProgress (bingo)", () => {
-  it("zone[0] 開獎號碼在建牌時初始為未揭曉（isRevealed=false，需逐格刮開）", () => {
+  it("zone[0] 開獎號碼在建牌時初始為未揭曉（isRevealed=false，UI 中永遠可見不需刮除）", () => {
     useGameStore.getState().initGame(bingoConfig);
     const card = useGameStore.getState().cards[0]!;
     card.zones[0]!.cells.forEach((cell) => {
@@ -734,21 +734,10 @@ describe("updateCellProgress (bingo)", () => {
     expect(updated?.status).not.toBe("completed");
   });
 
-  it("zone[0] + zone[1] 全部揭曉後 status 應為 completed（F1：兩個 zone 都需刮開）", () => {
+  it("只揭曉 zone[1] 即完成，zone[0] 不影響結算", () => {
     useGameStore.getState().initGame(bingoConfig);
     const card = useGameStore.getState().cards[0]!;
-    // 揭曉 zone[0]（開獎號碼）
-    card.zones[0]!.cells.forEach((cell) => {
-      useGameStore
-        .getState()
-        .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
-    });
-    // 此時只有 zone[0] 揭曉，不應 completed
-    const midUpdate = useGameStore
-      .getState()
-      .cards.find((c) => c.id === card.id);
-    expect(midUpdate?.status).not.toBe("completed");
-    // 揭曉 zone[1]（賓果格）
+    // 只刮 zone[1]（不碰 zone[0]）
     card.zones[1]!.cells.forEach((cell) => {
       useGameStore
         .getState()
@@ -756,6 +745,18 @@ describe("updateCellProgress (bingo)", () => {
     });
     const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
     expect(updated?.status).toBe("completed");
+  });
+
+  it("只揭曉 zone[0] 不應完成（zone[1] 未刮）", () => {
+    useGameStore.getState().initGame(bingoConfig);
+    const card = useGameStore.getState().cards[0]!;
+    card.zones[0]!.cells.forEach((cell) => {
+      useGameStore
+        .getState()
+        .updateCellProgress(card.id, cell.id, REVEAL_THRESHOLD);
+    });
+    const updated = useGameStore.getState().cards.find((c) => c.id === card.id);
+    expect(updated?.status).not.toBe("completed");
   });
 
   it("zone[0] + zone[1] 全部揭曉後 totalWinnings 應等於完成線數 × prizePerLine", () => {
