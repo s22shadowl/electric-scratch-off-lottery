@@ -21,6 +21,7 @@ interface Props {
   cell: ScratchCell;
   cardId: string;
   maxPrize: number;
+  alwaysShowAmount?: boolean;
 }
 
 function getWinLevel(amount: number, maxPrize: number): 0 | 1 | 2 | 3 {
@@ -100,7 +101,12 @@ function CellContent({
   );
 }
 
-export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
+export default function ScratchCellCanvas({
+  cell,
+  cardId,
+  maxPrize,
+  alwaysShowAmount,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particleCanvasRef = useRef<HTMLCanvasElement>(null);
   const updateCellProgress = useGameStore((s) => s.updateCellProgress);
@@ -130,7 +136,7 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
     cell.isRevealed && isWin ? getWinLevel(cell.prize.amount, maxPrize) : 0;
   const displayLabel = isNumberCell
     ? String(cell.compareValue)
-    : cell.prize.amount > 0
+    : cell.prize.amount > 0 || alwaysShowAmount
       ? `$${cell.prize.amount.toLocaleString()}`
       : cell.prize.label;
 

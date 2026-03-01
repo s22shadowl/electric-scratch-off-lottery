@@ -236,6 +236,7 @@ export default function ScratchCard({ cardId }: Props) {
                     cell={card.zones[2]!.cells[row]!}
                     cardId={cardId}
                     maxPrize={maxPrize}
+                    alwaysShowAmount={true}
                   />
                 </div>
               ))}
