@@ -3,7 +3,19 @@ import { useScratch } from "@/hooks/useScratch";
 import { useParticles } from "@/hooks/useParticles";
 import { useGameStore } from "@/stores/gameStore";
 import { getSymbolByCode } from "@/utils/symbol-pool";
+import { getCellPerturbation } from "@/utils/canvas-utils";
 import type { ScratchCell } from "@/types";
+
+const ALIGN_H = {
+  left: "flex-start",
+  center: "center",
+  right: "flex-end",
+} as const;
+const ALIGN_V = {
+  top: "flex-start",
+  center: "center",
+  bottom: "flex-end",
+} as const;
 
 interface Props {
   cell: ScratchCell;
@@ -123,6 +135,9 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
       ? `$${cell.prize.amount.toLocaleString()}`
       : cell.prize.label;
 
+  const p = getCellPerturbation(cell.id);
+  const contentTransform = `rotate(${p.rotation}deg) skewX(${p.skewX}deg) translate(${p.offsetX}px, ${p.offsetY}px) scale(${p.scale})`;
+
   return (
     <div
       data-testid={`scratch-cell-${cell.id}`}
@@ -131,20 +146,26 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
       {/* 底層：獎項內容 */}
       <div
         className={[
-          "absolute inset-0 flex flex-col items-center justify-center rounded-lg",
+          "absolute inset-0 flex flex-col rounded-lg",
           isNumberCell
             ? ""
             : isWin
               ? "bg-gradient-to-br from-yellow-700 to-yellow-900"
               : "bg-gradient-to-br from-red-900 to-red-950",
         ].join(" ")}
+        style={{
+          alignItems: ALIGN_H[p.alignH],
+          justifyContent: ALIGN_V[p.alignV],
+        }}
       >
-        <CellContent
-          isNumberCell={isNumberCell}
-          cell={cell}
-          winLevel={winLevel}
-          displayLabel={displayLabel}
-        />
+        <div style={{ transform: contentTransform, transformOrigin: "center" }}>
+          <CellContent
+            isNumberCell={isNumberCell}
+            cell={cell}
+            winLevel={winLevel}
+            displayLabel={displayLabel}
+          />
+        </div>
       </div>
 
       {/* 頂層：Canvas 刮除遮罩（揭曉後以 CSS 淡出） */}

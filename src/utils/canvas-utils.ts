@@ -1,3 +1,48 @@
+// ── 格子內容擾動（seeded，模擬印刷不規則感） ─────────────────────────────────
+
+// xorshift32 PRNG，seed 由 cell ID 字串衍生
+export function seededRand(seed: string): () => number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0;
+  }
+  if (h === 0) h = 1;
+  return () => {
+    h ^= h << 13;
+    h ^= h >> 17;
+    h ^= h << 5;
+    return (h >>> 0) / 0xffffffff;
+  };
+}
+
+export interface CellPerturbation {
+  rotation: number; // degrees, ±4
+  skewX: number; // degrees, ±12（~30% 格觸發）
+  alignH: "left" | "center" | "right";
+  alignV: "top" | "center" | "bottom";
+  scale: number; // 0.70–1.00
+  offsetX: number; // px, ±3
+  offsetY: number; // px, ±3
+}
+
+export function getCellPerturbation(cellId: string): CellPerturbation {
+  const rand = seededRand(cellId);
+  const rotation = (rand() - 0.5) * 8;
+  const hasSkew = rand() < 0.3;
+  const skewX = hasSkew ? (rand() - 0.5) * 24 : 0;
+  const alignH = (["left", "center", "right"] as const)[
+    Math.floor(rand() * 3)
+  ]!;
+  const alignV = (["top", "center", "bottom"] as const)[
+    Math.floor(rand() * 3)
+  ]!;
+  const scale = 0.7 + rand() * 0.3;
+  const offsetX = (rand() - 0.5) * 6;
+  const offsetY = (rand() - 0.5) * 6;
+  return { rotation, skewX, alignH, alignV, scale, offsetX, offsetY };
+}
+
+// ── Canvas 常數 ──────────────────────────────────────────────────────────────
 export const BRUSH_RADIUS = 24;
 export const TOUCH_BRUSH_RADIUS = 40; // 手指觸控用
 export const SAMPLING_STEP = 4; // 每 N 個 pixel 取樣一次（效能優化）

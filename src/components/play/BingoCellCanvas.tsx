@@ -1,7 +1,19 @@
 import { useRef, useEffect, useCallback } from "react";
 import { useScratch } from "@/hooks/useScratch";
 import { useGameStore } from "@/stores/gameStore";
+import { getCellPerturbation } from "@/utils/canvas-utils";
 import type { ScratchCell } from "@/types";
+
+const ALIGN_H = {
+  left: "flex-start",
+  center: "center",
+  right: "flex-end",
+} as const;
+const ALIGN_V = {
+  top: "flex-start",
+  center: "center",
+  bottom: "flex-end",
+} as const;
 
 interface Props {
   cell: ScratchCell;
@@ -34,6 +46,8 @@ export default function BingoCellCanvas({
   }, [cell.isRevealed, initCanvas]);
 
   const num = cell.bingoNumber ?? 0;
+  const p = getCellPerturbation(cell.id);
+  const numTransform = `rotate(${p.rotation}deg) skewX(${p.skewX}deg) translate(${p.offsetX}px, ${p.offsetY}px) scale(${p.scale})`;
 
   return (
     <div
@@ -45,11 +59,15 @@ export default function BingoCellCanvas({
       {/* 底層：號碼內容 */}
       <div
         className={[
-          "absolute inset-0 flex items-center justify-center rounded-lg",
+          "absolute inset-0 flex rounded-lg",
           isMatched
             ? "bg-gradient-to-br from-yellow-500 to-yellow-700"
             : "bg-gradient-to-br from-slate-700 to-slate-900",
         ].join(" ")}
+        style={{
+          alignItems: ALIGN_V[p.alignV],
+          justifyContent: ALIGN_H[p.alignH],
+        }}
       >
         <span
           className={[
@@ -57,6 +75,7 @@ export default function BingoCellCanvas({
             "font-black leading-none",
             isMatched ? "text-white" : "text-slate-300",
           ].join(" ")}
+          style={{ transform: numTransform, transformOrigin: "center" }}
         >
           {num}
         </span>

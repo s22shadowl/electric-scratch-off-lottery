@@ -5,6 +5,8 @@ import {
   drawErase,
   drawSilverMask,
   calculateRevealedRatio,
+  seededRand,
+  getCellPerturbation,
 } from "./canvas-utils";
 
 // ── Mock Canvas Context 工廠 ───────────────────────────────
@@ -35,6 +37,66 @@ function makeMockCtx(alphaValues?: number[]) {
     putImageData: vi.fn(),
   };
 }
+
+// ── seededRand ────────────────────────────────────────────
+
+describe("seededRand", () => {
+  it("相同 seed 應產生相同序列", () => {
+    const r1 = seededRand("cell-abc");
+    const r2 = seededRand("cell-abc");
+    expect(r1()).toBeCloseTo(r2(), 10);
+    expect(r1()).toBeCloseTo(r2(), 10);
+  });
+
+  it("不同 seed 應產生不同值", () => {
+    const v1 = seededRand("cell-1")();
+    const v2 = seededRand("cell-2")();
+    expect(v1).not.toBe(v2);
+  });
+
+  it("產生值應在 0–1 範圍", () => {
+    const rand = seededRand("test");
+    for (let i = 0; i < 20; i++) {
+      const v = rand();
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
+// ── getCellPerturbation ───────────────────────────────────
+
+describe("getCellPerturbation", () => {
+  it("相同 cellId 應回傳相同結果", () => {
+    const p1 = getCellPerturbation("cell-xyz");
+    const p2 = getCellPerturbation("cell-xyz");
+    expect(p1).toEqual(p2);
+  });
+
+  it("rotation 應在 ±4° 範圍", () => {
+    for (const id of ["a", "b", "c", "d", "e"]) {
+      const { rotation } = getCellPerturbation(id);
+      expect(rotation).toBeGreaterThanOrEqual(-4);
+      expect(rotation).toBeLessThanOrEqual(4);
+    }
+  });
+
+  it("scale 應在 0.70–1.00 範圍", () => {
+    for (const id of ["a", "b", "c", "d", "e"]) {
+      const { scale } = getCellPerturbation(id);
+      expect(scale).toBeGreaterThanOrEqual(0.7);
+      expect(scale).toBeLessThanOrEqual(1.0);
+    }
+  });
+
+  it("alignH 應為 left/center/right 之一", () => {
+    for (const id of ["a", "b", "c", "d", "e"]) {
+      expect(["left", "center", "right"]).toContain(
+        getCellPerturbation(id).alignH,
+      );
+    }
+  });
+});
 
 // ── 常數 ──────────────────────────────────────────────────
 
