@@ -1,20 +1,19 @@
-import type { ScratchCard } from "@/types";
-import caishenUrl from "@/assets/mascot/caishen.png";
-import cloudTileUrl from "@/assets/decorations/cloud-tile.png";
+import type { ScratchCard } from "@/types"
+import caishenUrl from "@/assets/mascot/caishen.png"
+import cloudTileUrl from "@/assets/decorations/cloud-tile.png"
 
 interface Props {
-  card: ScratchCard;
-  isSelected: boolean;
-  onToggle: (cardId: string) => void;
+  card: ScratchCard
+  isSelected: boolean
+  onToggle: (cardId: string) => void
 }
 
 export default function CardThumbnail({ card, isSelected, onToggle }: Props) {
-  const isDisabled =
-    card.status === "completed" || card.status === "scratching";
+  const isDisabled = card.status === "completed" || card.status === "scratching"
 
   const handleClick = () => {
-    if (!isDisabled) onToggle(card.id);
-  };
+    if (!isDisabled) onToggle(card.id)
+  }
 
   return (
     <button
@@ -41,7 +40,7 @@ export default function CardThumbnail({ card, isSelected, onToggle }: Props) {
           backgroundImage: `url(${cloudTileUrl})`,
           backgroundRepeat: "repeat",
           backgroundSize: "64px 64px",
-          mixBlendMode: "multiply",
+          // mixBlendMode: "multiply",
           opacity: 0.9,
         }}
       />
@@ -76,5 +75,5 @@ export default function CardThumbnail({ card, isSelected, onToggle }: Props) {
         <div className="absolute inset-0 rounded-xl bg-yellow-400/10 pointer-events-none" />
       )}
     </button>
-  );
+  )
 }

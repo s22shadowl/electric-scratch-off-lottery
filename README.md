@@ -114,7 +114,7 @@ npx vitest run --coverage
 - [ ] 祥雲底紋優化（低優先度）：cloud-tile.png 白底導致 multiply 效果過淡；重新生成透明底版本或改用 SVG pattern
 - [ ] 多款式選擇（節慶、生肖等主題）
 - [x] 玩法說明 UI（主持人設定說明 tooltip + 玩家端規則卡）
-- [ ] **二次精緻化版型**（進行中 Phase 2/5）：對標真實紙本彩券視覺；Zone 有機 blob 外形、防偽底紋、銀色漸層刮除層、財神升級為主視覺、固定玩法尺寸
+- [x] **二次精緻化版型**（完成 ✅ Phase 1–5）：Zone 有機 blob 外形（SVG clip-path polygon）、防偽底紋（對角線波浪紋）、銀色水平漸層刮除層、ScratchCard 標題欄（NT$｜標題｜序號）、Noto Serif TC + 財神圖、內容擾動特效、固定玩法尺寸
 
 ### v3.0 — 收尾與穩定化
 
