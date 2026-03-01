@@ -59,10 +59,8 @@ export default function BingoCellCanvas({
       {/* 底層：號碼內容 */}
       <div
         className={[
-          "absolute inset-0 flex rounded-lg",
-          isMatched
-            ? "bg-gradient-to-br from-yellow-500 to-yellow-700"
-            : "bg-gradient-to-br from-slate-700 to-slate-900",
+          "absolute inset-0 flex rounded-lg border-2 border-red-600",
+          isMatched ? "bg-yellow-300" : "bg-rose-50",
         ].join(" ")}
         style={{
           alignItems: ALIGN_V[p.alignV],
@@ -73,7 +71,7 @@ export default function BingoCellCanvas({
           className={[
             size >= 52 ? "text-2xl" : "text-xl",
             "font-black leading-none",
-            isMatched ? "text-white" : "text-slate-300",
+            isMatched ? "text-red-900" : "text-red-700",
           ].join(" ")}
           style={{ transform: numTransform, transformOrigin: "center" }}
         >

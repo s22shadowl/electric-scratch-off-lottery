@@ -79,7 +79,7 @@ function CellContent({
           ].join(" ")}
         />
         {cell.isRevealed && cell.prize.amount > 0 && (
-          <span className="text-[10px] text-yellow-300 font-bold mt-0.5">
+          <span className="text-[10px] text-red-800 font-bold mt-0.5">
             {cell.prize.label}
           </span>
         )}
@@ -91,8 +91,7 @@ function CellContent({
   return (
     <span
       className={[
-        "font-black leading-none",
-        cell.prize.isWin ? "text-lg text-yellow-300" : "text-lg text-red-400",
+        "font-black leading-none text-2xl text-red-800",
         winLevel === 3 && cell.isRevealed ? "animate-bounce" : "",
       ].join(" ")}
     >
@@ -146,12 +145,8 @@ export default function ScratchCellCanvas({ cell, cardId, maxPrize }: Props) {
       {/* 底層：獎項內容 */}
       <div
         className={[
-          "absolute inset-0 flex flex-col rounded-lg",
-          isNumberCell
-            ? ""
-            : isWin
-              ? "bg-gradient-to-br from-yellow-700 to-yellow-900"
-              : "bg-gradient-to-br from-red-900 to-red-950",
+          "absolute inset-0 flex flex-col rounded-lg border-2 border-red-600",
+          isNumberCell ? "bg-slate-600" : "bg-rose-50",
         ].join(" ")}
         style={{
           alignItems: ALIGN_H[p.alignH],
