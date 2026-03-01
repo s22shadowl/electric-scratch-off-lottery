@@ -2,6 +2,7 @@ import { useGameStore } from "@/stores/gameStore";
 import ScratchCellCanvas from "./ScratchCellCanvas";
 import BingoCellCanvas from "./BingoCellCanvas";
 import cloudTileUrl from "@/assets/decorations/cloud-tile.png";
+import caishenUrl from "@/assets/mascot/caishen.png";
 import type { BingoOptions } from "@/types";
 
 interface Props {
@@ -24,18 +25,17 @@ export default function ScratchCard({ cardId }: Props) {
     0,
   );
 
-  // bingo：進度計算 zone[0] + zone[1] 全部格（兩個 zone 都需刮開）
-  const scratchCells =
-    mechanic === "bingo"
-      ? [...(card.zones[0]?.cells ?? []), ...(card.zones[1]?.cells ?? [])]
-      : (card.zones[0]?.cells ?? []);
-  const revealedCount = scratchCells.filter((c) => c.isRevealed).length;
-  const totalCount = scratchCells.length;
+  const ruleText: Record<string, string> = {
+    symbol: "▼ 刮出相同符號即中獎",
+    triple: "▼ 三格相同即中獎",
+    compare: "▼ 你的號碼大於莊家即中該行獎金",
+    bingo: "▼ 連線數 × 每線獎金",
+  };
 
   return (
     <article
       data-testid={`scratch-card-${cardId}`}
-      className={`relative bg-gradient-to-br from-red-700 to-red-900 rounded-2xl p-4 shadow-2xl border-2 border-yellow-500/70 card-emboss w-full sm:w-fit ${mechanic === "bingo" ? "max-w-xs" : "max-w-sm"}`}
+      className={`relative bg-gradient-to-br from-red-700 to-red-900 rounded-2xl p-2 shadow-2xl border-2 border-yellow-500/70 card-emboss w-full sm:w-fit ${mechanic === "bingo" ? "max-w-xs" : "max-w-sm"}`}
     >
       {/* 祥雲紋路 */}
       <div
@@ -45,7 +45,7 @@ export default function ScratchCard({ cardId }: Props) {
           backgroundImage: `url(${cloudTileUrl})`,
           backgroundRepeat: "repeat",
           backgroundSize: "64px 64px",
-          mixBlendMode: "multiply",
+          // mixBlendMode: "multiply",
           opacity: 0.9,
         }}
       />
@@ -82,21 +82,29 @@ export default function ScratchCard({ cardId }: Props) {
           return (
             <div className="flex flex-col gap-3">
               {/* zone[0]：開獎號碼（scratch-off，逐格刮開） */}
-              <div>
-                <p className="text-yellow-400/70 text-[10px] text-center mb-1 tracking-widest">
-                  開獎號碼
-                </p>
-                <div className="flex flex-wrap gap-1.5 justify-center">
-                  {card.zones[0]?.cells.map((cell) => (
-                    <BingoCellCanvas
-                      key={cell.id}
-                      cell={cell}
-                      cardId={cardId}
-                      isMatched={cell.isRevealed}
-                      size={36}
-                    />
-                  ))}
+              <div className="flex items-start gap-2">
+                <div>
+                  <p className="text-yellow-400/70 text-[10px] text-center mb-1 tracking-widest">
+                    開獎號碼
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 justify-center">
+                    {card.zones[0]?.cells.map((cell) => (
+                      <BingoCellCanvas
+                        key={cell.id}
+                        cell={cell}
+                        cardId={cardId}
+                        isMatched={cell.isRevealed}
+                        size={36}
+                      />
+                    ))}
+                  </div>
                 </div>
+                <img
+                  src={caishenUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="w-10 h-10 object-contain shrink-0"
+                />
               </div>
               {/* zone[1]：賓果格 */}
               <div
@@ -120,6 +128,12 @@ export default function ScratchCard({ cardId }: Props) {
         })()
       ) : mechanic === "triple" ? (
         <div className="flex flex-col gap-2">
+          <img
+            src={caishenUrl}
+            alt=""
+            aria-hidden="true"
+            className="w-10 h-10 object-contain self-start"
+          />
           {Array.from({ length: card.zones[0]!.cells.length }, (_, row) => (
             <div
               key={row}
@@ -138,6 +152,12 @@ export default function ScratchCard({ cardId }: Props) {
         </div>
       ) : mechanic === "compare" ? (
         <div className="flex flex-col gap-2">
+          <img
+            src={caishenUrl}
+            alt=""
+            aria-hidden="true"
+            className="w-10 h-10 object-contain self-start"
+          />
           {Array.from({ length: card.zones[0]!.cells.length }, (_, row) => (
             <div
               key={row}
@@ -168,13 +188,43 @@ export default function ScratchCard({ cardId }: Props) {
             </div>
           ))}
         </div>
+      ) : card.zones[0]!.cells.length === 4 ? (
+        /* Symbol 4格：財神居中，上排左右各1、下排偏右非對稱 */
+        <div className="flex flex-col gap-2 items-center">
+          <div className="flex items-center gap-3">
+            <ScratchCellCanvas
+              cell={card.zones[0]!.cells[0]!}
+              cardId={cardId}
+              maxPrize={maxPrize}
+            />
+            <img
+              src={caishenUrl}
+              alt=""
+              aria-hidden="true"
+              className="w-24 h-24 object-contain"
+            />
+            <ScratchCellCanvas
+              cell={card.zones[0]!.cells[1]!}
+              cardId={cardId}
+              maxPrize={maxPrize}
+            />
+          </div>
+          <div className="flex gap-2 self-end pr-2">
+            <ScratchCellCanvas
+              cell={card.zones[0]!.cells[2]!}
+              cardId={cardId}
+              maxPrize={maxPrize}
+            />
+            <ScratchCellCanvas
+              cell={card.zones[0]!.cells[3]!}
+              cardId={cardId}
+              maxPrize={maxPrize}
+            />
+          </div>
+        </div>
       ) : (
-        <div
-          className="flex flex-wrap gap-2 justify-center"
-          style={{
-            maxWidth: `${Math.ceil(card.zones[0]!.cells.length / 2) * 138}px`,
-          }}
-        >
+        /* fallback：非 4 格時維持 flex-wrap */
+        <div className="flex flex-wrap gap-2 justify-center">
           {card.zones[0]!.cells.map((cell) => (
             <ScratchCellCanvas
               key={cell.id}
@@ -186,13 +236,14 @@ export default function ScratchCard({ cardId }: Props) {
         </div>
       )}
 
-      {/* 進度提示 */}
-      <footer className="mt-3 text-center">
+      {/* 規則提示 */}
+      <p className="text-yellow-400/60 text-[10px] text-center mt-2 tracking-wide">
+        {ruleText[mechanic]}
+      </p>
+
+      <footer className="mt-2 text-center">
         {!isCompleted && (
           <div className="flex flex-col items-center gap-1.5">
-            <p className="text-red-300 text-xs">
-              已刮開 {revealedCount} / {totalCount} 格
-            </p>
             <button
               type="button"
               onClick={() => revealCard(cardId)}
