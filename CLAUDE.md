@@ -26,3 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Post-implementation 流程**：code-reviewer subagent → 修 HIGH/CRITICAL/MEDIUM → commit + push → 結束 session
 - **Subagent 模式**：實作 + code-review 交給 Task subagent（worktree 隔離）；主 session 只負責需求討論與計畫確認
 - **Worktree subagent commit**：subagent prompt 末尾必須明確要求執行 `git add <files> && git commit`，否則變更只停留在 working directory，merge 時會出現 "Already up to date"（分支無新 commit）
+
+## 視覺設計參考
+
+進行任何 UI／視覺修改（元件樣式、顏色、排版、格子設計）前，**必須先讀取** `.claude/design-refs/` 內的所有圖片，對照真實彩券的材質感、排版密度、Typography 風格，再決定修改方向。

@@ -33,6 +33,7 @@ coverage/
 
 # Claude Code
 .claude/worktrees/
+.claude/design-refs/
 .claude/settings.local.json
 
 # Windows Zone.Identifier metadata files (WSL)
