@@ -111,10 +111,10 @@ npx vitest run --coverage
 
 - [x] 美術素材準備：LLM 生成財神、元寶等裝飾圖（確認 prompt 方向、篩選並整理 PNG 資源）
 - [x] 版型精緻化實作：套用素材 + CSS 升級仿真實紙本刮刮樂質感（金屬紋理、浮雕邊框、Serif 字體、安全紋底）
-- [ ] 祥雲底紋優化（低優先度）：cloud-tile.png 白底導致 multiply 效果過淡；重新生成透明底版本或改用 SVG pattern
 - [ ] 多款式選擇（節慶、生肖等主題）
 - [x] 玩法說明 UI（主持人設定說明 tooltip + 玩家端規則卡）
 - [x] **二次精緻化版型**（完成 ✅ Phase 1–5）：Zone 有機 blob 外形（SVG clip-path polygon）、防偽底紋（對角線波浪紋）、銀色水平漸層刮除層、ScratchCard 標題欄（NT$｜標題｜序號）、Noto Serif TC + 財神圖、內容擾動特效、固定玩法尺寸
+- [ ] **三次視覺優化 v3**（規格文件：`~/.claude/plans/visual-polish-v3.md`）：參考真實彩券重設計——移除祥雲 + 改 CSS 印刷斜線底紋、格子改淺粉底 + 粗紅框 + 大字金額、Symbol 格子 seeded 尺寸差異、Bingo Zone[0] 改預先印刷（不需刮除）
 
 ### v3.0 — 收尾與穩定化
 
