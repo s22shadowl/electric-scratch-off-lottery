@@ -23,6 +23,7 @@ export interface CellPerturbation {
   scale: number; // 0.70–1.00
   offsetX: number; // px, ±3
   offsetY: number; // px, ±3
+  size: "small" | "medium" | "large";
 }
 
 export function getCellPerturbation(cellId: string): CellPerturbation {
@@ -39,7 +40,8 @@ export function getCellPerturbation(cellId: string): CellPerturbation {
   const scale = 0.7 + rand() * 0.3;
   const offsetX = (rand() - 0.5) * 6;
   const offsetY = (rand() - 0.5) * 6;
-  return { rotation, skewX, alignH, alignV, scale, offsetX, offsetY };
+  const size = (["small", "medium", "large"] as const)[Math.floor(rand() * 3)]!;
+  return { rotation, skewX, alignH, alignV, scale, offsetX, offsetY, size };
 }
 
 // ── Canvas 常數 ──────────────────────────────────────────────────────────────

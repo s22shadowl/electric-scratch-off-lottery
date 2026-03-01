@@ -22,6 +22,8 @@ interface Props {
   cardId: string;
   maxPrize: number;
   alwaysShowAmount?: boolean;
+  width?: number;
+  height?: number;
 }
 
 function getWinLevel(amount: number, maxPrize: number): 0 | 1 | 2 | 3 {
@@ -106,6 +108,8 @@ export default function ScratchCellCanvas({
   cardId,
   maxPrize,
   alwaysShowAmount,
+  width = 130,
+  height = 80,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particleCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -146,7 +150,8 @@ export default function ScratchCellCanvas({
   return (
     <div
       data-testid={`scratch-cell-${cell.id}`}
-      className="relative w-[130px] h-[80px] rounded-lg overflow-hidden select-none"
+      className="relative rounded-lg overflow-hidden select-none"
+      style={{ width, height }}
     >
       {/* 底層：獎項內容 */}
       <div

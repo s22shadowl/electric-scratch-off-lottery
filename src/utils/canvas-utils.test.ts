@@ -96,6 +96,14 @@ describe("getCellPerturbation", () => {
       );
     }
   });
+
+  it("size 應為 small/medium/large 之一", () => {
+    for (const id of ["a", "b", "c", "d", "e"]) {
+      expect(["small", "medium", "large"]).toContain(
+        getCellPerturbation(id).size,
+      );
+    }
+  });
 });
 
 // ── 常數 ──────────────────────────────────────────────────
