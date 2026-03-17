@@ -1,65 +1,306 @@
 import ScratchCellCanvas from "@/components/play/ScratchCellCanvas";
 import caishenUrl from "@/assets/mascot/caishen.png";
 import type { ThemeLayoutProps } from "@/types";
-import { symbolCellSize } from "./shared";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
+import {
+  SYMBOL_MOBILE,
+  SYMBOL_DESKTOP,
+  type CellSlot,
+  type DecorationItem,
+} from "./shared";
 
-export default function SymbolLayout({ card, maxPrize }: ThemeLayoutProps) {
+function formatMaxPrize(amount: number): string {
+  if (amount >= 10000) return `${amount / 10000}萬`;
+  return String(amount);
+}
+
+function cellStyle(slot: CellSlot): React.CSSProperties {
+  return {
+    position: "absolute",
+    width: slot.w,
+    height: slot.h,
+    ...(slot.top != null && { top: slot.top }),
+    ...(slot.bottom != null && { bottom: slot.bottom }),
+    ...(slot.left != null && { left: slot.left }),
+    ...(slot.right != null && { right: slot.right }),
+    transform: `rotate(${slot.rotation})`,
+    clipPath: slot.clipPath,
+  };
+}
+
+function decoStyle(d: DecorationItem): React.CSSProperties {
+  return {
+    position: "absolute",
+    ...(d.top != null && { top: d.top }),
+    ...(d.bottom != null && { bottom: d.bottom }),
+    ...(d.left != null && { left: d.left }),
+    ...(d.right != null && { right: d.right }),
+    fontSize: d.fontSize,
+    opacity: d.opacity,
+    transform: d.rotation,
+    ...(d.type !== "金磚" && { color: "rgba(253,224,71,1)" }),
+  };
+}
+
+// NOTE: SymbolLayout 硬寫 4 格 absolute 定位。目前 FIXED_CARD_SIZES=true 下 cellsPerZone 固定為 4。
+// TODO(low): 若未來開放 cellsPerZone != 4，需新增動態排列或 fallback 至通用渲染。
+export default function SymbolLayout({
+  card,
+  cardTypeConfig,
+  config,
+  maxPrize,
+  revealCard,
+}: ThemeLayoutProps) {
+  const isDesktop = useIsDesktop();
+  const L = isDesktop ? SYMBOL_DESKTOP : SYMBOL_MOBILE;
   const cells = card.zones[0]!.cells;
   const cardId = card.id;
+  const isCompleted = card.status === "completed";
+  const hasWinnings = card.totalWinnings > 0;
+  const ticketPrice = cardTypeConfig.ticketPrice ?? 100;
 
-  if (cells.length === 4) {
-    return (
-      <div className="flex flex-col gap-2 items-center">
-        <div className="flex items-center gap-3">
-          <ScratchCellCanvas
-            cell={cells[0]!}
-            cardId={cardId}
-            maxPrize={maxPrize}
-            {...symbolCellSize(cells[0]!.id)}
-          />
-          <img
-            src={caishenUrl}
-            alt=""
-            aria-hidden="true"
-            className="w-24 h-24 object-contain"
-          />
-          <ScratchCellCanvas
-            cell={cells[1]!}
-            cardId={cardId}
-            maxPrize={maxPrize}
-            {...symbolCellSize(cells[1]!.id)}
-          />
+  const strokeStyle = `-webkit-text-stroke: ${L.textStroke} rgba(120,30,10,0.4)`;
+
+  return (
+    <article
+      data-testid={`scratch-card-${cardId}`}
+      style={{
+        width: L.card.w,
+        height: L.card.h,
+        background: "linear-gradient(135deg, #b91c1c, #7f1d1d)",
+        backgroundImage:
+          "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.04) 10px, rgba(255,255,255,0.04) 12px)",
+        border: `${L.border}px solid #e8b828`,
+        position: "relative",
+        overflow: "hidden",
+        boxShadow: L.boxShadow,
+        fontFamily: "'Dela Gothic One', sans-serif",
+      }}
+    >
+      {/* ===== 標題區 ===== */}
+      <div
+        style={{
+          background: "linear-gradient(180deg, #991b1b, #7f1d1d)",
+          padding: L.titleArea.padding,
+          borderBottom: `${L.titleArea.borderBottom}px solid rgba(234,179,8,0.3)`,
+        }}
+      >
+        {/* 上排：價格 + 序號 */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span
+            style={{
+              color: "#facc15",
+              fontSize: L.price.fontSize,
+              WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.5)`,
+              textShadow: "1px 1px 3px rgba(0,0,0,0.6)",
+              border: `${L.price.border}px solid #e8b828`,
+              padding: L.price.padding,
+            } as React.CSSProperties}
+          >
+            NT${ticketPrice.toLocaleString()}
+          </span>
+          <span
+            style={{
+              color: "rgba(250,204,21,0.7)",
+              fontSize: L.serial.fontSize,
+              fontFamily: "monospace",
+              background: "rgba(0,0,0,0.2)",
+              padding: isDesktop ? "3px 12px" : "2px 8px",
+              borderRadius: isDesktop ? 3 : 2,
+            }}
+          >
+            {card.serialNumber}
+          </span>
         </div>
-        <div className="flex gap-2 self-end pr-2">
-          <ScratchCellCanvas
-            cell={cells[2]!}
-            cardId={cardId}
-            maxPrize={maxPrize}
-            {...symbolCellSize(cells[2]!.id)}
-          />
-          <ScratchCellCanvas
-            cell={cells[3]!}
-            cardId={cardId}
-            maxPrize={maxPrize}
-            {...symbolCellSize(cells[3]!.id)}
-          />
+        {/* 下排：財神報到 + 頭獎N萬 */}
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+          <span
+            style={{
+              color: "#facc15",
+              fontSize: L.title.caishen,
+              letterSpacing: L.title.letterSpacing,
+              lineHeight: 1,
+              WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
+              textShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 20px rgba(255,200,50,0.15)",
+            } as React.CSSProperties}
+          >
+            財神報到
+          </span>
+          <div style={{ lineHeight: 1, display: "flex", alignItems: "baseline" }}>
+            <span
+              style={{
+                color: "#facc15",
+                fontSize: L.title.prize,
+                WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
+                textShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 24px rgba(255,200,50,0.2)",
+              } as React.CSSProperties}
+            >
+              頭獎
+            </span>
+            <span
+              style={{
+                color: "#facc15",
+                fontSize: L.title.prize,
+                WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
+                textShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 24px rgba(255,200,50,0.2)",
+                margin: isDesktop ? "0 6px" : "0 4px",
+              } as React.CSSProperties}
+            >
+              {formatMaxPrize(maxPrize)}
+            </span>
+            {maxPrize >= 10000 && (
+              <span
+                style={{
+                  color: "#facc15",
+                  fontSize: L.title.prize,
+                  WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
+                  textShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 24px rgba(255,200,50,0.2)",
+                } as React.CSSProperties}
+              />
+            )}
+          </div>
         </div>
       </div>
-    );
-  }
 
-  // fallback：非 4 格時維持 flex-wrap
-  return (
-    <div className="flex flex-wrap gap-2 justify-center">
-      {cells.map((cell) => (
-        <ScratchCellCanvas
-          key={cell.id}
-          cell={cell}
-          cardId={cardId}
-          maxPrize={maxPrize}
-          {...symbolCellSize(cell.id)}
+      {/* ===== 裝飾 ===== */}
+      {L.decorations.map((d, i) =>
+        d.type === "金磚" ? (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              top: d.top,
+              left: d.left,
+              width: d.w,
+              height: d.h,
+              background: "linear-gradient(180deg,#fcd34d,#b45309)",
+              borderRadius: isDesktop ? 4 : 3,
+              transform: d.rotation,
+              opacity: d.opacity,
+              border: `${isDesktop ? 1.5 : 1}px solid #92400e`,
+            }}
+          />
+        ) : (
+          <div key={i} style={decoStyle(d)}>
+            {d.type}
+          </div>
+        ),
+      )}
+
+      {/* ===== 格子 container ===== */}
+      <div
+        style={{
+          position: "absolute",
+          top: L.container.top,
+          left: 0,
+          right: 0,
+          bottom: L.container.bottom,
+        }}
+      >
+        {L.cells.map((slot, i) => {
+          const cell = cells[i];
+          if (!cell) return null;
+          return (
+            <div key={cell.id} style={cellStyle(slot)}>
+              <ScratchCellCanvas
+                cell={cell}
+                cardId={cardId}
+                maxPrize={maxPrize}
+                width={slot.w}
+                height={slot.h}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ===== 財神 ===== */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: L.caishen.bottom,
+          right: L.caishen.right,
+          width: L.caishen.w,
+          height: L.caishen.h,
+          overflow: "hidden",
+        }}
+      >
+        <img
+          src={caishenUrl}
+          alt=""
+          aria-hidden="true"
+          style={{ width: "100%", height: "100%", objectFit: "contain" }}
         />
-      ))}
-    </div>
+      </div>
+
+      {/* ===== 底部：說明 + 按鈕/結果 ===== */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: L.helpText.bottom,
+          left: L.helpText.left,
+        }}
+      >
+        <span
+          style={{
+            color: "rgba(250,204,21,0.7)",
+            fontSize: L.helpText.fontSize,
+            letterSpacing: L.helpText.letterSpacing,
+            fontFamily: "system-ui, sans-serif",
+          }}
+        >
+          ▼ 刮出相同符號即中獎
+        </span>
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          bottom: L.button.bottom,
+          left: L.button.left,
+        }}
+      >
+        {!isCompleted && (
+          <button
+            type="button"
+            onClick={() => revealCard?.(cardId)}
+            style={{
+              display: "inline-block",
+              padding: L.button.padding,
+              borderRadius: L.button.borderRadius,
+              background: "#facc15",
+              color: "#7f1d1d",
+              fontSize: L.button.fontSize,
+              fontWeight: 700,
+              fontFamily: "'Noto Serif TC', serif",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            ⚡ 一鍵刮開
+          </button>
+        )}
+
+        {isCompleted && (
+          <div
+            data-testid="card-result"
+            style={{
+              padding: L.button.padding,
+              borderRadius: L.button.borderRadius,
+              fontSize: L.button.fontSize,
+              fontWeight: 900,
+              fontFamily: "'Noto Serif TC', serif",
+              background: hasWinnings ? "#facc15" : "#7f1d1d",
+              color: hasWinnings ? "#7f1d1d" : "#f87171",
+            }}
+          >
+            {hasWinnings
+              ? `🎉 恭喜中獎 $${card.totalWinnings} 元！`
+              : "謝謝參與"}
+          </div>
+        )}
+      </div>
+    </article>
   );
 }
