@@ -1,20 +1,117 @@
 import type { ReactNode } from "react";
-import { getCellPerturbation } from "@/utils/canvas-utils";
 
-// ── Symbol 格子尺寸（依 getCellPerturbation.size 對應）────────────────────
-export const SYMBOL_CELL_SIZES = {
-  small: [114, 72],
-  medium: [130, 80],
-  large: [140, 88],
-} as const;
+// ── Symbol Layout 型別 ─────────────────────────────────────────────
 
-export function symbolCellSize(cellId: string): {
-  width: number;
-  height: number;
-} {
-  const [w, h] = SYMBOL_CELL_SIZES[getCellPerturbation(cellId).size];
-  return { width: w, height: h };
+export interface CellSlot {
+  w: number;
+  h: number;
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+  rotation: string;
+  clipPath: string;
 }
+
+export interface DecorationItem {
+  type: string; // emoji or "金磚"
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+  fontSize?: number;
+  rotation?: string;
+  opacity: number;
+  // 金磚 only
+  w?: number;
+  h?: number;
+  extra?: string; // additional CSS transform e.g. "skewX(-5deg)"
+}
+
+export interface SymbolLayoutConfig {
+  card: { w: number; h: number };
+  border: number;
+  titleArea: { padding: string; borderBottom: number };
+  title: { caishen: number; prize: number; letterSpacing: string };
+  price: { fontSize: number; border: number; padding: string };
+  serial: { fontSize: number };
+  textStroke: string;
+  container: { top: number; bottom: number };
+  cells: CellSlot[];
+  decorations: DecorationItem[];
+  caishen: { w: number; h: number; bottom: number; right: number };
+  helpText: { fontSize: number; bottom: number; left: number; letterSpacing: string };
+  button: { fontSize: number; padding: string; borderRadius: number; bottom: number; left: number };
+  boxShadow: string;
+}
+
+// ── Symbol Mobile (344×440) — from v15 mockup ──────────────────────
+
+export const SYMBOL_MOBILE: SymbolLayoutConfig = {
+  card: { w: 344, h: 440 },
+  border: 4,
+  titleArea: { padding: "6px 8px", borderBottom: 2 },
+  title: { caishen: 28, prize: 38, letterSpacing: "1px" },
+  price: { fontSize: 18, border: 1.5, padding: "1px 6px" },
+  serial: { fontSize: 13 },
+  textStroke: "0.5px",
+  container: { top: 118, bottom: 95 },
+  cells: [
+    { w: 140, h: 88, top: 5, left: 14, rotation: "-6deg", clipPath: "polygon(2% 8%,15% 1%,35% 5%,55% 0%,78% 3%,95% 1%,100% 12%,98% 45%,100% 78%,97% 95%,85% 100%,60% 97%,35% 100%,12% 96%,0% 88%,3% 55%,0% 25%)" },
+    { w: 132, h: 82, top: 18, right: 16, rotation: "5deg", clipPath: "polygon(4% 5%,20% 0%,42% 4%,68% 1%,88% 3%,100% 8%,97% 40%,100% 72%,96% 95%,82% 100%,55% 97%,28% 100%,8% 95%,0% 82%,2% 50%,0% 18%)" },
+    { w: 135, h: 84, bottom: 8, left: 22, rotation: "7deg", clipPath: "polygon(3% 12%,18% 2%,40% 6%,62% 0%,85% 4%,100% 10%,98% 48%,100% 82%,95% 100%,72% 96%,48% 100%,22% 97%,5% 100%,0% 85%,2% 52%,0% 22%)" },
+    { w: 138, h: 86, bottom: 0, left: 170, rotation: "-4.5deg", clipPath: "polygon(5% 6%,22% 1%,45% 5%,70% 0%,92% 4%,100% 15%,97% 50%,100% 85%,93% 100%,68% 96%,42% 100%,18% 97%,0% 90%,3% 58%,0% 22%)" },
+  ],
+  decorations: [
+    { type: "🪙", top: 225, left: 8, fontSize: 24, opacity: 0.65, rotation: "rotate(-15deg)" },
+    { type: "🪙", top: 240, left: 24, fontSize: 18, opacity: 0.5, rotation: "rotate(10deg)" },
+    { type: "✦", top: 152, left: 160, fontSize: 20, opacity: 0.45, rotation: "rotate(15deg)" },
+    { type: "✦", top: 292, left: 6, fontSize: 14, opacity: 0.3, rotation: "rotate(-25deg)" },
+    { type: "✧", top: 212, right: 8, fontSize: 16, opacity: 0.35, rotation: "rotate(35deg)" },
+    { type: "✦", top: 325, right: 50, fontSize: 12, opacity: 0.25 },
+    { type: "金磚", top: 248, left: 78, w: 28, h: 14, opacity: 0.55, rotation: "rotate(-8deg) skewX(-5deg)" },
+    { type: "☁", top: 120, right: 4, fontSize: 32, opacity: 0.12, rotation: "rotate(8deg)" },
+    { type: "☁", top: 302, left: 155, fontSize: 28, opacity: 0.1, rotation: "rotate(-5deg)" },
+  ],
+  caishen: { w: 90, h: 100, bottom: -2, right: 4 },
+  helpText: { fontSize: 11, bottom: 48, left: 14, letterSpacing: "1px" },
+  button: { fontSize: 13, padding: "8px 20px", borderRadius: 6, bottom: 10, left: 14 },
+  boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+};
+
+// ── Symbol Desktop (520×665) — from desktop-v1 mockup ──────────────
+
+export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
+  card: { w: 520, h: 665 },
+  border: 6,
+  titleArea: { padding: "9px 12px", borderBottom: 3 },
+  title: { caishen: 42, prize: 57, letterSpacing: "1.5px" },
+  price: { fontSize: 27, border: 2, padding: "1.5px 9px" },
+  serial: { fontSize: 20 },
+  textStroke: "0.75px",
+  container: { top: 178, bottom: 144 },
+  cells: [
+    { w: 212, h: 133, top: 8, left: 21, rotation: "-6deg", clipPath: "polygon(2% 8%,15% 1%,35% 5%,55% 0%,78% 3%,95% 1%,100% 12%,98% 45%,100% 78%,97% 95%,85% 100%,60% 97%,35% 100%,12% 96%,0% 88%,3% 55%,0% 25%)" },
+    { w: 200, h: 124, top: 27, right: 24, rotation: "5deg", clipPath: "polygon(4% 5%,20% 0%,42% 4%,68% 1%,88% 3%,100% 8%,97% 40%,100% 72%,96% 95%,82% 100%,55% 97%,28% 100%,8% 95%,0% 82%,2% 50%,0% 18%)" },
+    { w: 204, h: 127, bottom: 12, left: 33, rotation: "7deg", clipPath: "polygon(3% 12%,18% 2%,40% 6%,62% 0%,85% 4%,100% 10%,98% 48%,100% 82%,95% 100%,72% 96%,48% 100%,22% 97%,5% 100%,0% 85%,2% 52%,0% 22%)" },
+    { w: 209, h: 130, bottom: 0, left: 257, rotation: "-4.5deg", clipPath: "polygon(5% 6%,22% 1%,45% 5%,70% 0%,92% 4%,100% 15%,97% 50%,100% 85%,93% 100%,68% 96%,42% 100%,18% 97%,0% 90%,3% 58%,0% 22%)" },
+  ],
+  decorations: [
+    { type: "🪙", top: 340, left: 12, fontSize: 36, opacity: 0.65, rotation: "rotate(-15deg)" },
+    { type: "🪙", top: 363, left: 36, fontSize: 27, opacity: 0.5, rotation: "rotate(10deg)" },
+    { type: "✦", top: 230, left: 242, fontSize: 30, opacity: 0.45, rotation: "rotate(15deg)" },
+    { type: "✦", top: 441, left: 9, fontSize: 21, opacity: 0.3, rotation: "rotate(-25deg)" },
+    { type: "✧", top: 320, right: 12, fontSize: 24, opacity: 0.35, rotation: "rotate(35deg)" },
+    { type: "✦", top: 491, right: 76, fontSize: 18, opacity: 0.25 },
+    { type: "金磚", top: 375, left: 118, w: 42, h: 21, opacity: 0.55, rotation: "rotate(-8deg) skewX(-5deg)" },
+    { type: "☁", top: 181, right: 6, fontSize: 48, opacity: 0.12, rotation: "rotate(8deg)" },
+    { type: "☁", top: 457, left: 234, fontSize: 42, opacity: 0.1, rotation: "rotate(-5deg)" },
+  ],
+  caishen: { w: 136, h: 151, bottom: -3, right: 6 },
+  helpText: { fontSize: 17, bottom: 73, left: 21, letterSpacing: "1.5px" },
+  button: { fontSize: 20, padding: "12px 30px", borderRadius: 9, bottom: 15, left: 21 },
+  boxShadow: "0 12px 48px rgba(0,0,0,0.5)",
+};
 
 // ── Zone blob 形狀（0-100 坐標，等同百分比） ───────────────────────────────
 export const BLOB: Record<string, { css: string; svg: string }> = {
