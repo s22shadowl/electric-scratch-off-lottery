@@ -1,5 +1,4 @@
-import type { ComponentType } from "react";
-import type { Mechanic, ThemeLayoutProps } from "@/types";
+import type { Mechanic, ThemeLayoutEntry } from "@/types";
 import {
   SymbolLayout,
   TripleLayout,
@@ -7,21 +6,21 @@ import {
   BingoLayout,
 } from "./wealth-god";
 
-type ThemeLayoutMap = Record<Mechanic, ComponentType<ThemeLayoutProps>>;
+type ThemeLayoutMap = Record<Mechanic, ThemeLayoutEntry>;
 
 const themeRegistry: Record<string, ThemeLayoutMap> = {
   "wealth-god": {
-    symbol: SymbolLayout,
-    triple: TripleLayout,
-    compare: CompareLayout,
-    bingo: BingoLayout,
+    symbol: { component: SymbolLayout, fullCard: true },
+    triple: { component: TripleLayout },
+    compare: { component: CompareLayout },
+    bingo: { component: BingoLayout },
   },
 };
 
 export function getThemeLayout(
   themeId: string,
   mechanic: Mechanic,
-): ComponentType<ThemeLayoutProps> {
+): ThemeLayoutEntry {
   const theme = themeRegistry[themeId];
   if (!theme) {
     throw new Error(`Unknown theme: ${themeId}`);

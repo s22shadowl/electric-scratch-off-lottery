@@ -28,7 +28,24 @@ export default function ScratchCard({ cardId }: Props) {
     0,
   );
 
-  const Layout = getThemeLayout(cardTypeConfig.themeId, mechanic);
+  const entry = getThemeLayout(cardTypeConfig.themeId, mechanic);
+
+  // fullCard: Layout 接管整張卡片渲染（header + 格子 + footer）
+  if (entry.fullCard) {
+    const FullLayout = entry.component;
+    return (
+      <FullLayout
+        card={card}
+        cardTypeConfig={cardTypeConfig}
+        config={config}
+        maxPrize={maxPrize}
+        revealCard={revealCard}
+      />
+    );
+  }
+
+  // 非 fullCard: ScratchCard 提供 header/footer，Layout 只渲染格子區
+  const Layout = entry.component;
 
   return (
     <article

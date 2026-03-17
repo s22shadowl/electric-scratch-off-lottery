@@ -113,6 +113,13 @@ export interface ThemeLayoutProps {
   cardTypeConfig: CardTypeConfig;
   config: GameConfig;
   maxPrize: number;
+  revealCard?: (cardId: string) => void;
+}
+
+// Theme registry entry — fullCard layouts render the entire card (header/footer included)
+export interface ThemeLayoutEntry {
+  component: import("react").ComponentType<ThemeLayoutProps>;
+  fullCard?: boolean;
 }
 
 // 玩家端執行狀態（Zustand store）
