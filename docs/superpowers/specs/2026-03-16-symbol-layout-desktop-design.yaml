@@ -1,0 +1,128 @@
+title: SymbolLayout 桌面版設計
+date: 2026-03-16
+
+overview: |
+  將手機版 SymbolLayout（344×440px）等比放大為桌面版（520×665px），係數 ×1.512。
+  採用獨立一組 px 值，符合「固定 px 雙尺寸」架構決策。
+  現有 SymbolLayout.tsx 是 flex 佈局，需完全改寫為 absolute 定位（手機版+桌面版皆是）。
+  實作時以 caishen.png 圖片取代 CSS 繪製的財神，只需縮放外層 wrapper。
+
+sizes:
+  card:
+    mobile: 344×440
+    desktop: 520×665
+  border:
+    mobile: 4px
+    desktop: 6px
+  stripe_pattern:
+    mobile: "10px/12px"
+    desktop: "10px/12px（不放大，維持紋路密度）"
+  title_area:
+    padding:
+      mobile: "6px 8px"
+      desktop: "9px 12px"
+    border_bottom:
+      mobile: 2px
+      desktop: 3px
+  title_caishen:
+    mobile: 28px
+    desktop: 42px
+  title_prize:
+    mobile: 38px
+    desktop: 57px
+  price:
+    mobile: 18px
+    desktop: 27px
+    border:
+      mobile: 1.5px
+      desktop: 2px
+    padding:
+      mobile: "1px 6px"
+      desktop: "1.5px 9px"
+  serial:
+    mobile: 13px
+    desktop: 20px
+  cells:
+    - { id: 1, mobile: 140×88, desktop: 212×133 }
+    - { id: 2, mobile: 132×82, desktop: 200×124 }
+    - { id: 3, mobile: 135×84, desktop: 204×127 }
+    - { id: 4, mobile: 138×86, desktop: 209×130 }
+  caishen_wrapper:
+    mobile: "90×100, bottom:-2px right:4px"
+    desktop: "136×151, bottom:-3px right:6px"
+  help_text:
+    font:
+      mobile: 11px
+      desktop: 17px
+    position:
+      mobile: "bottom:48px left:14px"
+      desktop: "bottom:73px left:21px"
+  button:
+    font:
+      mobile: 13px
+      desktop: 20px
+    padding:
+      mobile: "8px 20px"
+      desktop: "12px 30px"
+    border_radius:
+      mobile: 6px
+      desktop: 9px
+    position:
+      mobile: "bottom:10px left:14px"
+      desktop: "bottom:15px left:21px"
+
+cell_positions:
+  container:
+    mobile: "top:118px left:0 right:0 bottom:95px"
+    desktop: "top:178px left:0 right:0 bottom:144px"
+  slots:
+    - { id: 1, mobile: "top:5 left:14", desktop: "top:8 left:21", rotation: "-6deg" }
+    - { id: 2, mobile: "top:18 right:16", desktop: "top:27 right:24", rotation: "5deg" }
+    - { id: 3, mobile: "bottom:8 left:22", desktop: "bottom:12 left:33", rotation: "7deg" }
+    - { id: 4, mobile: "bottom:0 left:170", desktop: "bottom:0 left:257", rotation: "-4.5deg" }
+  clip_path: "百分比不變（與手機版相同）"
+
+decorations:
+  note: "所有裝飾為 absolute 定位，以下為桌面版座標（手機版見 v15 mockup）"
+  items:
+    - { type: "🪙", desktop: "top:340 left:12, 36px, rotate(-15deg), opacity:0.65" }
+    - { type: "🪙", desktop: "top:363 left:36, 27px, rotate(10deg), opacity:0.5" }
+    - { type: "✦", desktop: "top:230 left:242, 30px, rotate(15deg), opacity:0.45" }
+    - { type: "✦", desktop: "top:441 left:9, 21px, rotate(-25deg), opacity:0.3" }
+    - { type: "✧", desktop: "top:320 right:12, 24px, rotate(35deg), opacity:0.35" }
+    - { type: "✦", desktop: "top:491 right:76, 18px, opacity:0.25" }
+    - { type: "金磚", desktop: "top:375 left:118, 42×21px, rotate(-8deg) skewX(-5deg), opacity:0.55" }
+    - { type: "☁", desktop: "top:181 right:6, 48px, rotate(8deg), opacity:0.12" }
+    - { type: "☁", desktop: "top:457 left:234, 42px, rotate(-5deg), opacity:0.1" }
+
+text_stroke:
+  mobile: "0.5px"
+  desktop: "0.75px"
+
+box_shadow:
+  mobile: "0 8px 32px rgba(0,0,0,0.5)"
+  desktop: "0 12px 48px rgba(0,0,0,0.5)"
+
+breakpoint:
+  threshold: "md: (768px)"
+  behavior: "手機版 → 桌面版，ScratchCard 外層改為固定寬度 + md: 切換"
+
+migration_notes:
+  - "現有 SymbolLayout.tsx 使用 flex 佈局 + symbolCellSize()，需完全改寫為 absolute 定位"
+  - "symbolCellSize() 替換為 per-cell 尺寸查表，以 cellId + breakpoint 為 key"
+  - "ScratchCellCanvas width/height props 需依 cellId 傳入對應桌面版尺寸（各格不同）"
+
+implementation_notes:
+  - "格子4 vs 財神重疊：兩者都在右下角，實作後需確認 Canvas 渲染間距"
+  - "ScratchCellCanvas 各格尺寸不同（212×133 / 200×124 / 204×127 / 209×130），不可用統一值"
+
+unchanged:
+  - 直式（portrait）比例
+  - 整體配色、漸層、裝飾元素種類
+  - clip-path polygon 百分比
+  - "字體：Dela Gothic One + Noto Serif TC 700"
+  - 格子旋轉角度
+
+mockups:
+  mobile: ".superpowers/brainstorm/69349-1773589153/symbol-layout-mobile-v15.html"
+  desktop: ".superpowers/brainstorm/69349-1773589153/symbol-layout-desktop-v1.html"

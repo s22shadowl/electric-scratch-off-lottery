@@ -35,6 +35,7 @@ coverage/
 .claude/worktrees/
 .claude/design-refs/
 .claude/settings.local.json
+.superpowers/
 
 # Windows Zone.Identifier metadata files (WSL)
 *:Zone.Identifier

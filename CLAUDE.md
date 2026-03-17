@@ -30,3 +30,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 視覺設計參考
 
 進行任何 UI／視覺修改（元件樣式、顏色、排版、格子設計）前，**必須先讀取** `.claude/design-refs/` 內的所有圖片，對照真實彩券的材質感、排版密度、Typography 風格，再決定修改方向。
+
+## Skill 使用規範
+
+調用任何 skill 後，**必須實際改變工作流程**，不能只是讀過指引就繼續用原本的方式工作。具體要求：
+- 調用 skill 後，先列出因為該 skill 而新增的具體工作步驟，確認後再開始產出
+- 每次產出前，以 skill 指引 + MEMORY.md 已確認決策 作為 checklist 自檢，不通過不產出
