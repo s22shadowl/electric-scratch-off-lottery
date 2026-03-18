@@ -38,6 +38,7 @@ function decoStyle(d: DecorationItem): React.CSSProperties {
     fontSize: d.fontSize,
     opacity: d.opacity,
     transform: d.rotation,
+    ...(d.filter && { filter: d.filter }),
     ...(d.type !== "金磚" && { color: "rgba(253,224,71,1)" }),
   };
 }
@@ -59,8 +60,6 @@ export default function SymbolLayout({
   const hasWinnings = card.totalWinnings > 0;
   const ticketPrice = cardTypeConfig.ticketPrice ?? 100;
 
-  const strokeStyle = `-webkit-text-stroke: ${L.textStroke} rgba(120,30,10,0.4)`;
-
   return (
     <article
       data-testid={`scratch-card-${cardId}`}
@@ -68,8 +67,7 @@ export default function SymbolLayout({
         width: L.card.w,
         height: L.card.h,
         background: "linear-gradient(135deg, #b91c1c, #7f1d1d)",
-        backgroundImage:
-          "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.04) 10px, rgba(255,255,255,0.04) 12px)",
+        backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent ${L.stripe.gap}px, rgba(255,255,255,0.04) ${L.stripe.gap}px, rgba(255,255,255,0.04) ${L.stripe.width}px)`,
         border: `${L.border}px solid #e8b828`,
         position: "relative",
         overflow: "hidden",
@@ -86,16 +84,24 @@ export default function SymbolLayout({
         }}
       >
         {/* 上排：價格 + 序號 */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <span
-            style={{
-              color: "#facc15",
-              fontSize: L.price.fontSize,
-              WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.5)`,
-              textShadow: "1px 1px 3px rgba(0,0,0,0.6)",
-              border: `${L.price.border}px solid #e8b828`,
-              padding: L.price.padding,
-            } as React.CSSProperties}
+            style={
+              {
+                color: "#facc15",
+                fontSize: L.price.fontSize,
+                WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.5)`,
+                textShadow: "1px 1px 3px rgba(0,0,0,0.6)",
+                border: `${L.price.border}px solid #e8b828`,
+                padding: L.price.padding,
+              } as React.CSSProperties
+            }
           >
             NT${ticketPrice.toLocaleString()}
           </span>
@@ -105,59 +111,63 @@ export default function SymbolLayout({
               fontSize: L.serial.fontSize,
               fontFamily: "monospace",
               background: "rgba(0,0,0,0.2)",
-              padding: isDesktop ? "3px 12px" : "2px 8px",
-              borderRadius: isDesktop ? 3 : 2,
+              padding: L.serial.padding,
+              borderRadius: L.serial.borderRadius,
             }}
           >
             {card.serialNumber}
           </span>
         </div>
         {/* 下排：財神報到 + 頭獎N萬 */}
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+          }}
+        >
           <span
-            style={{
-              color: "#facc15",
-              fontSize: L.title.caishen,
-              letterSpacing: L.title.letterSpacing,
-              lineHeight: 1,
-              WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
-              textShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 20px rgba(255,200,50,0.15)",
-            } as React.CSSProperties}
+            style={
+              {
+                color: "#facc15",
+                fontSize: L.title.caishen,
+                letterSpacing: L.title.letterSpacing,
+                lineHeight: 1,
+                WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
+                textShadow: L.titleShadow,
+              } as React.CSSProperties
+            }
           >
             財神報到
           </span>
-          <div style={{ lineHeight: 1, display: "flex", alignItems: "baseline" }}>
+          <div
+            style={{ lineHeight: 1, display: "flex", alignItems: "baseline" }}
+          >
             <span
-              style={{
-                color: "#facc15",
-                fontSize: L.title.prize,
-                WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
-                textShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 24px rgba(255,200,50,0.2)",
-              } as React.CSSProperties}
+              style={
+                {
+                  color: "#facc15",
+                  fontSize: L.title.prize,
+                  WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
+                  textShadow: L.prizeShadow,
+                } as React.CSSProperties
+              }
             >
               頭獎
             </span>
             <span
-              style={{
-                color: "#facc15",
-                fontSize: L.title.prize,
-                WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
-                textShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 24px rgba(255,200,50,0.2)",
-                margin: isDesktop ? "0 6px" : "0 4px",
-              } as React.CSSProperties}
-            >
-              {formatMaxPrize(maxPrize)}
-            </span>
-            {maxPrize >= 10000 && (
-              <span
-                style={{
+              style={
+                {
                   color: "#facc15",
                   fontSize: L.title.prize,
                   WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
-                  textShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 24px rgba(255,200,50,0.2)",
-                } as React.CSSProperties}
-              />
-            )}
+                  textShadow: L.prizeShadow,
+                  margin: isDesktop ? "0 6px" : "0 4px",
+                } as React.CSSProperties
+              }
+            >
+              {formatMaxPrize(maxPrize)}
+            </span>
           </div>
         </div>
       </div>
@@ -273,7 +283,7 @@ export default function SymbolLayout({
               fontSize: L.button.fontSize,
               fontWeight: 700,
               fontFamily: "'Noto Serif TC', serif",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+              boxShadow: L.button.boxShadow,
               border: "none",
               cursor: "pointer",
             }}
