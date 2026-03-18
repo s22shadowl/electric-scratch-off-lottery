@@ -47,7 +47,7 @@ export function getCellPerturbation(cellId: string): CellPerturbation {
 // ── Canvas 常數 ──────────────────────────────────────────────────────────────
 export const BRUSH_RADIUS = 24;
 export const TOUCH_BRUSH_RADIUS = 40; // 手指觸控用
-export const SAMPLING_STEP = 4; // 每 N 個 pixel 取樣一次（效能優化）
+const SAMPLING_STEP = 4; // 每 N 個 pixel 取樣一次（效能優化）
 
 // 在指定座標以 destination-out 模式繪製圓形（刮除遮罩）
 export function drawErase(

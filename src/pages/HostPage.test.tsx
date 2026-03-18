@@ -1,19 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import HostPage from "./HostPage";
-import { FEATURES } from "@/config/features";
-
-vi.mock("@/config/features", () => ({
-  FEATURES: { FIXED_CARD_SIZES: true },
-  FIXED_SIZE_DEFAULTS: {
-    gridSize: 5,
-    rowsPerCard: 3,
-    roundsPerCard: 3,
-    cellsPerZone: 4,
-  },
-}));
 
 // clipboard mock
 const writeTextMock = vi.fn().mockResolvedValue(undefined);
@@ -29,11 +18,8 @@ const renderPage = () =>
     </MemoryRouter>,
   );
 
-const features = FEATURES as { FIXED_CARD_SIZES: boolean };
-
 beforeEach(() => {
   writeTextMock.mockClear();
-  features.FIXED_CARD_SIZES = true;
 });
 
 describe("HostPage", () => {
@@ -118,17 +104,10 @@ describe("HostPage", () => {
     expect(screen.getByRole("radio", { name: /賓果/ })).toBeInTheDocument();
   });
 
-  it("FIXED_CARD_SIZES=true 時選擇賓果玩法後不應顯示格子大小選擇", async () => {
+  it("選擇賓果玩法後不應顯示格子大小選擇", async () => {
     renderPage();
     await userEvent.click(screen.getByRole("radio", { name: /賓果/ }));
     expect(screen.queryByLabelText("賓果格大小")).not.toBeInTheDocument();
-  });
-
-  it("FIXED_CARD_SIZES=false 時選擇賓果玩法後應顯示格子大小選擇", async () => {
-    features.FIXED_CARD_SIZES = false;
-    renderPage();
-    await userEvent.click(screen.getByRole("radio", { name: /賓果/ }));
-    expect(screen.getByLabelText("賓果格大小")).toBeInTheDocument();
   });
 
   it("選擇賓果玩法後應顯示每線獎金輸入框", async () => {
@@ -163,7 +142,6 @@ describe("HostPage", () => {
   it("特效開關應可切換", async () => {
     renderPage();
     const toggles = screen.getAllByRole("switch");
-    // 第一個 switch 是「粒子特效」開關
     const toggle = toggles[0]!;
     const before = toggle.getAttribute("aria-checked");
     await userEvent.click(toggle);
@@ -173,7 +151,6 @@ describe("HostPage", () => {
   it("允許返回牌堆開關應可切換", async () => {
     renderPage();
     const toggles = screen.getAllByRole("switch");
-    // 第二個 switch 是「允許返回牌堆」開關
     const toggle = toggles[1]!;
     expect(toggle.getAttribute("aria-checked")).toBe("false");
     await userEvent.click(toggle);
@@ -189,42 +166,28 @@ describe("HostPage", () => {
     });
   });
 
-  it("各欄位旁應有 ⓘ 說明按鈕（FIXED_CARD_SIZES=true 時每張格數欄位隱藏）", () => {
+  it("各欄位旁應有 ⓘ 說明按鈕", () => {
     renderPage();
     const tooltipBtns = screen.getAllByRole("button", { name: "說明" });
-    // 總牌數、票面價格、粒子特效、允許返回牌堆、難度預設（每張格數在 flag=true 時隱藏）
+    // 總牌數、票面價格、粒子特效、允許返回牌堆、難度預設
     expect(tooltipBtns.length).toBeGreaterThanOrEqual(5);
   });
 
   it("點擊總牌數旁 ⓘ 後應顯示說明文字", async () => {
     renderPage();
     const tooltipBtns = screen.getAllByRole("button", { name: "說明" });
-    // 總牌數是表單第一個 tooltip
     await userEvent.click(tooltipBtns[0]!);
     expect(screen.getByRole("tooltip")).toBeInTheDocument();
   });
 
-  it("FIXED_CARD_SIZES=true 時選擇三同玩法後不應顯示列數欄位", async () => {
+  it("選擇三同玩法後不應顯示列數欄位", async () => {
     renderPage();
     await userEvent.click(screen.getByRole("radio", { name: /三同/ }));
     expect(screen.queryByLabelText("列數（1–9）")).not.toBeInTheDocument();
   });
 
-  it("FIXED_CARD_SIZES=false 時選擇三同玩法後應顯示列數欄位", async () => {
-    features.FIXED_CARD_SIZES = false;
-    renderPage();
-    await userEvent.click(screen.getByRole("radio", { name: /三同/ }));
-    expect(screen.getByLabelText("列數（1–9）")).toBeInTheDocument();
-  });
-
-  it("FIXED_CARD_SIZES=true 時 symbol 玩法不應顯示每張格數欄位", () => {
+  it("symbol 玩法不應顯示每張格數欄位", () => {
     renderPage();
     expect(screen.queryByLabelText("每張格數（1–9）")).not.toBeInTheDocument();
-  });
-
-  it("FIXED_CARD_SIZES=false 時 symbol 玩法應顯示每張格數欄位", () => {
-    features.FIXED_CARD_SIZES = false;
-    renderPage();
-    expect(screen.getByLabelText("每張格數（1–9）")).toBeInTheDocument();
   });
 });

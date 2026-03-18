@@ -6,7 +6,6 @@ import {
 } from "@/utils/config-codec";
 import { scalePrizesToTicketPrice, calculateRTP } from "@/utils/prize-presets";
 import { calcBingoLineProbabilities } from "@/utils/game-math";
-import { FEATURES, FIXED_SIZE_DEFAULTS } from "@/config/features";
 import type {
   GameConfig,
   Prize,
@@ -125,20 +124,14 @@ const defaultForm: HostFormState = {
     newPrize("uid-2", "$500", "500", "10"),
   ],
   cardCount: "10",
-  cellsPerZone: String(
-    FEATURES.FIXED_CARD_SIZES ? FIXED_SIZE_DEFAULTS.cellsPerZone : 6,
-  ),
+  cellsPerZone: "4",
   effectsEnabled: true,
   allowReturnToPile: false,
   difficultyPreset: "standard",
   ticketPrice: "100",
   mechanic: "symbol",
-  rowsPerCard: String(
-    FEATURES.FIXED_CARD_SIZES ? FIXED_SIZE_DEFAULTS.rowsPerCard : 3,
-  ),
-  gridSize: String(
-    FEATURES.FIXED_CARD_SIZES ? FIXED_SIZE_DEFAULTS.gridSize : 3,
-  ),
+  rowsPerCard: "3",
+  gridSize: "5",
   prizePerLine: "100",
 };
 

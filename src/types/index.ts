@@ -41,15 +41,6 @@ export interface ScratchCard {
   totalWinnings: number; // 所有已揭曉 isWin cell 的金額加總（即時計算）
 }
 
-// 視覺主題
-export interface CardTheme {
-  id: string;
-  name: string;
-  character: "wealth-god" | "none";
-  bgGradient: [string, string]; // 漸層起迄色
-  accentColor: string; // 金色等輔助色
-}
-
 // 玩法識別碼
 export type Mechanic = "symbol" | "triple" | "compare" | "bingo";
 
