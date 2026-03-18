@@ -114,7 +114,10 @@ npx vitest run --coverage
 - [ ] 多款式選擇（節慶、生肖等主題）
 - [x] 玩法說明 UI（主持人設定說明 tooltip + 玩家端規則卡）
 - [x] **二次精緻化版型**（完成 ✅ Phase 1–5）：Zone 有機 blob 外形（SVG clip-path polygon）、防偽底紋（對角線波浪紋）、銀色水平漸層刮除層、ScratchCard 標題欄（NT$｜標題｜序號）、Noto Serif TC + 財神圖、內容擾動特效、固定玩法尺寸
-- [ ] **三次視覺優化 v3**（規格文件：`~/.claude/plans/visual-polish-v3.md`）：參考真實彩券重設計——移除祥雲 + 改 CSS 印刷斜線底紋、格子改淺粉底 + 粗紅框 + 大字金額、Symbol 格子 seeded 尺寸差異、Bingo Zone[0] 改預先印刷（不需刮除）
+- [x] **三次視覺優化 v3**（邏輯層完成）：參考真實彩券重設計——CSS 印刷斜線底紋、格子淺粉底 + 粗紅框 + 大字金額、Symbol 格子 seeded 尺寸差異、Bingo Zone[0] 預先印刷
+- [x] **SymbolLayout 全卡重寫**：absolute 定位 + 手機版 344×440 / 桌面版 520×665 雙尺寸、手工格子座標+clip-path、Dela Gothic One 標題字體、裝飾/財神/一鍵刮開完整渲染、ThemeLayoutEntry fullCard 架構
+- [ ] **其餘 3 玩法 Layout**（triple / compare / bingo）
+- [ ] **獎金邏輯改寫**（含標題區 formatMaxPrize 溢出防護）
 
 ### v3.0 — 收尾與穩定化
 

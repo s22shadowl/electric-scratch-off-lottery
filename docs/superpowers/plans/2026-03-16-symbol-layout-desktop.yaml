@@ -22,7 +22,9 @@ prechecks:
       ⚠️ cellsPerZone 非固定值。SymbolOptions.cellsPerZone: number (1–9)。
       但 FEATURES.FIXED_CARD_SIZES=true 時 HostPage 隱藏輸入框，預設 4（FIXED_SIZE_DEFAULTS.cellsPerZone）。
       結論：目前產品行為固定 4 格，但型別允許 1–9。
-      決策：SymbolLayout fullCard 模式只在 cellsPerZone=4 時啟用；非 4 格時走原有 ScratchCard 通用渲染。
+      決策（2026-03-17）：不加守衛，SymbolLayout 硬寫 4 格。
+      理由：FIXED_CARD_SIZES=true 下不可能出現非 4 格；未來開放時再處理。
+      後續：code 加註解提醒、低優先 TODO。
     date: 2026-03-17
 
 file_structure:
@@ -132,8 +134,7 @@ phases:
         files: [src/components/play/ScratchCard.tsx]
         steps:
           - "const entry = getThemeLayout(themeId, mechanic)"
-          - "fullCard 啟用條件：entry.fullCard && cellsPerZone === 4（precheck 結論：非 4 格走原有通用渲染）"
-          - "條件成立 → return <entry.component card/cardTypeConfig/config/maxPrize revealCard={revealCard} />"
+          - "entry.fullCard → return <entry.component card/cardTypeConfig/config/maxPrize revealCard={revealCard} />"
           - "else → const Layout = entry.component; 原有 header/footer 邏輯不變"
           - "fullCard 分支不加 w-full sm:w-fit（SymbolLayout 自己控制寬度）"
           - "npx tsc --noEmit 驗證 PASS"
