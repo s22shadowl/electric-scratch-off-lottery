@@ -74,7 +74,7 @@ npx vitest run --coverage
 
 - [x] 結果總覽頁（所有卡片刮完後自動跳轉，可展開單張詳情）
 - [x] 開獎動畫（依獎項大小分四個等級：無 / 小閃光 / 雙層閃光 / 三層閃光+彈跳）
-- [x] 截圖分享（`html2canvas`，結果頁與單張卡片；行動端 Web Share API）
+- [x] 截圖分享（`html-to-image`，結果頁與單張卡片；行動端 Web Share API）
 - [x] 粒子特效（刮除過程金色粒子飛散，可關閉）
 - [x] 卡片編號（`XXXX-NN` 格式序號，同場牌局共用 session code）
 - [x] 行動裝置優化（iOS / Android，觸控筆刷調整、防頁面誤滾動）
@@ -111,15 +111,23 @@ npx vitest run --coverage
 
 - [x] 美術素材準備：LLM 生成財神、元寶等裝飾圖（確認 prompt 方向、篩選並整理 PNG 資源）
 - [x] 版型精緻化實作：套用素材 + CSS 升級仿真實紙本刮刮樂質感（金屬紋理、浮雕邊框、Serif 字體、安全紋底）
-- [ ] 多款式選擇（節慶、生肖等主題）
 - [x] 玩法說明 UI（主持人設定說明 tooltip + 玩家端規則卡）
 - [x] **二次精緻化版型**（完成 ✅ Phase 1–5）：Zone 有機 blob 外形（SVG clip-path polygon）、防偽底紋（對角線波浪紋）、銀色水平漸層刮除層、ScratchCard 標題欄（NT$｜標題｜序號）、Noto Serif TC + 財神圖、內容擾動特效、固定玩法尺寸
 - [x] **三次視覺優化 v3**（邏輯層完成）：參考真實彩券重設計——CSS 印刷斜線底紋、格子淺粉底 + 粗紅框 + 大字金額、Symbol 格子 seeded 尺寸差異、Bingo Zone[0] 預先印刷
 - [x] **SymbolLayout 全卡重寫**：absolute 定位 + 手機版 344×440 / 桌面版 520×665 雙尺寸、手工格子座標+clip-path、Dela Gothic One 標題字體、裝飾/財神/一鍵刮開完整渲染、ThemeLayoutEntry fullCard 架構
-- [ ] **其餘 3 玩法 Layout**（triple / compare / bingo）
-- [ ] **獎金邏輯改寫**（含標題區 formatMaxPrize 溢出防護）
+- [ ] **獎金邏輯改寫**（含標題區 formatMaxPrize 溢出防護）— 等視覺精緻化完成後處理
 
-### v3.0 — 收尾與穩定化
+### v2.5 — 視覺精緻化
+
+- [ ] 視覺差距檢視：對照設計參考盤點現狀不足處，補充參考圖至 `.claude/design-refs/`，產出具體優化清單
+- [ ] SymbolLayout 持續優化
+- [ ] Triple ThemeLayout（同 SymbolLayout 等級：absolute 定位、雙尺寸、手工座標）
+- [ ] Compare ThemeLayout
+- [ ] Bingo ThemeLayout
+- [ ] PlayPage 全螢幕 overlay + 單卡片切換（行動端 UX）
+- [ ] 多款式選擇（節慶、生肖等主題）
+
+### v3.0 — 收尾與穩定化（nice-to-have）
 
 - [ ] 列印支援（`@media print`）
 - [ ] 鍵盤無障礙（空白鍵 / Enter 直接揭曉）
