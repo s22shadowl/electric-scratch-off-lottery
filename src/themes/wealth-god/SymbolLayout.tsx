@@ -63,7 +63,7 @@ export default function SymbolLayout({
       style={{
         width: L.card.w,
         height: L.card.h,
-        background: "linear-gradient(135deg, #b91c1c, #7f1d1d)",
+        background: L.background,
         backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent ${L.stripe.gap}px, rgba(255,255,255,0.04) ${L.stripe.gap}px, rgba(255,255,255,0.04) ${L.stripe.width}px)`,
         border: `${L.border}px solid #e8b828`,
         position: "relative",
@@ -72,10 +72,20 @@ export default function SymbolLayout({
         fontFamily: "'Dela Gothic One', sans-serif",
       }}
     >
+      {/* ===== 菱形閃光紋理 overlay ===== */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage: L.backgroundOverlay,
+          pointerEvents: "none",
+        }}
+      />
+
       {/* ===== 標題區 ===== */}
       <div
         style={{
-          background: "linear-gradient(180deg, #991b1b, #7f1d1d)",
+          background: L.titleBackground,
           padding: L.titleArea.padding,
           borderBottom: `${L.titleArea.borderBottom}px solid rgba(234,179,8,0.3)`,
         }}
