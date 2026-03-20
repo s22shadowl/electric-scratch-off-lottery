@@ -63,55 +63,8 @@ describe("ScratchCellCanvas", () => {
     expect(screen.queryByLabelText("刮除格 cell-1")).not.toBeInTheDocument();
   });
 
-  it("level 0：未中獎揭曉後不應有 win-flash", () => {
-    const cell = makeCell({
-      isRevealed: true,
-      prize: {
-        id: "p-lose",
-        label: "謝謝",
-        amount: 0,
-        probability: 1,
-        isWin: false,
-      },
-    });
-    render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
-    expect(screen.queryByTestId("win-flash")).not.toBeInTheDocument();
-  });
-
-  it("level 1：小獎（< 10% max）應有 win-flash", () => {
-    // amount=50, maxPrize=1000 → ratio=0.05 → level 1
-    const cell = makeCell({
-      isRevealed: true,
-      prize: {
-        id: "p-small",
-        label: "$50",
-        amount: 50,
-        probability: 1,
-        isWin: true,
-      },
-    });
-    render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
-    expect(screen.getByTestId("win-flash")).toBeInTheDocument();
-  });
-
-  it("level 2：中獎（10–50% max）應有 win-flash", () => {
-    // amount=200, maxPrize=1000 → ratio=0.2 → level 2
-    const cell = makeCell({
-      isRevealed: true,
-      prize: {
-        id: "p-mid",
-        label: "$200",
-        amount: 200,
-        probability: 1,
-        isWin: true,
-      },
-    });
-    render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
-    expect(screen.getByTestId("win-flash")).toBeInTheDocument();
-  });
-
-  it("level 3：大獎（> 50% max）應有 win-flash", () => {
-    // amount=800, maxPrize=1000 → ratio=0.8 → level 3
+  it("揭曉後不應有 win-flash 動畫", () => {
+    // 中獎格揭曉後也不應出現 win-flash
     const cell = makeCell({
       isRevealed: true,
       prize: {
@@ -123,21 +76,6 @@ describe("ScratchCellCanvas", () => {
       },
     });
     render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
-    expect(screen.getByTestId("win-flash")).toBeInTheDocument();
-  });
-
-  it("maxPrize 為 0 時，中獎格 level 應為 0（無 win-flash）", () => {
-    const cell = makeCell({
-      isRevealed: true,
-      prize: {
-        id: "p-win",
-        label: "$100",
-        amount: 100,
-        probability: 1,
-        isWin: true,
-      },
-    });
-    render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={0} />);
     expect(screen.queryByTestId("win-flash")).not.toBeInTheDocument();
   });
 
