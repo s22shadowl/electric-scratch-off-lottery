@@ -63,8 +63,7 @@ export default function SymbolLayout({
       style={{
         width: L.card.w,
         height: L.card.h,
-        background: L.background,
-        backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent ${L.stripe.gap}px, rgba(255,255,255,0.04) ${L.stripe.gap}px, rgba(255,255,255,0.04) ${L.stripe.width}px)`,
+        backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent ${L.stripe.gap}px, rgba(255,255,255,0.06) ${L.stripe.gap}px, rgba(255,255,255,0.06) ${L.stripe.width}px), ${L.background}`,
         border: `${L.border}px solid #e8b828`,
         position: "relative",
         overflow: "hidden",
@@ -85,9 +84,8 @@ export default function SymbolLayout({
       {/* ===== 標題區 ===== */}
       <div
         style={{
-          background: L.titleBackground,
           padding: L.titleArea.padding,
-          borderBottom: `${L.titleArea.borderBottom}px solid rgba(234,179,8,0.3)`,
+          borderBottom: `${L.titleArea.borderBottom}px solid #e8b828`,
         }}
       >
         {/* 上排：價格 + 序號 */}

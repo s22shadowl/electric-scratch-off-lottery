@@ -53,7 +53,6 @@ export interface SymbolLayoutConfig {
   boxShadow: string;
   background: string;
   backgroundOverlay: string;
-  titleBackground: string;
 }
 
 // ── Symbol Mobile (344×440) — from v15 mockup ──────────────────────
@@ -183,7 +182,6 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
   background: "radial-gradient(ellipse at 50% 40%, #f472b6, #db2777, #9d174d)",
   backgroundOverlay:
     "repeating-conic-gradient(rgba(255,255,255,0.06) 0% 25%, transparent 0% 50%) 0 0 / 20px 20px",
-  titleBackground: "linear-gradient(180deg, #be185d, #9d174d)",
 };
 
 // ── Symbol Desktop (520×665) — from desktop-v1 mockup ──────────────
@@ -313,7 +311,6 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
   background: "radial-gradient(ellipse at 50% 40%, #f472b6, #db2777, #9d174d)",
   backgroundOverlay:
     "repeating-conic-gradient(rgba(255,255,255,0.06) 0% 25%, transparent 0% 50%) 0 0 / 30px 30px",
-  titleBackground: "linear-gradient(180deg, #be185d, #9d174d)",
 };
 
 // ── Zone blob 形狀（0-100 坐標，等同百分比） ───────────────────────────────
