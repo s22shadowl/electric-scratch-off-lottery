@@ -50,14 +50,11 @@ export default function SymbolLayout({
   cardTypeConfig,
   config,
   maxPrize,
-  revealCard,
 }: ThemeLayoutProps) {
   const isDesktop = useIsDesktop();
   const L = isDesktop ? SYMBOL_DESKTOP : SYMBOL_MOBILE;
   const cells = card.zones[0]!.cells;
   const cardId = card.id;
-  const isCompleted = card.status === "completed";
-  const hasWinnings = card.totalWinnings > 0;
   const ticketPrice = cardTypeConfig.ticketPrice ?? 100;
 
   return (
@@ -261,55 +258,6 @@ export default function SymbolLayout({
         >
           ▼ 刮出相同符號即中獎
         </span>
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          bottom: L.button.bottom,
-          left: L.button.left,
-        }}
-      >
-        {!isCompleted && (
-          <button
-            type="button"
-            onClick={() => revealCard?.(cardId)}
-            style={{
-              display: "inline-block",
-              padding: L.button.padding,
-              borderRadius: L.button.borderRadius,
-              background: "#facc15",
-              color: "#7f1d1d",
-              fontSize: L.button.fontSize,
-              fontWeight: 700,
-              fontFamily: "'Noto Serif TC', serif",
-              boxShadow: L.button.boxShadow,
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            ⚡ 一鍵刮開
-          </button>
-        )}
-
-        {isCompleted && (
-          <div
-            data-testid="card-result"
-            style={{
-              padding: L.button.padding,
-              borderRadius: L.button.borderRadius,
-              fontSize: L.button.fontSize,
-              fontWeight: 900,
-              fontFamily: "'Noto Serif TC', serif",
-              background: hasWinnings ? "#facc15" : "#7f1d1d",
-              color: hasWinnings ? "#7f1d1d" : "#f87171",
-            }}
-          >
-            {hasWinnings
-              ? `🎉 恭喜中獎 $${card.totalWinnings} 元！`
-              : "謝謝參與"}
-          </div>
-        )}
       </div>
     </article>
   );

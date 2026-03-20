@@ -50,14 +50,6 @@ export interface SymbolLayoutConfig {
     left: number;
     letterSpacing: string;
   };
-  button: {
-    fontSize: number;
-    padding: string;
-    borderRadius: number;
-    bottom: number;
-    left: number;
-    boxShadow: string;
-  };
   boxShadow: string;
 }
 
@@ -183,15 +175,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
     },
   ],
   caishen: { w: 90, h: 100, bottom: -2, right: 4 },
-  helpText: { fontSize: 11, bottom: 48, left: 14, letterSpacing: "1px" },
-  button: {
-    fontSize: 13,
-    padding: "8px 20px",
-    borderRadius: 6,
-    bottom: 10,
-    left: 14,
-    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-  },
+  helpText: { fontSize: 11, bottom: 12, left: 14, letterSpacing: "1px" },
   boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
 };
 
@@ -317,15 +301,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
     },
   ],
   caishen: { w: 136, h: 151, bottom: -3, right: 6 },
-  helpText: { fontSize: 17, bottom: 73, left: 21, letterSpacing: "1.5px" },
-  button: {
-    fontSize: 20,
-    padding: "12px 30px",
-    borderRadius: 9,
-    bottom: 15,
-    left: 21,
-    boxShadow: "0 3px 12px rgba(0,0,0,0.3)",
-  },
+  helpText: { fontSize: 17, bottom: 18, left: 21, letterSpacing: "1.5px" },
   boxShadow: "0 12px 48px rgba(0,0,0,0.5)",
 };
 

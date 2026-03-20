@@ -34,13 +34,39 @@ export default function ScratchCard({ cardId }: Props) {
   if (entry.fullCard) {
     const FullLayout = entry.component;
     return (
-      <FullLayout
-        card={card}
-        cardTypeConfig={cardTypeConfig}
-        config={config}
-        maxPrize={maxPrize}
-        revealCard={revealCard}
-      />
+      <div className="flex flex-col items-center gap-3">
+        <FullLayout
+          card={card}
+          cardTypeConfig={cardTypeConfig}
+          config={config}
+          maxPrize={maxPrize}
+        />
+        {/* 按鈕/結果在卡片外部 */}
+        {!isCompleted && (
+          <button
+            type="button"
+            onClick={() => revealCard(cardId)}
+            className="px-4 py-1.5 rounded-lg bg-yellow-400 text-red-900 text-xs font-bold hover:bg-yellow-300 transition-colors"
+          >
+            ⚡ 一鍵刮開
+          </button>
+        )}
+        {isCompleted && (
+          <div
+            data-testid="card-result"
+            className={[
+              "py-2 px-4 rounded-xl font-black text-sm",
+              hasWinnings
+                ? "bg-yellow-400 text-red-900"
+                : "bg-red-900 text-red-400",
+            ].join(" ")}
+          >
+            {hasWinnings
+              ? `🎉 恭喜中獎 $${card.totalWinnings} 元！`
+              : "謝謝參與"}
+          </div>
+        )}
+      </div>
     );
   }
 
