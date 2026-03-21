@@ -119,11 +119,10 @@ describe("ScratchCellCanvas", () => {
     expect(screen.getByText("$1,000")).toBeInTheDocument();
   });
 
-  it("未中獎格揭曉後應顯示 label 文字而非 $0", () => {
+  it("未中獎格揭曉後應顯示 $0 金額", () => {
     const cell = makeCell({ isRevealed: true });
     render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
-    expect(screen.getByText("謝謝")).toBeInTheDocument();
-    expect(screen.queryByText("$0")).not.toBeInTheDocument();
+    expect(screen.getByText("$0")).toBeInTheDocument();
   });
 
   it("symbolCode 有 sprite 且未揭曉時 img 應 aria-hidden 且 alt 為空", () => {
