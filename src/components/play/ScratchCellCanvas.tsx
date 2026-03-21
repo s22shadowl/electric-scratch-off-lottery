@@ -25,20 +25,31 @@ function formatAmountAbbr(amount: number): string {
   return String(amount);
 }
 
-// 安全底紋 SVG — e-lottery 文字以 -20° 重複排列
-const CELL_BG_SVG = btoa(
+// 安全底紋 SVG — 波浪紋路兩組（紅/粉）+ e-lottery 文字
+const CELL_BG_WAVE_A = btoa(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="10">' +
+    '<path d="M0 5 Q5 1 10 5 Q15 9 20 5 Q25 1 30 5 Q35 9 40 5" fill="none" stroke="rgba(180,60,80,0.10)" stroke-width="1"/>' +
+    "</svg>",
+);
+const CELL_BG_WAVE_B = btoa(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="10">' +
+    '<path d="M0 5 Q5 9 10 5 Q15 1 20 5 Q25 9 30 5 Q35 1 40 5" fill="none" stroke="rgba(220,100,130,0.07)" stroke-width="1"/>' +
+    "</svg>",
+);
+const CELL_BG_TEXT = btoa(
   '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="32">' +
-    '<text x="2" y="22" font-size="7" fill="rgba(180,60,80,0.10)" font-family="monospace" transform="rotate(-20 32 16)">e-lottery</text>' +
+    '<text x="2" y="22" font-size="7" fill="rgba(180,60,80,0.09)" font-family="monospace" transform="rotate(-20 32 16)">e-lottery</text>' +
     "</svg>",
 );
 const CELL_BG_STYLE: React.CSSProperties = {
   backgroundColor: "#fdf0f4",
   backgroundImage: [
-    `url("data:image/svg+xml;base64,${CELL_BG_SVG}")`,
-    "repeating-linear-gradient(30deg, transparent, transparent 3px, rgba(180,60,80,0.06) 3px, rgba(180,60,80,0.06) 3.5px)",
-    "repeating-linear-gradient(150deg, transparent, transparent 3px, rgba(180,60,80,0.04) 3px, rgba(180,60,80,0.04) 3.5px)",
+    `url("data:image/svg+xml;base64,${CELL_BG_TEXT}")`,
+    `url("data:image/svg+xml;base64,${CELL_BG_WAVE_A}")`,
+    `url("data:image/svg+xml;base64,${CELL_BG_WAVE_B}")`,
   ].join(", "),
-  backgroundSize: "64px 32px, auto, auto",
+  backgroundSize: "64px 32px, 40px 10px, 40px 10px",
+  backgroundPosition: "0 0, 0 0, 20px 5px",
 };
 
 interface Props {
@@ -54,9 +65,11 @@ interface Props {
 function CellContent({
   isNumberCell,
   cell,
+  contentInset,
 }: {
   isNumberCell: boolean;
   cell: ScratchCell;
+  contentInset?: { top: string; right: string; bottom: string; left: string };
 }) {
   // compare 玩法：數字格（保持不變）
   if (isNumberCell) {
@@ -80,15 +93,21 @@ function CellContent({
       {/* 幸運符號區（左 38%） */}
       <div
         className="flex flex-col items-center justify-center gap-0.5"
-        style={{ flex: "0 0 38%", minWidth: 0 }}
+        style={{
+          flex: "0 0 38%",
+          minWidth: 0,
+          paddingTop: contentInset?.top,
+          paddingBottom: contentInset?.bottom,
+          paddingLeft: contentInset?.left,
+        }}
       >
         {symbol?.spriteFile && (
           <img
             src={symbol.spriteFile}
             alt={cell.isRevealed ? (symbol.spriteLabel ?? symbol.label) : ""}
             aria-hidden={!cell.isRevealed || undefined}
-            width={20}
-            height={20}
+            width={30}
+            height={30}
             className="object-contain shrink-0"
             style={{ filter: "brightness(0)" }}
           />
@@ -101,6 +120,9 @@ function CellContent({
             color: "#000",
             letterSpacing: "0.04em",
             lineHeight: 1,
+            fontStyle: "italic",
+            transform: "scaleX(0.78)",
+            display: "inline-block",
           }}
         >
           {abbr}
@@ -121,15 +143,22 @@ function CellContent({
       {/* 您的符號區（右 62%） */}
       <div
         className="flex flex-col items-center justify-center"
-        style={{ flex: "1 1 0", minWidth: 0, gap: 1 }}
+        style={{
+          flex: "1 1 0",
+          minWidth: 0,
+          gap: 1,
+          paddingTop: contentInset?.top,
+          paddingBottom: contentInset?.bottom,
+          paddingRight: contentInset?.right,
+        }}
       >
         {symbol?.spriteFile && (
           <img
             src={symbol.spriteFile}
             alt=""
             aria-hidden="true"
-            width={22}
-            height={22}
+            width={33}
+            height={33}
             className="object-contain shrink-0"
             style={{ filter: "brightness(0)" }}
           />
@@ -142,6 +171,9 @@ function CellContent({
             color: "#000",
             letterSpacing: "0.04em",
             lineHeight: 1,
+            fontStyle: "italic",
+            transform: "scaleX(0.78)",
+            display: "inline-block",
           }}
         >
           {abbr}
@@ -153,6 +185,9 @@ function CellContent({
             fontWeight: 600,
             color: "#000",
             lineHeight: 1.1,
+            fontStyle: "italic",
+            transform: "scaleX(0.78)",
+            display: "inline-block",
           }}
         >
           ${amount.toLocaleString()}
@@ -220,13 +255,14 @@ export default function ScratchCellCanvas({
         style={{
           ...CELL_BG_STYLE,
           alignItems: "stretch",
-          padding: contentInset
-            ? `${contentInset.top} ${contentInset.right} ${contentInset.bottom} ${contentInset.left}`
-            : undefined,
         }}
       >
         <div className="flex-1 min-w-0 min-h-0">
-          <CellContent isNumberCell={isNumberCell} cell={cell} />
+          <CellContent
+            isNumberCell={isNumberCell}
+            cell={cell}
+            contentInset={contentInset}
+          />
         </div>
       </div>
 
