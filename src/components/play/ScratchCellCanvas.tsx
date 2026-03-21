@@ -38,7 +38,7 @@ const CELL_BG_WAVE_B = btoa(
 );
 const CELL_BG_TEXT = btoa(
   '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="32">' +
-    '<text x="2" y="22" font-size="7" fill="rgba(180,60,80,0.28)" font-family="monospace" transform="rotate(-20 32 16)">e-lottery</text>' +
+    '<text x="2" y="22" font-size="7" fill="rgba(180,60,80,0.5)" font-family="monospace" transform="rotate(-20 32 16)">e-lottery</text>' +
     "</svg>",
 );
 const CELL_BG_STYLE: React.CSSProperties = {
@@ -123,6 +123,7 @@ function CellContent({
             fontStyle: "italic",
             transform: "scaleX(0.78)",
             display: "inline-block",
+            marginTop: -2,
           }}
         >
           {abbr}
@@ -174,6 +175,7 @@ function CellContent({
             fontStyle: "italic",
             transform: "scaleX(0.78)",
             display: "inline-block",
+            marginTop: -2,
           }}
         >
           {abbr}

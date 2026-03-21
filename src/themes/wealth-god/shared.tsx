@@ -109,7 +109,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
     {
       w: 140,
       h: 88,
-      bottom: 47,
+      bottom: 57,
       left: 172,
       rotation: "-1deg",
       clipPath:
@@ -186,7 +186,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
       rotation: "rotate(-5deg)",
     },
   ],
-  caishen: { w: 143, h: 160, bottom: -12, right: -5 },
+  caishen: { w: 143, h: 160, bottom: -20, right: -5 },
   helpText: { fontSize: 11, bottom: 12, left: 14, letterSpacing: "1px" },
   prizeBadge: {
     fontSize: 29,
@@ -251,7 +251,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
     {
       w: 211,
       h: 133,
-      bottom: 48,
+      bottom: 58,
       left: 260,
       rotation: "-1deg",
       clipPath:
@@ -328,7 +328,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
       rotation: "rotate(-5deg)",
     },
   ],
-  caishen: { w: 215, h: 240, bottom: -12, right: -8 },
+  caishen: { w: 215, h: 240, bottom: -20, right: -8 },
   helpText: { fontSize: 17, bottom: 18, left: 21, letterSpacing: "1.5px" },
   prizeBadge: {
     fontSize: 40,

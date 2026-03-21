@@ -14,6 +14,20 @@ function formatMaxPrize(amount: number): string {
   return String(amount);
 }
 
+function clipPathToSvgPoints(clipPath: string, w: number, h: number): string {
+  const match = clipPath.match(/polygon\((.+)\)/);
+  if (!match) return "";
+  return match[1]
+    .split(",")
+    .map((pair) => {
+      const parts = pair.trim().split(/\s+/);
+      const x = (parseFloat(parts[0]) / 100) * w;
+      const y = (parseFloat(parts[1]) / 100) * h;
+      return `${x},${y}`;
+    })
+    .join(" ");
+}
+
 function cellStyle(slot: CellSlot): React.CSSProperties {
   return {
     position: "absolute",
@@ -25,8 +39,7 @@ function cellStyle(slot: CellSlot): React.CSSProperties {
     ...(slot.right != null && { right: slot.right }),
     transform: `rotate(${slot.rotation})`,
     clipPath: slot.clipPath,
-    filter:
-      "drop-shadow(2px 0 0 #dc2626) drop-shadow(-2px 0 0 #dc2626) drop-shadow(0 2px 0 #dc2626) drop-shadow(0 -2px 0 #dc2626)",
+    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
   };
 }
 
@@ -89,7 +102,7 @@ export default function SymbolLayout({
           position: "absolute",
           top: 0,
           right: 0,
-          background: "#dc2626",
+          background: "#b91c1c",
           borderLeft: `${L.border}px solid #e8b828`,
           borderBottom: `${L.border}px solid #e8b828`,
           borderBottomLeftRadius: L.serial.borderRadius + 2,
@@ -149,9 +162,11 @@ export default function SymbolLayout({
                 fontSize: L.title.caishen,
                 letterSpacing: L.title.letterSpacing,
                 lineHeight: 1,
-                WebkitTextStroke: `${L.textStroke} #dc2626`,
+                WebkitTextStroke: `${L.textStroke} #991b1b`,
                 textShadow: L.titleShadow,
                 paintOrder: "stroke fill",
+                position: "relative",
+                top: -6,
               } as React.CSSProperties
             }
           >
@@ -172,11 +187,11 @@ export default function SymbolLayout({
           fontFamily: "'Dela Gothic One', sans-serif",
           fontWeight: 900,
           minWidth: isDesktop ? 232 : 155,
-          textShadow: "1px 1px 0 rgba(0,0,0,0.8)",
-          lineHeight: 1,
+          lineHeight: 1.2,
           whiteSpace: "nowrap",
           textAlign: "center",
           width: isDesktop ? 240 : 156,
+          paddingLeft: 12,
         }}
       >
         頭獎 {formatMaxPrize(maxPrize)} 元
@@ -197,7 +212,6 @@ export default function SymbolLayout({
               borderRadius: isDesktop ? 4 : 3,
               transform: d.rotation,
               opacity: d.opacity,
-              border: `${isDesktop ? 1.5 : 1}px solid #92400e`,
             }}
           />
         ) : (
@@ -220,8 +234,8 @@ export default function SymbolLayout({
         {L.cells.map((slot, i) => {
           const cell = cells[i];
           if (!cell) return null;
-          return (
-            <div key={cell.id} style={cellStyle(slot)}>
+          return [
+            <div key={`c-${cell.id}`} style={cellStyle(slot)}>
               <ScratchCellCanvas
                 cell={cell}
                 cardId={cardId}
@@ -230,8 +244,31 @@ export default function SymbolLayout({
                 height={slot.h}
                 contentInset={slot.contentInset}
               />
-            </div>
-          );
+            </div>,
+            <svg
+              key={`b-${cell.id}`}
+              style={{
+                position: "absolute",
+                ...(slot.top != null && { top: slot.top }),
+                ...(slot.bottom != null && { bottom: slot.bottom }),
+                ...(slot.left != null && { left: slot.left }),
+                ...(slot.right != null && { right: slot.right }),
+                width: slot.w,
+                height: slot.h,
+                overflow: "visible",
+                zIndex: 10,
+                pointerEvents: "none" as const,
+                transform: `rotate(${slot.rotation})`,
+              }}
+            >
+              <polygon
+                points={clipPathToSvgPoints(slot.clipPath, slot.w, slot.h)}
+                fill="none"
+                stroke="#dc2626"
+                strokeWidth="4"
+              />
+            </svg>,
+          ];
         })}
       </div>
 
