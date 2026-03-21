@@ -70,13 +70,13 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
   price: { fontSize: 18, border: 1.5, padding: "1px 6px" },
   serial: { fontSize: 13, padding: "2px 8px", borderRadius: 2 },
   textStroke: "1px",
-  container: { top: 118, bottom: 75 },
+  container: { top: 85, bottom: 75 },
   cells: [
     // 元寶 yuanbao (top-left): wide flat base, two upturned wings at top
     {
       w: 140,
       h: 92,
-      top: 6,
+      top: 4,
       left: 16,
       rotation: "-2deg",
       clipPath:
@@ -85,8 +85,8 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
     // 銅錢 copper coin (top-right): circle approximated with 20 vertices
     {
       w: 135,
-      h: 92,
-      top: 6,
+      h: 88,
+      top: 4,
       right: 16,
       rotation: "1deg",
       clipPath:
@@ -105,8 +105,8 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
     // 福袋 lucky bag (bottom-right): rounded bottom, cinched top with tied knot
     {
       w: 140,
-      h: 95,
-      bottom: 2,
+      h: 88,
+      top: 122,
       left: 172,
       rotation: "-1deg",
       clipPath:
@@ -210,7 +210,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
   price: { fontSize: 27, border: 2, padding: "1.5px 9px" },
   serial: { fontSize: 20, padding: "3px 12px", borderRadius: 3 },
   textStroke: "1.5px",
-  container: { top: 178, bottom: 114 },
+  container: { top: 130, bottom: 114 },
   cells: [
     // 元寶 yuanbao (top-left)
     {
@@ -225,8 +225,8 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
     // 銅錢 copper coin (top-right)
     {
       w: 204,
-      h: 139,
-      top: 9,
+      h: 133,
+      top: 6,
       right: 24,
       rotation: "1deg",
       clipPath:
@@ -245,8 +245,8 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
     // 福袋 lucky bag (bottom-right)
     {
       w: 211,
-      h: 143,
-      bottom: 3,
+      h: 133,
+      top: 186,
       left: 260,
       rotation: "-1deg",
       clipPath:

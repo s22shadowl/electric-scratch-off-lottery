@@ -1,6 +1,6 @@
 import ScratchCellCanvas from "@/components/play/ScratchCellCanvas";
 import caishenUrl from "@/assets/mascot/caishen.png";
-import type { ThemeLayoutProps } from "@/types";
+import type { ThemeLayoutProps, SymbolOptions } from "@/types";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import {
   SYMBOL_MOBILE,
@@ -233,7 +233,7 @@ export default function SymbolLayout({
         />
       </div>
 
-      {/* ===== 底部：說明 + 按鈕/結果 ===== */}
+      {/* ===== 底部說明 ===== */}
       <div
         style={{
           position: "absolute",
@@ -241,24 +241,31 @@ export default function SymbolLayout({
           left: L.helpText.left,
         }}
       >
-        <span
-          style={{
-            color: "rgba(250,204,21,0.7)",
-            fontSize: L.helpText.fontSize,
-            letterSpacing: L.helpText.letterSpacing,
-            fontFamily: "system-ui, sans-serif",
-          }}
-        >
-          ▼ 刮出相同符號即中獎
-        </span>
         <p
           style={{
-            fontSize: L.helpText.fontSize * 0.9,
+            fontSize: L.helpText.fontSize,
+            fontFamily: "monospace",
             color: "rgba(255,255,200,0.85)",
+            letterSpacing: L.helpText.letterSpacing,
+            margin: 0,
+            lineHeight: 1.5,
           }}
         >
-          高達 {cardTypeConfig.zonesPerCard * cardTypeConfig.cellsPerZone}{" "}
-          次中獎機會
+          刮出相同符號即中獎 ▲
+        </p>
+        <p
+          style={{
+            fontSize: L.helpText.fontSize,
+            fontFamily: "monospace",
+            color: "rgba(255,255,200,0.85)",
+            letterSpacing: L.helpText.letterSpacing,
+            margin: 0,
+            lineHeight: 1.5,
+          }}
+        >
+          高達{" "}
+          {(cardTypeConfig.mechanicOptions as SymbolOptions).cellsPerZone ?? 4}{" "}
+          次機會
         </p>
       </div>
     </article>
