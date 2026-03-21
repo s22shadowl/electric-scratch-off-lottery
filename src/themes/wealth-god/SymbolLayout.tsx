@@ -97,14 +97,13 @@ export default function SymbolLayout({
           }}
         >
           <span
+            className="inline-block bg-yellow-300 text-red-900 font-black rounded-md"
             style={
               {
-                color: "#facc15",
                 fontSize: L.price.fontSize,
-                WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.5)`,
-                textShadow: "1px 1px 3px rgba(0,0,0,0.6)",
-                border: `${L.price.border}px solid #e8b828`,
                 padding: L.price.padding,
+                transform: "rotate(-2deg)",
+                display: "inline-block",
               } as React.CSSProperties
             }
           >
@@ -146,33 +145,9 @@ export default function SymbolLayout({
             財神報到
           </span>
           <div
-            style={{ lineHeight: 1, display: "flex", alignItems: "baseline" }}
+            className={`inline-flex items-center gap-1 rounded-lg bg-yellow-400 text-red-900 font-black border-2 border-red-900/30 shadow-md ${L.prizeBadge.fontSize} ${L.prizeBadge.padding}`}
           >
-            <span
-              style={
-                {
-                  color: "#facc15",
-                  fontSize: L.title.prize,
-                  WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
-                  textShadow: L.prizeShadow,
-                } as React.CSSProperties
-              }
-            >
-              頭獎
-            </span>
-            <span
-              style={
-                {
-                  color: "#facc15",
-                  fontSize: L.title.prize,
-                  WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
-                  textShadow: L.prizeShadow,
-                  margin: isDesktop ? "0 6px" : "0 4px",
-                } as React.CSSProperties
-              }
-            >
-              {formatMaxPrize(maxPrize)}
-            </span>
+            🏆 頭獎 {formatMaxPrize(maxPrize)} 元
           </div>
         </div>
       </div>

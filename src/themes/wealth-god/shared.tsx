@@ -50,6 +50,7 @@ export interface SymbolLayoutConfig {
     left: number;
     letterSpacing: string;
   };
+  prizeBadge: { fontSize: string; padding: string };
   boxShadow: string;
   background: string;
   backgroundOverlay: string;
@@ -63,11 +64,12 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
   stripe: { gap: 10, width: 12 },
   titleArea: { padding: "6px 8px", borderBottom: 2 },
   title: { caishen: 28, prize: 38, letterSpacing: "1px" },
-  titleShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 20px rgba(255,200,50,0.15)",
+  titleShadow:
+    "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 20px rgba(255,200,50,0.3)",
   prizeShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 24px rgba(255,200,50,0.2)",
   price: { fontSize: 18, border: 1.5, padding: "1px 6px" },
   serial: { fontSize: 13, padding: "2px 8px", borderRadius: 2 },
-  textStroke: "0.5px",
+  textStroke: "1px",
   container: { top: 118, bottom: 95 },
   cells: [
     // 元寶 yuanbao (top-left): wide flat base, two upturned wings at top
@@ -182,6 +184,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
   ],
   caishen: { w: 90, h: 100, bottom: -2, right: 4 },
   helpText: { fontSize: 11, bottom: 12, left: 14, letterSpacing: "1px" },
+  prizeBadge: { fontSize: "text-lg", padding: "px-3 py-1" },
   boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
   background: "radial-gradient(ellipse at 50% 40%, #f472b6, #db2777, #9d174d)",
   backgroundOverlay:
@@ -196,11 +199,12 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
   stripe: { gap: 15, width: 18 },
   titleArea: { padding: "9px 12px", borderBottom: 3 },
   title: { caishen: 42, prize: 57, letterSpacing: "1.5px" },
-  titleShadow: "3px 3px 0 rgba(0,0,0,0.4), 0 0 30px rgba(255,200,50,0.15)",
+  titleShadow:
+    "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 20px rgba(255,200,50,0.3)",
   prizeShadow: "3px 3px 0 rgba(0,0,0,0.4), 0 0 36px rgba(255,200,50,0.2)",
   price: { fontSize: 27, border: 2, padding: "1.5px 9px" },
   serial: { fontSize: 20, padding: "3px 12px", borderRadius: 3 },
-  textStroke: "0.75px",
+  textStroke: "1.5px",
   container: { top: 178, bottom: 144 },
   cells: [
     // 元寶 yuanbao (top-left)
@@ -315,6 +319,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
   ],
   caishen: { w: 136, h: 151, bottom: -3, right: 6 },
   helpText: { fontSize: 17, bottom: 18, left: 21, letterSpacing: "1.5px" },
+  prizeBadge: { fontSize: "text-2xl", padding: "px-5 py-1.5" },
   boxShadow: "0 12px 48px rgba(0,0,0,0.5)",
   background: "radial-gradient(ellipse at 50% 40%, #f472b6, #db2777, #9d174d)",
   backgroundOverlay:
