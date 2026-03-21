@@ -50,7 +50,7 @@ export interface SymbolLayoutConfig {
     left: number;
     letterSpacing: string;
   };
-  prizeBadge: { fontSize: string; padding: string };
+  prizeBadge: { fontSize: string; padding: string; top: number; left: number };
   boxShadow: string;
   background: string;
   backgroundOverlay: string;
@@ -184,7 +184,12 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
   ],
   caishen: { w: 130, h: 145, bottom: -5, right: -5 },
   helpText: { fontSize: 11, bottom: 12, left: 14, letterSpacing: "1px" },
-  prizeBadge: { fontSize: "text-lg", padding: "px-3 py-1" },
+  prizeBadge: {
+    fontSize: "text-sm",
+    padding: "px-2 py-0.5",
+    top: 72,
+    left: 10,
+  },
   boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
   background: "radial-gradient(ellipse at 50% 40%, #f472b6, #db2777, #9d174d)",
   backgroundOverlay:
@@ -319,7 +324,12 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
   ],
   caishen: { w: 195, h: 218, bottom: -8, right: -8 },
   helpText: { fontSize: 17, bottom: 18, left: 21, letterSpacing: "1.5px" },
-  prizeBadge: { fontSize: "text-2xl", padding: "px-5 py-1.5" },
+  prizeBadge: {
+    fontSize: "text-base",
+    padding: "px-3 py-1",
+    top: 108,
+    left: 15,
+  },
   boxShadow: "0 12px 48px rgba(0,0,0,0.5)",
   background: "radial-gradient(ellipse at 50% 40%, #f472b6, #db2777, #9d174d)",
   backgroundOverlay:

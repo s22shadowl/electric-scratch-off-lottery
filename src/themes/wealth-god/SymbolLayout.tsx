@@ -81,6 +81,27 @@ export default function SymbolLayout({
         }}
       />
 
+      {/* ===== 序號（右上角貼邊） ===== */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          background: "rgba(5,0,0,0.88)",
+          borderLeft: `${L.border}px solid #e8b828`,
+          borderBottom: `${L.border}px solid #e8b828`,
+          borderBottomLeftRadius: L.serial.borderRadius + 2,
+          padding: L.serial.padding,
+          fontSize: L.serial.fontSize,
+          color: "#facc15",
+          fontFamily: "monospace",
+          lineHeight: 1.3,
+          zIndex: 3,
+        }}
+      >
+        {card.serialNumber}
+      </div>
+
       {/* ===== 標題區 ===== */}
       <div
         style={{
@@ -88,11 +109,10 @@ export default function SymbolLayout({
           borderBottom: `${L.titleArea.borderBottom}px solid #e8b828`,
         }}
       >
-        {/* 上排：價格 + 序號 */}
+        {/* 上排：價格貼紙 */}
         <div
           style={{
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
           }}
         >
@@ -102,34 +122,16 @@ export default function SymbolLayout({
               {
                 fontSize: L.price.fontSize,
                 padding: L.price.padding,
-                transform: "rotate(-2deg)",
+                transform: "rotate(-5deg)",
                 display: "inline-block",
               } as React.CSSProperties
             }
           >
             NT${ticketPrice.toLocaleString()}
           </span>
-          <span
-            style={{
-              color: "rgba(250,204,21,0.7)",
-              fontSize: L.serial.fontSize,
-              fontFamily: "monospace",
-              background: "rgba(0,0,0,0.2)",
-              padding: L.serial.padding,
-              borderRadius: L.serial.borderRadius,
-            }}
-          >
-            {card.serialNumber}
-          </span>
         </div>
-        {/* 下排：財神報到 + 頭獎N萬 */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-          }}
-        >
+        {/* 下排：僅財神報到大字 */}
+        <div style={{ display: "flex", alignItems: "flex-end" }}>
           <span
             style={
               {
@@ -144,12 +146,20 @@ export default function SymbolLayout({
           >
             財神報到
           </span>
-          <div
-            className={`inline-flex items-center gap-1 rounded-lg bg-yellow-400 text-red-900 font-black border-2 border-red-900/30 shadow-md ${L.prizeBadge.fontSize} ${L.prizeBadge.padding}`}
-          >
-            🏆 頭獎 {formatMaxPrize(maxPrize)} 元
-          </div>
         </div>
+      </div>
+
+      {/* ===== 頭獎 Badge（標題分隔線下方） ===== */}
+      <div
+        className={`inline-flex items-center gap-1 rounded-lg bg-yellow-400 text-red-900 font-black border-2 border-red-900/30 shadow-md ${L.prizeBadge.fontSize} ${L.prizeBadge.padding}`}
+        style={{
+          position: "absolute",
+          top: L.prizeBadge.top,
+          left: L.prizeBadge.left,
+          zIndex: 2,
+        }}
+      >
+        🏆 頭獎 {formatMaxPrize(maxPrize)} 元
       </div>
 
       {/* ===== 裝飾 ===== */}
