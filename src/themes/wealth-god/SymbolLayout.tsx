@@ -25,7 +25,8 @@ function cellStyle(slot: CellSlot): React.CSSProperties {
     ...(slot.right != null && { right: slot.right }),
     transform: `rotate(${slot.rotation})`,
     clipPath: slot.clipPath,
-    filter: "drop-shadow(0 0 2.5px rgba(218,164,40,0.9))",
+    filter:
+      "drop-shadow(2px 0 0 #dc2626) drop-shadow(-2px 0 0 #dc2626) drop-shadow(0 2px 0 #dc2626) drop-shadow(0 -2px 0 #dc2626)",
   };
 }
 
@@ -88,7 +89,7 @@ export default function SymbolLayout({
           position: "absolute",
           top: 0,
           right: 0,
-          background: "#b91c1c",
+          background: "#dc2626",
           borderLeft: `${L.border}px solid #e8b828`,
           borderBottom: `${L.border}px solid #e8b828`,
           borderBottomLeftRadius: L.serial.borderRadius + 2,
@@ -125,7 +126,7 @@ export default function SymbolLayout({
                 padding: L.price.padding,
                 transform: "rotate(-8deg)",
                 display: "inline-block",
-                color: "#b91c1c",
+                color: "#dc2626",
                 marginTop: 5,
               } as React.CSSProperties
             }
@@ -148,7 +149,7 @@ export default function SymbolLayout({
                 fontSize: L.title.caishen,
                 letterSpacing: L.title.letterSpacing,
                 lineHeight: 1,
-                WebkitTextStroke: `${L.textStroke} #b91c1c`,
+                WebkitTextStroke: `${L.textStroke} #dc2626`,
                 textShadow: L.titleShadow,
                 paintOrder: "stroke fill",
               } as React.CSSProperties
@@ -171,10 +172,11 @@ export default function SymbolLayout({
           fontFamily: "'Dela Gothic One', sans-serif",
           fontWeight: 900,
           minWidth: isDesktop ? 232 : 155,
-          textShadow:
-            "1px 1px 0 rgba(0,0,0,0.8), 0 0 12px rgba(255,200,50,0.5)",
+          textShadow: "1px 1px 0 rgba(0,0,0,0.8)",
           lineHeight: 1,
           whiteSpace: "nowrap",
+          textAlign: "center",
+          width: isDesktop ? 240 : 156,
         }}
       >
         頭獎 {formatMaxPrize(maxPrize)} 元

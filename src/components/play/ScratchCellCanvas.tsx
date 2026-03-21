@@ -38,7 +38,7 @@ const CELL_BG_WAVE_B = btoa(
 );
 const CELL_BG_TEXT = btoa(
   '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="32">' +
-    '<text x="2" y="22" font-size="7" fill="rgba(180,60,80,0.09)" font-family="monospace" transform="rotate(-20 32 16)">e-lottery</text>' +
+    '<text x="2" y="22" font-size="7" fill="rgba(180,60,80,0.28)" font-family="monospace" transform="rotate(-20 32 16)">e-lottery</text>' +
     "</svg>",
 );
 const CELL_BG_STYLE: React.CSSProperties = {
@@ -247,7 +247,7 @@ export default function ScratchCellCanvas({
     <div
       data-testid={`scratch-cell-${cell.id}`}
       className="relative rounded-lg overflow-hidden select-none"
-      style={{ width, height, border: "2px solid #b91c1c" }}
+      style={{ width, height }}
     >
       {/* 底層：獎項內容 */}
       <div
