@@ -88,13 +88,13 @@ export default function SymbolLayout({
           position: "absolute",
           top: 0,
           right: 0,
-          background: "#e8b828",
+          background: "#b91c1c",
           borderLeft: `${L.border}px solid #e8b828`,
           borderBottom: `${L.border}px solid #e8b828`,
           borderBottomLeftRadius: L.serial.borderRadius + 2,
           padding: L.serial.padding,
           fontSize: L.serial.fontSize,
-          color: "#7f1d1d",
+          color: "#facc15",
           fontFamily: "monospace",
           lineHeight: 1.3,
           zIndex: 3,
@@ -148,8 +148,9 @@ export default function SymbolLayout({
                 fontSize: L.title.caishen,
                 letterSpacing: L.title.letterSpacing,
                 lineHeight: 1,
-                WebkitTextStroke: `${L.textStroke} rgba(120,30,10,0.4)`,
+                WebkitTextStroke: `${L.textStroke} #b91c1c`,
                 textShadow: L.titleShadow,
+                paintOrder: "stroke fill",
               } as React.CSSProperties
             }
           >
@@ -176,7 +177,7 @@ export default function SymbolLayout({
           whiteSpace: "nowrap",
         }}
       >
-        🏆 頭獎 {formatMaxPrize(maxPrize)} 元
+        頭獎 {formatMaxPrize(maxPrize)} 元
       </div>
 
       {/* ===== 裝飾 ===== */}
@@ -247,10 +248,10 @@ export default function SymbolLayout({
           alt=""
           aria-hidden="true"
           style={{
+            position: "absolute",
+            bottom: 0,
             width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            objectPosition: "bottom center",
+            height: "auto",
           }}
         />
       </div>

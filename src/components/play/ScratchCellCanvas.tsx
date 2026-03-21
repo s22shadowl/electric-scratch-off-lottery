@@ -28,12 +28,12 @@ function formatAmountAbbr(amount: number): string {
 // 安全底紋 SVG — 波浪紋路兩組（紅/粉）+ e-lottery 文字
 const CELL_BG_WAVE_A = btoa(
   '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="10">' +
-    '<path d="M0 5 Q5 1 10 5 Q15 9 20 5 Q25 1 30 5 Q35 9 40 5" fill="none" stroke="rgba(180,60,80,0.10)" stroke-width="1"/>' +
+    '<path d="M0 5 Q5 1 10 5 Q15 9 20 5 Q25 1 30 5 Q35 9 40 5" fill="none" stroke="rgba(160,20,50,0.28)" stroke-width="1.5"/>' +
     "</svg>",
 );
 const CELL_BG_WAVE_B = btoa(
   '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="10">' +
-    '<path d="M0 5 Q5 9 10 5 Q15 1 20 5 Q25 9 30 5 Q35 1 40 5" fill="none" stroke="rgba(220,100,130,0.07)" stroke-width="1"/>' +
+    '<path d="M0 5 Q5 9 10 5 Q15 1 20 5 Q25 9 30 5 Q35 1 40 5" fill="none" stroke="rgba(240,140,160,0.18)" stroke-width="1.5"/>' +
     "</svg>",
 );
 const CELL_BG_TEXT = btoa(
@@ -106,15 +106,15 @@ function CellContent({
             src={symbol.spriteFile}
             alt={cell.isRevealed ? (symbol.spriteLabel ?? symbol.label) : ""}
             aria-hidden={!cell.isRevealed || undefined}
-            width={30}
-            height={30}
+            width={38}
+            height={38}
             className="object-contain shrink-0"
             style={{ filter: "brightness(0)" }}
           />
         )}
         <span
           style={{
-            fontSize: 9,
+            fontSize: 11,
             fontFamily: "monospace",
             fontWeight: 500,
             color: "#000",
@@ -157,15 +157,15 @@ function CellContent({
             src={symbol.spriteFile}
             alt=""
             aria-hidden="true"
-            width={33}
-            height={33}
+            width={41}
+            height={41}
             className="object-contain shrink-0"
             style={{ filter: "brightness(0)" }}
           />
         )}
         <span
           style={{
-            fontSize: 9,
+            fontSize: 11,
             fontFamily: "monospace",
             fontWeight: 500,
             color: "#000",
@@ -180,7 +180,7 @@ function CellContent({
         </span>
         <span
           style={{
-            fontSize: 14,
+            fontSize: 18,
             fontFamily: "monospace",
             fontWeight: 600,
             color: "#000",
@@ -194,7 +194,7 @@ function CellContent({
         </span>
         <span
           style={{
-            fontSize: 8,
+            fontSize: 10,
             fontFamily: "monospace",
             fontWeight: 400,
             color: "#444",
@@ -247,7 +247,7 @@ export default function ScratchCellCanvas({
     <div
       data-testid={`scratch-cell-${cell.id}`}
       className="relative rounded-lg overflow-hidden select-none"
-      style={{ width, height }}
+      style={{ width, height, border: "2px solid #b91c1c" }}
     >
       {/* 底層：獎項內容 */}
       <div

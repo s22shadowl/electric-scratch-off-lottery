@@ -64,13 +64,12 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
   border: 4,
   stripe: { gap: 10, width: 12 },
   titleArea: { padding: "6px 8px", borderBottom: 2 },
-  title: { caishen: 43, prize: 38, letterSpacing: "1px" },
-  titleShadow:
-    "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 10px rgba(255,220,80,0.9), 0 0 24px rgba(255,200,50,0.7), 0 0 48px rgba(255,150,30,0.4), 0 0 80px rgba(255,120,20,0.2)",
+  title: { caishen: 43, prize: 38, letterSpacing: "4px" },
+  titleShadow: "1px 1px 2px rgba(0,0,0,0.9)",
   prizeShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 24px rgba(255,200,50,0.2)",
   price: { fontSize: 18, border: 1.5, padding: "1px 6px" },
   serial: { fontSize: 13, padding: "2px 8px", borderRadius: 2 },
-  textStroke: "1px",
+  textStroke: "4px",
   container: { top: 85, bottom: 75 },
   cells: [
     // 元寶 yuanbao (top-left): wide flat base, two upturned wings at top
@@ -88,7 +87,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
     {
       w: 135,
       h: 88,
-      top: 4,
+      top: 39,
       right: 16,
       rotation: "1deg",
       clipPath:
@@ -110,7 +109,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
     {
       w: 140,
       h: 88,
-      top: 122,
+      bottom: 2,
       left: 172,
       rotation: "-1deg",
       clipPath:
@@ -190,7 +189,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
   caishen: { w: 143, h: 160, bottom: 0, right: -5 },
   helpText: { fontSize: 11, bottom: 12, left: 14, letterSpacing: "1px" },
   prizeBadge: {
-    fontSize: 18,
+    fontSize: 23,
     top: 92,
     left: 10,
   },
@@ -207,13 +206,12 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
   border: 6,
   stripe: { gap: 15, width: 18 },
   titleArea: { padding: "9px 12px", borderBottom: 3 },
-  title: { caishen: 65, prize: 57, letterSpacing: "1.5px" },
-  titleShadow:
-    "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 10px rgba(255,220,80,0.9), 0 0 24px rgba(255,200,50,0.7), 0 0 48px rgba(255,150,30,0.4), 0 0 80px rgba(255,120,20,0.2)",
+  title: { caishen: 65, prize: 57, letterSpacing: "6px" },
+  titleShadow: "1px 1px 2px rgba(0,0,0,0.9)",
   prizeShadow: "3px 3px 0 rgba(0,0,0,0.4), 0 0 36px rgba(255,200,50,0.2)",
   price: { fontSize: 27, border: 2, padding: "1.5px 9px" },
   serial: { fontSize: 20, padding: "3px 12px", borderRadius: 3 },
-  textStroke: "1.5px",
+  textStroke: "6px",
   container: { top: 130, bottom: 114 },
   cells: [
     // 元寶 yuanbao (top-left)
@@ -231,7 +229,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
     {
       w: 204,
       h: 133,
-      top: 6,
+      top: 57,
       right: 24,
       rotation: "1deg",
       clipPath:
@@ -253,7 +251,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
     {
       w: 211,
       h: 133,
-      top: 186,
+      bottom: 3,
       left: 260,
       rotation: "-1deg",
       clipPath:
@@ -333,7 +331,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
   caishen: { w: 215, h: 240, bottom: 0, right: -8 },
   helpText: { fontSize: 17, bottom: 18, left: 21, letterSpacing: "1.5px" },
   prizeBadge: {
-    fontSize: 27,
+    fontSize: 34,
     top: 138,
     left: 15,
   },
