@@ -25,6 +25,22 @@ function formatAmountAbbr(amount: number): string {
   return String(amount);
 }
 
+// 安全底紋 SVG — e-lottery 文字以 -20° 重複排列
+const CELL_BG_SVG = btoa(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="32">' +
+    '<text x="2" y="22" font-size="7" fill="rgba(180,60,80,0.10)" font-family="monospace" transform="rotate(-20 32 16)">e-lottery</text>' +
+    "</svg>",
+);
+const CELL_BG_STYLE: React.CSSProperties = {
+  backgroundColor: "#fdf0f4",
+  backgroundImage: [
+    `url("data:image/svg+xml;base64,${CELL_BG_SVG}")`,
+    "repeating-linear-gradient(30deg, transparent, transparent 3px, rgba(180,60,80,0.06) 3px, rgba(180,60,80,0.06) 3.5px)",
+    "repeating-linear-gradient(150deg, transparent, transparent 3px, rgba(180,60,80,0.04) 3px, rgba(180,60,80,0.04) 3.5px)",
+  ].join(", "),
+  backgroundSize: "64px 32px, auto, auto",
+};
+
 interface Props {
   cell: ScratchCell;
   cardId: string;
@@ -32,9 +48,16 @@ interface Props {
   alwaysShowAmount?: boolean;
   width?: number;
   height?: number;
+  contentInset?: { top: string; right: string; bottom: string; left: string };
 }
 
-function CellContent({ isNumberCell, cell }: { isNumberCell: boolean; cell: ScratchCell }) {
+function CellContent({
+  isNumberCell,
+  cell,
+}: {
+  isNumberCell: boolean;
+  cell: ScratchCell;
+}) {
   // compare 玩法：數字格（保持不變）
   if (isNumberCell) {
     return (
@@ -44,71 +67,106 @@ function CellContent({ isNumberCell, cell }: { isNumberCell: boolean; cell: Scra
     );
   }
 
-  const symbol = cell.prize.symbolCode ? getSymbolByCode(cell.prize.symbolCode) : undefined;
+  const symbol = cell.prize.symbolCode
+    ? getSymbolByCode(cell.prize.symbolCode)
+    : undefined;
   const abbr = symbol?.abbr ?? "";
   const amount = cell.prize.amount;
-  const dashDeg = (cell.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 5) + 1;
-
-  const spriteEl = symbol?.spriteFile ? (
-    <img
-      src={symbol.spriteFile}
-      alt={cell.isRevealed ? (symbol.spriteLabel ?? symbol.label) : ""}
-      aria-hidden={!cell.isRevealed || undefined}
-      width={14}
-      height={14}
-      className="object-contain shrink-0"
-      style={{ filter: "brightness(0)" }}
-    />
-  ) : null;
-
-  const spriteLgEl = symbol?.spriteFile ? (
-    <img
-      src={symbol.spriteFile}
-      alt=""
-      aria-hidden="true"
-      width={20}
-      height={20}
-      className="object-contain shrink-0"
-      style={{ filter: "brightness(0)" }}
-    />
-  ) : null;
+  const dashDeg =
+    (cell.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 5) + 1;
 
   return (
-    <div className="flex flex-col w-full h-full">
-      {/* 幸運符號區（上，留空間給未來多符號） */}
+    <div className="flex flex-row w-full h-full">
+      {/* 幸運符號區（左 38%） */}
       <div
-        className="flex flex-row items-center justify-center gap-1 px-1"
-        style={{ flex: "0 0 33%", minHeight: 0 }}
+        className="flex flex-col items-center justify-center gap-0.5"
+        style={{ flex: "0 0 38%", minWidth: 0 }}
       >
-        {spriteEl}
-        <span style={{ fontSize: 8, fontFamily: "monospace", fontWeight: 500, color: "#000", letterSpacing: "0.05em" }}>
+        {symbol?.spriteFile && (
+          <img
+            src={symbol.spriteFile}
+            alt={cell.isRevealed ? (symbol.spriteLabel ?? symbol.label) : ""}
+            aria-hidden={!cell.isRevealed || undefined}
+            width={20}
+            height={20}
+            className="object-contain shrink-0"
+            style={{ filter: "brightness(0)" }}
+          />
+        )}
+        <span
+          style={{
+            fontSize: 9,
+            fontFamily: "monospace",
+            fontWeight: 500,
+            color: "#000",
+            letterSpacing: "0.04em",
+            lineHeight: 1,
+          }}
+        >
           {abbr}
         </span>
       </div>
 
-      {/* 虛線分隔 */}
+      {/* 垂直虛線 */}
       <div
         style={{
-          borderTop: "1.5px dashed rgba(0,0,0,0.28)",
+          borderLeft: "1.5px dashed rgba(0,0,0,0.28)",
           transform: `rotate(${dashDeg}deg)`,
-          margin: "0 -6px",
+          margin: "-4px 0",
           flexShrink: 0,
+          alignSelf: "stretch",
         }}
       />
 
-      {/* 您的符號區（下，留空間給未來多符號） */}
+      {/* 您的符號區（右 62%） */}
       <div
-        className="flex flex-col items-center justify-center gap-0.5 px-1"
-        style={{ flex: "1 1 0", minHeight: 0 }}
+        className="flex flex-col items-center justify-center"
+        style={{ flex: "1 1 0", minWidth: 0, gap: 1 }}
       >
-        {spriteLgEl}
-        <span style={{ fontSize: 8, fontFamily: "monospace", fontWeight: 500, color: "#000", letterSpacing: "0.05em" }}>
+        {symbol?.spriteFile && (
+          <img
+            src={symbol.spriteFile}
+            alt=""
+            aria-hidden="true"
+            width={22}
+            height={22}
+            className="object-contain shrink-0"
+            style={{ filter: "brightness(0)" }}
+          />
+        )}
+        <span
+          style={{
+            fontSize: 9,
+            fontFamily: "monospace",
+            fontWeight: 500,
+            color: "#000",
+            letterSpacing: "0.04em",
+            lineHeight: 1,
+          }}
+        >
           {abbr}
         </span>
-        <span style={{ fontSize: 13, fontFamily: "monospace", fontWeight: 600, color: "#000", lineHeight: 1.1 }}>
+        <span
+          style={{
+            fontSize: 14,
+            fontFamily: "monospace",
+            fontWeight: 600,
+            color: "#000",
+            lineHeight: 1.1,
+          }}
+        >
           ${amount.toLocaleString()}
         </span>
-        <span style={{ fontSize: 8, fontFamily: "monospace", fontWeight: 400, color: "#333", letterSpacing: "0.05em" }}>
+        <span
+          style={{
+            fontSize: 8,
+            fontFamily: "monospace",
+            fontWeight: 400,
+            color: "#444",
+            letterSpacing: "0.04em",
+            lineHeight: 1,
+          }}
+        >
           {formatAmountAbbr(amount)}
         </span>
       </div>
@@ -123,6 +181,7 @@ export default function ScratchCellCanvas({
   alwaysShowAmount: _alwaysShowAmount,
   width = 130,
   height = 80,
+  contentInset,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particleCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -157,10 +216,16 @@ export default function ScratchCellCanvas({
     >
       {/* 底層：獎項內容 */}
       <div
-        className="absolute inset-0 rounded-lg bg-amber-50 flex"
-        style={{ alignItems: "stretch" }}
+        className="absolute inset-0 rounded-lg flex"
+        style={{
+          ...CELL_BG_STYLE,
+          alignItems: "stretch",
+          padding: contentInset
+            ? `${contentInset.top} ${contentInset.right} ${contentInset.bottom} ${contentInset.left}`
+            : undefined,
+        }}
       >
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 min-h-0">
           <CellContent isNumberCell={isNumberCell} cell={cell} />
         </div>
       </div>
