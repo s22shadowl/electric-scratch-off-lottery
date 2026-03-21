@@ -1,83 +1,80 @@
-import { useRef, useEffect, useCallback } from "react"
-import { useScratch } from "@/hooks/useScratch"
-import { useParticles } from "@/hooks/useParticles"
-import { useGameStore } from "@/stores/gameStore"
-import { getSymbolByCode } from "@/utils/symbol-pool"
-import { getCellPerturbation } from "@/utils/canvas-utils"
-import type { ScratchCell } from "@/types"
+import { useRef, useEffect, useCallback } from "react";
+import { useScratch } from "@/hooks/useScratch";
+import { useParticles } from "@/hooks/useParticles";
+import { useGameStore } from "@/stores/gameStore";
+import { getSymbolByCode } from "@/utils/symbol-pool";
+import { getCellPerturbation } from "@/utils/canvas-utils";
+import type { ScratchCell } from "@/types";
 
 const ALIGN_H = {
   left: "flex-start",
   center: "center",
   right: "flex-end",
-} as const
+} as const;
 const ALIGN_V = {
   top: "flex-start",
   center: "center",
   bottom: "flex-end",
-} as const
+} as const;
 
 interface Props {
-  cell: ScratchCell
-  cardId: string
-  maxPrize: number
-  alwaysShowAmount?: boolean
-  width?: number
-  height?: number
+  cell: ScratchCell;
+  cardId: string;
+  maxPrize: number;
+  alwaysShowAmount?: boolean;
+  width?: number;
+  height?: number;
 }
 
 interface CellContentProps {
-  isNumberCell: boolean
-  cell: ScratchCell
-  displayLabel: string
+  isNumberCell: boolean;
+  cell: ScratchCell;
+  displayLabel: string;
 }
 
-function CellContent({
-  isNumberCell,
-  cell,
-  displayLabel,
-}: CellContentProps) {
+function CellContent({ isNumberCell, cell, displayLabel }: CellContentProps) {
   // compare 玩法：數字格
   if (isNumberCell) {
     return (
-      <span className="font-black leading-none text-3xl text-white">
+      <span className="font-black leading-none text-3xl text-black">
         {displayLabel}
       </span>
-    )
+    );
   }
 
   const symbol = cell.prize.symbolCode
     ? getSymbolByCode(cell.prize.symbolCode)
-    : undefined
+    : undefined;
 
   // symbol 玩法：有 sprite 圖
   if (symbol?.spriteFile) {
     return (
       <>
+        <span className="text-xl font-black text-black leading-none">
+          {cell.prize.amount > 0 || cell.isRevealed
+            ? `$${cell.prize.amount.toLocaleString()}`
+            : cell.prize.label}
+        </span>
         <img
           src={symbol.spriteFile}
           // 未揭曉時隱藏，避免 screen reader 在刮開前洩漏獎項內容
           alt={cell.isRevealed ? (symbol.spriteLabel ?? symbol.label) : ""}
           aria-hidden={!cell.isRevealed || undefined}
-          width={48}
-          height={48}
-          className="object-contain"
+          width={24}
+          height={24}
+          className="object-contain mt-0.5"
+          style={{ filter: "brightness(0)" }}
         />
-        {cell.isRevealed && cell.prize.amount > 0 && (
-          <span className="text-[10px] text-red-800 font-bold mt-0.5">
-            {cell.prize.label}
-          </span>
-        )}
       </>
-    )
+    );
   }
 
   // fallback：無 sprite，顯示文字
   return (
-    <span className="font-black leading-none text-2xl text-red-800">
+    <span className="font-black leading-none text-xl text-black">
       {displayLabel}
     </span>
-  )
+  );
 }
 
 export default function ScratchCellCanvas({
@@ -88,38 +85,38 @@ export default function ScratchCellCanvas({
   width = 130,
   height = 80,
 }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const particleCanvasRef = useRef<HTMLCanvasElement>(null)
-  const updateCellProgress = useGameStore((s) => s.updateCellProgress)
-  const effectsEnabled = useGameStore((s) => s.effectsEnabled)
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleCanvasRef = useRef<HTMLCanvasElement>(null);
+  const updateCellProgress = useGameStore((s) => s.updateCellProgress);
+  const effectsEnabled = useGameStore((s) => s.effectsEnabled);
 
-  const { emit } = useParticles(particleCanvasRef, effectsEnabled)
+  const { emit } = useParticles(particleCanvasRef, effectsEnabled);
 
   const handleProgress = useCallback(
     (progress: number) => {
-      updateCellProgress(cardId, cell.id, progress)
+      updateCellProgress(cardId, cell.id, progress);
     },
     [cardId, cell.id, updateCellProgress],
-  )
+  );
 
   const { handlePointerDown, handlePointerMove, handlePointerUp, initCanvas } =
-    useScratch(canvasRef, { onProgress: handleProgress, onScratch: emit })
+    useScratch(canvasRef, { onProgress: handleProgress, onScratch: emit });
 
   // 元件掛載後繪製銀色遮罩
   useEffect(() => {
-    if (!cell.isRevealed) initCanvas()
-  }, [cell.isRevealed, initCanvas])
+    if (!cell.isRevealed) initCanvas();
+  }, [cell.isRevealed, initCanvas]);
 
   // compare 玩法：compareValue 定義時為數字格（玩家/莊家），否則為一般獎項格
-  const isNumberCell = cell.compareValue !== undefined
+  const isNumberCell = cell.compareValue !== undefined;
   const displayLabel = isNumberCell
     ? String(cell.compareValue)
     : cell.prize.amount > 0 || alwaysShowAmount
       ? `$${cell.prize.amount.toLocaleString()}`
-      : cell.prize.label
+      : cell.prize.label;
 
-  const p = getCellPerturbation(cell.id)
-  const contentTransform = `rotate(${p.rotation}deg) skewX(${p.skewX}deg) translate(${p.offsetX}px, ${p.offsetY}px) scale(${p.scale})`
+  const p = getCellPerturbation(cell.id);
+  const contentTransform = `rotate(${p.rotation}deg) skewX(${p.skewX}deg) translate(${p.offsetX}px, ${p.offsetY}px) scale(${p.scale})`;
 
   return (
     <div
@@ -130,8 +127,8 @@ export default function ScratchCellCanvas({
       {/* 底層：獎項內容 */}
       <div
         className={[
-          "absolute inset-0 flex flex-col rounded-lg border-2 border-red-600",
-          isNumberCell ? "bg-slate-600" : "bg-pink-100",
+          "absolute inset-0 flex flex-col rounded-lg",
+          isNumberCell ? "bg-amber-50" : "bg-amber-50",
         ].join(" ")}
         style={{
           alignItems: ALIGN_H[p.alignH],
@@ -177,5 +174,5 @@ export default function ScratchCellCanvas({
         className="absolute inset-0 w-full h-full pointer-events-none"
       />
     </div>
-  )
+  );
 }
