@@ -241,6 +241,15 @@ export default function SymbolLayout({
         >
           ▼ 刮出相同符號即中獎
         </span>
+        <p
+          style={{
+            fontSize: L.helpText.fontSize * 0.9,
+            color: "rgba(255,255,200,0.85)",
+          }}
+        >
+          高達 {cardTypeConfig.zonesPerCard * cardTypeConfig.cellsPerZone}{" "}
+          次中獎機會
+        </p>
       </div>
     </article>
   );
