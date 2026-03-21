@@ -25,6 +25,7 @@ function cellStyle(slot: CellSlot): React.CSSProperties {
     ...(slot.right != null && { right: slot.right }),
     transform: `rotate(${slot.rotation})`,
     clipPath: slot.clipPath,
+    filter: "drop-shadow(0 0 2.5px rgba(218,164,40,0.9))",
   };
 }
 
@@ -87,13 +88,13 @@ export default function SymbolLayout({
           position: "absolute",
           top: 0,
           right: 0,
-          background: "rgba(5,0,0,0.88)",
+          background: "rgba(232,184,40,0.55)",
           borderLeft: `${L.border}px solid #e8b828`,
           borderBottom: `${L.border}px solid #e8b828`,
           borderBottomLeftRadius: L.serial.borderRadius + 2,
           padding: L.serial.padding,
           fontSize: L.serial.fontSize,
-          color: "#facc15",
+          color: "#7f1d1d",
           fontFamily: "monospace",
           lineHeight: 1.3,
           zIndex: 3,
@@ -122,7 +123,7 @@ export default function SymbolLayout({
               {
                 fontSize: L.price.fontSize,
                 padding: L.price.padding,
-                transform: "rotate(-5deg)",
+                transform: "rotate(-8deg)",
                 display: "inline-block",
               } as React.CSSProperties
             }
@@ -131,7 +132,13 @@ export default function SymbolLayout({
           </span>
         </div>
         {/* 下排：僅財神報到大字 */}
-        <div style={{ display: "flex", alignItems: "flex-end" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <span
             style={
               {
@@ -208,6 +215,7 @@ export default function SymbolLayout({
                 maxPrize={maxPrize}
                 width={slot.w}
                 height={slot.h}
+                contentInset={slot.contentInset}
               />
             </div>
           );
