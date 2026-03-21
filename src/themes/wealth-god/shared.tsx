@@ -11,6 +11,7 @@ export interface CellSlot {
   right?: number;
   rotation: string;
   clipPath: string;
+  contentInset?: { top: string; right: string; bottom: string; left: string };
 }
 
 export interface DecorationItem {
@@ -63,7 +64,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
   border: 4,
   stripe: { gap: 10, width: 12 },
   titleArea: { padding: "6px 8px", borderBottom: 2 },
-  title: { caishen: 28, prize: 38, letterSpacing: "1px" },
+  title: { caishen: 34, prize: 38, letterSpacing: "1px" },
   titleShadow:
     "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 20px rgba(255,200,50,0.3)",
   prizeShadow: "2px 2px 0 rgba(0,0,0,0.4), 0 0 24px rgba(255,200,50,0.2)",
@@ -76,11 +77,12 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
     {
       w: 140,
       h: 92,
-      top: 4,
+      top: 57,
       left: 16,
       rotation: "-2deg",
       clipPath:
         "polygon(50% 0%,42% 3%,35% 10%,30% 5%,22% 2%,15% 8%,10% 18%,6% 28%,3% 40%,0% 55%,2% 70%,5% 82%,10% 92%,18% 97%,28% 100%,40% 100%,50% 98%,60% 100%,72% 100%,82% 97%,90% 92%,95% 82%,98% 70%,100% 55%,97% 40%,94% 28%,90% 18%,85% 8%,78% 2%,70% 5%,65% 10%,58% 3%)",
+      contentInset: { top: "14%", right: "8%", bottom: "4%", left: "8%" },
     },
     // 銅錢 copper coin (top-right): circle approximated with 20 vertices
     {
@@ -91,6 +93,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
       rotation: "1deg",
       clipPath:
         "polygon(50% 0%,65% 2%,78% 7%,88% 15%,95% 25%,99% 37%,100% 50%,99% 63%,95% 75%,88% 85%,78% 93%,65% 98%,50% 100%,35% 98%,22% 93%,12% 85%,5% 75%,1% 63%,0% 50%,1% 37%,5% 25%,12% 15%,22% 7%,35% 2%)",
+      contentInset: { top: "10%", right: "10%", bottom: "10%", left: "10%" },
     },
     // 紅包 red envelope (bottom-left): rectangle with triangular flap on top
     {
@@ -101,6 +104,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
       rotation: "2deg",
       clipPath:
         "polygon(10% 0%,50% 18%,90% 0%,95% 0%,98% 5%,100% 12%,100% 88%,98% 95%,95% 100%,5% 100%,2% 95%,0% 88%,0% 12%,2% 5%,5% 0%)",
+      contentInset: { top: "20%", right: "6%", bottom: "4%", left: "6%" },
     },
     // 福袋 lucky bag (bottom-right): rounded bottom, cinched top with tied knot
     {
@@ -111,6 +115,7 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
       rotation: "-1deg",
       clipPath:
         "polygon(38% 0%,35% 5%,30% 8%,25% 5%,22% 2%,18% 6%,20% 12%,28% 16%,32% 20%,25% 24%,15% 30%,8% 38%,3% 48%,0% 60%,1% 72%,5% 82%,12% 90%,22% 96%,35% 100%,50% 100%,65% 100%,78% 96%,88% 90%,95% 82%,99% 72%,100% 60%,97% 48%,92% 38%,85% 30%,75% 24%,68% 20%,72% 16%,80% 12%,82% 6%,78% 2%,75% 5%,70% 8%,65% 5%,62% 0%)",
+      contentInset: { top: "22%", right: "8%", bottom: "6%", left: "8%" },
     },
   ],
   decorations: [
@@ -182,12 +187,12 @@ export const SYMBOL_MOBILE: SymbolLayoutConfig = {
       rotation: "rotate(-5deg)",
     },
   ],
-  caishen: { w: 130, h: 145, bottom: -5, right: -5 },
+  caishen: { w: 143, h: 160, bottom: 0, right: -5 },
   helpText: { fontSize: 11, bottom: 12, left: 14, letterSpacing: "1px" },
   prizeBadge: {
     fontSize: "text-sm",
     padding: "px-2 py-0.5",
-    top: 72,
+    top: 92,
     left: 10,
   },
   boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
@@ -203,7 +208,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
   border: 6,
   stripe: { gap: 15, width: 18 },
   titleArea: { padding: "9px 12px", borderBottom: 3 },
-  title: { caishen: 42, prize: 57, letterSpacing: "1.5px" },
+  title: { caishen: 52, prize: 57, letterSpacing: "1.5px" },
   titleShadow:
     "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 20px rgba(255,200,50,0.3)",
   prizeShadow: "3px 3px 0 rgba(0,0,0,0.4), 0 0 36px rgba(255,200,50,0.2)",
@@ -216,11 +221,12 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
     {
       w: 211,
       h: 139,
-      top: 9,
+      top: 83,
       left: 24,
       rotation: "-2deg",
       clipPath:
         "polygon(50% 0%,42% 3%,35% 10%,30% 5%,22% 2%,15% 8%,10% 18%,6% 28%,3% 40%,0% 55%,2% 70%,5% 82%,10% 92%,18% 97%,28% 100%,40% 100%,50% 98%,60% 100%,72% 100%,82% 97%,90% 92%,95% 82%,98% 70%,100% 55%,97% 40%,94% 28%,90% 18%,85% 8%,78% 2%,70% 5%,65% 10%,58% 3%)",
+      contentInset: { top: "14%", right: "8%", bottom: "4%", left: "8%" },
     },
     // 銅錢 copper coin (top-right)
     {
@@ -231,6 +237,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
       rotation: "1deg",
       clipPath:
         "polygon(50% 0%,65% 2%,78% 7%,88% 15%,95% 25%,99% 37%,100% 50%,99% 63%,95% 75%,88% 85%,78% 93%,65% 98%,50% 100%,35% 98%,22% 93%,12% 85%,5% 75%,1% 63%,0% 50%,1% 37%,5% 25%,12% 15%,22% 7%,35% 2%)",
+      contentInset: { top: "10%", right: "10%", bottom: "10%", left: "10%" },
     },
     // 紅包 red envelope (bottom-left)
     {
@@ -241,6 +248,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
       rotation: "2deg",
       clipPath:
         "polygon(10% 0%,50% 18%,90% 0%,95% 0%,98% 5%,100% 12%,100% 88%,98% 95%,95% 100%,5% 100%,2% 95%,0% 88%,0% 12%,2% 5%,5% 0%)",
+      contentInset: { top: "20%", right: "6%", bottom: "4%", left: "6%" },
     },
     // 福袋 lucky bag (bottom-right)
     {
@@ -251,6 +259,7 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
       rotation: "-1deg",
       clipPath:
         "polygon(38% 0%,35% 5%,30% 8%,25% 5%,22% 2%,18% 6%,20% 12%,28% 16%,32% 20%,25% 24%,15% 30%,8% 38%,3% 48%,0% 60%,1% 72%,5% 82%,12% 90%,22% 96%,35% 100%,50% 100%,65% 100%,78% 96%,88% 90%,95% 82%,99% 72%,100% 60%,97% 48%,92% 38%,85% 30%,75% 24%,68% 20%,72% 16%,80% 12%,82% 6%,78% 2%,75% 5%,70% 8%,65% 5%,62% 0%)",
+      contentInset: { top: "22%", right: "8%", bottom: "6%", left: "8%" },
     },
   ],
   decorations: [
@@ -322,12 +331,12 @@ export const SYMBOL_DESKTOP: SymbolLayoutConfig = {
       rotation: "rotate(-5deg)",
     },
   ],
-  caishen: { w: 195, h: 218, bottom: -8, right: -8 },
+  caishen: { w: 215, h: 240, bottom: 0, right: -8 },
   helpText: { fontSize: 17, bottom: 18, left: 21, letterSpacing: "1.5px" },
   prizeBadge: {
     fontSize: "text-base",
     padding: "px-3 py-1",
-    top: 108,
+    top: 138,
     left: 15,
   },
   boxShadow: "0 12px 48px rgba(0,0,0,0.5)",
