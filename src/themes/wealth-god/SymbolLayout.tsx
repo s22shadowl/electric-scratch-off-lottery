@@ -88,7 +88,7 @@ export default function SymbolLayout({
           position: "absolute",
           top: 0,
           right: 0,
-          background: "rgba(232,184,40,0.55)",
+          background: "#e8b828",
           borderLeft: `${L.border}px solid #e8b828`,
           borderBottom: `${L.border}px solid #e8b828`,
           borderBottomLeftRadius: L.serial.borderRadius + 2,
@@ -118,13 +118,15 @@ export default function SymbolLayout({
           }}
         >
           <span
-            className="inline-block bg-yellow-300 text-red-900 font-black rounded-md"
+            className="inline-block bg-yellow-300 font-black"
             style={
               {
                 fontSize: L.price.fontSize,
                 padding: L.price.padding,
                 transform: "rotate(-8deg)",
                 display: "inline-block",
+                color: "#b91c1c",
+                marginTop: 5,
               } as React.CSSProperties
             }
           >
@@ -158,12 +160,20 @@ export default function SymbolLayout({
 
       {/* ===== 頭獎 Badge（標題分隔線下方） ===== */}
       <div
-        className={`inline-flex items-center gap-1 rounded-lg bg-yellow-400 text-red-900 font-black border-2 border-red-900/30 shadow-md ${L.prizeBadge.fontSize} ${L.prizeBadge.padding}`}
         style={{
           position: "absolute",
           top: L.prizeBadge.top,
           left: L.prizeBadge.left,
           zIndex: 2,
+          fontSize: L.prizeBadge.fontSize,
+          color: "#facc15",
+          fontFamily: "'Dela Gothic One', sans-serif",
+          fontWeight: 900,
+          minWidth: isDesktop ? 232 : 155,
+          textShadow:
+            "1px 1px 0 rgba(0,0,0,0.8), 0 0 12px rgba(255,200,50,0.5)",
+          lineHeight: 1,
+          whiteSpace: "nowrap",
         }}
       >
         🏆 頭獎 {formatMaxPrize(maxPrize)} 元
@@ -230,14 +240,18 @@ export default function SymbolLayout({
           right: L.caishen.right,
           width: L.caishen.w,
           height: L.caishen.h,
-          overflow: "hidden",
         }}
       >
         <img
           src={caishenUrl}
           alt=""
           aria-hidden="true"
-          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            objectPosition: "bottom center",
+          }}
         />
       </div>
 
