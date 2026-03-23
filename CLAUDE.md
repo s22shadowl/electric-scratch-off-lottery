@@ -25,5 +25,5 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 視覺設計參考
 
-進行任何 UI／視覺修改（元件樣式、顏色、排版、格子設計）前，**必須先讀取** `.claude/design-refs/` 內的所有圖片，對照真實彩券的材質感、排版密度、Typography 風格，再決定修改方向。
+進行任何 UI／視覺修改（元件樣式、顏色、排版、格子設計）前，**必須先讀取** `.claude/plans/design-style-guide.md`，對照設計規範再決定修改方向。僅在新增參考圖至 `.claude/design-refs/` 時才需重新讀取圖片並更新 style guide。
 

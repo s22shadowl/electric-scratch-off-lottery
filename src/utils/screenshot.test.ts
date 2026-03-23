@@ -22,7 +22,7 @@ describe("captureAndShare", () => {
     vi.restoreAllMocks();
 
     // 確保 html-to-image mock 每次都正常回傳
-    const { toBlob } = (await import("html-to-image")) as {
+    const { toBlob } = (await import("html-to-image")) as unknown as {
       toBlob: ReturnType<typeof vi.fn>;
     };
     toBlob.mockResolvedValue(mockBlob);
@@ -135,7 +135,7 @@ describe("captureAndShare", () => {
   });
 
   it("toBlob 回傳 null 時應 throw", async () => {
-    const { toBlob } = (await import("html-to-image")) as {
+    const { toBlob } = (await import("html-to-image")) as unknown as {
       toBlob: ReturnType<typeof vi.fn>;
     };
     toBlob.mockResolvedValue(null);

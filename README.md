@@ -119,8 +119,8 @@ npx vitest run --coverage
 
 ### v2.5 — 視覺精緻化
 
-- [ ] 視覺差距檢視：對照設計參考盤點現狀不足處，補充參考圖至 `.claude/design-refs/`，產出具體優化清單
-- [ ] SymbolLayout 持續優化
+- [x] 視覺差距檢視：對照 19 張真實彩券盤點不足處，產出設計規範（`.claude/plans/design-style-guide.md`）與優化計畫（`.claude/plans/v2.5-symbol-visual-refinement.md`）
+- [ ] SymbolLayout 視覺精緻化（背景色、格子形狀、格內內容、標題、裝飾、密度）
 - [ ] Triple ThemeLayout（同 SymbolLayout 等級：absolute 定位、雙尺寸、手工座標）
 - [ ] Compare ThemeLayout
 - [ ] Bingo ThemeLayout

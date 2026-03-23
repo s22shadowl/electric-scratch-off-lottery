@@ -49,46 +49,38 @@ const bingoCardType: CardTypeConfig = {
   count: 4,
   themeId: "wealth-god",
   difficultyPreset: "standard",
-  mechanicOptions: { gridSize: 3, drawnCount: 6, prizePerLine: 100, poolSize: 18 },
+  mechanicOptions: { gridSize: 3, drawnCount: 6, prizePerLine: 100 },
   ticketPrice: 100,
 };
 
 describe("RulesModal", () => {
   it("應渲染 dialog", () => {
-    render(
-      <RulesModal cardTypes={[symbolCardType]} onClose={() => {}} />,
-    );
-    expect(screen.getByRole("dialog", { name: "玩法說明" })).toBeInTheDocument();
+    render(<RulesModal cardTypes={[symbolCardType]} onClose={() => {}} />);
+    expect(
+      screen.getByRole("dialog", { name: "玩法說明" }),
+    ).toBeInTheDocument();
   });
 
   it("symbol 玩法應顯示符號玩法說明文字", () => {
-    render(
-      <RulesModal cardTypes={[symbolCardType]} onClose={() => {}} />,
-    );
+    render(<RulesModal cardTypes={[symbolCardType]} onClose={() => {}} />);
     expect(screen.getByText(/符號玩法/)).toBeInTheDocument();
     expect(screen.getByText(/刮開格子，底下藏著符號/)).toBeInTheDocument();
   });
 
   it("triple 玩法應顯示三同玩法說明文字", () => {
-    render(
-      <RulesModal cardTypes={[tripleCardType]} onClose={() => {}} />,
-    );
+    render(<RulesModal cardTypes={[tripleCardType]} onClose={() => {}} />);
     expect(screen.getByText(/三同玩法/)).toBeInTheDocument();
     expect(screen.getByText(/三格顯示相同符號才算中獎/)).toBeInTheDocument();
   });
 
   it("compare 玩法應顯示比大小玩法說明文字", () => {
-    render(
-      <RulesModal cardTypes={[compareCardType]} onClose={() => {}} />,
-    );
+    render(<RulesModal cardTypes={[compareCardType]} onClose={() => {}} />);
     expect(screen.getByText(/比大小玩法/)).toBeInTheDocument();
     expect(screen.getByText(/你大才贏/)).toBeInTheDocument();
   });
 
   it("bingo 玩法應顯示賓果玩法說明文字", () => {
-    render(
-      <RulesModal cardTypes={[bingoCardType]} onClose={() => {}} />,
-    );
+    render(<RulesModal cardTypes={[bingoCardType]} onClose={() => {}} />);
     expect(screen.getByText(/賓果玩法/)).toBeInTheDocument();
     expect(screen.getByText(/刮開開獎號碼/)).toBeInTheDocument();
   });
