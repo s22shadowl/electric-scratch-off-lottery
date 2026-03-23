@@ -38,7 +38,7 @@ const CELL_BG_WAVE_B = btoa(
 );
 const CELL_BG_TEXT = btoa(
   '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="32">' +
-    '<text x="2" y="22" font-size="7" fill="rgba(180,60,80,0.5)" font-family="monospace" transform="rotate(-20 32 16)">e-lottery</text>' +
+    '<text x="2" y="22" font-size="9" fill="rgba(180,60,80,0.5)" font-family="monospace" transform="rotate(-20 32 16)">e-lottery</text>' +
     "</svg>",
 );
 const CELL_BG_STYLE: React.CSSProperties = {
@@ -85,8 +85,11 @@ function CellContent({
     : undefined;
   const abbr = symbol?.abbr ?? "";
   const amount = cell.prize.amount;
-  const dashDeg =
-    (cell.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 5) + 1;
+  const hash = cell.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  const dashSign = hash % 2 === 0 ? 1 : -1;
+  const dashDeg = dashSign * ((hash % 4) + 3);
+  const leftTilt = (hash % 17) - 8;
+  const rightTilt = ((hash * 7 + 3) % 17) - 8;
 
   return (
     <div className="flex flex-row w-full h-full">
@@ -101,39 +104,54 @@ function CellContent({
           paddingLeft: contentInset?.left,
         }}
       >
-        {symbol?.spriteFile && (
-          <img
-            src={symbol.spriteFile}
-            alt={cell.isRevealed ? (symbol.spriteLabel ?? symbol.label) : ""}
-            aria-hidden={!cell.isRevealed || undefined}
-            width={38}
-            height={38}
-            className="object-contain shrink-0"
-            style={{ filter: "brightness(0)" }}
-          />
-        )}
-        <span
+        <div
           style={{
-            fontSize: 11,
-            fontFamily: "monospace",
-            fontWeight: 500,
-            color: "#000",
-            letterSpacing: "0.04em",
-            lineHeight: 1,
-            fontStyle: "italic",
-            transform: "scaleX(0.78)",
-            display: "inline-block",
-            marginTop: -2,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+            transform: `rotate(${leftTilt}deg)`,
           }}
         >
-          {abbr}
-        </span>
+          {symbol?.spriteFile && (
+            <img
+              src={symbol.spriteFile}
+              alt={cell.isRevealed ? (symbol.spriteLabel ?? symbol.label) : ""}
+              aria-hidden={!cell.isRevealed || undefined}
+              width={38}
+              height={38}
+              className="object-contain shrink-0"
+              style={{
+                filter: "brightness(0)",
+                marginBottom: -6,
+              }}
+            />
+          )}
+          <span
+            style={{
+              fontSize: 11,
+              fontFamily: "monospace",
+              fontWeight: 500,
+              color: "#000",
+              letterSpacing: "0.04em",
+              lineHeight: 1,
+              fontStyle: "italic",
+              transform: "scaleX(0.78)",
+              display: "inline-block",
+              marginTop: -2,
+            }}
+          >
+            {abbr}
+          </span>
+        </div>
       </div>
 
       {/* 垂直虛線 */}
       <div
         style={{
-          borderLeft: "1.5px dashed rgba(0,0,0,0.28)",
+          width: "1.5px",
+          backgroundImage:
+            "repeating-linear-gradient(to bottom, rgba(0,0,0,0.28) 0px, rgba(0,0,0,0.28) 10px, transparent 10px, transparent 16px)",
           transform: `rotate(${dashDeg}deg)`,
           margin: "-4px 0",
           flexShrink: 0,
@@ -147,65 +165,77 @@ function CellContent({
         style={{
           flex: "1 1 0",
           minWidth: 0,
-          gap: 1,
           paddingTop: contentInset?.top,
           paddingBottom: contentInset?.bottom,
           paddingRight: contentInset?.right,
         }}
       >
-        {symbol?.spriteFile && (
-          <img
-            src={symbol.spriteFile}
-            alt=""
-            aria-hidden="true"
-            width={41}
-            height={41}
-            className="object-contain shrink-0"
-            style={{ filter: "brightness(0)" }}
-          />
-        )}
-        <span
+        <div
           style={{
-            fontSize: 11,
-            fontFamily: "monospace",
-            fontWeight: 500,
-            color: "#000",
-            letterSpacing: "0.04em",
-            lineHeight: 1,
-            fontStyle: "italic",
-            transform: "scaleX(0.78)",
-            display: "inline-block",
-            marginTop: -2,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 1,
+            transform: `rotate(${rightTilt}deg)`,
           }}
         >
-          {abbr}
-        </span>
-        <span
-          style={{
-            fontSize: 18,
-            fontFamily: "monospace",
-            fontWeight: 600,
-            color: "#000",
-            lineHeight: 1.1,
-            fontStyle: "italic",
-            transform: "scaleX(0.78)",
-            display: "inline-block",
-          }}
-        >
-          ${amount.toLocaleString()}
-        </span>
-        <span
-          style={{
-            fontSize: 10,
-            fontFamily: "monospace",
-            fontWeight: 400,
-            color: "#444",
-            letterSpacing: "0.04em",
-            lineHeight: 1,
-          }}
-        >
-          {formatAmountAbbr(amount)}
-        </span>
+          {symbol?.spriteFile && (
+            <img
+              src={symbol.spriteFile}
+              alt=""
+              aria-hidden="true"
+              width={41}
+              height={41}
+              className="object-contain shrink-0"
+              style={{
+                filter: "brightness(0)",
+                marginBottom: -6,
+              }}
+            />
+          )}
+          <span
+            style={{
+              fontSize: 11,
+              fontFamily: "monospace",
+              fontWeight: 500,
+              color: "#000",
+              letterSpacing: "0.04em",
+              lineHeight: 1,
+              fontStyle: "italic",
+              transform: "scaleX(0.78)",
+              display: "inline-block",
+              marginTop: -2,
+            }}
+          >
+            {abbr}
+          </span>
+          <span
+            style={{
+              fontSize: 18,
+              fontFamily: "monospace",
+              fontWeight: 600,
+              color: "#000",
+              lineHeight: 1.1,
+              fontStyle: "italic",
+              transform: "scaleX(0.78)",
+              display: "inline-block",
+            }}
+          >
+            ${amount.toLocaleString()}
+          </span>
+          <span
+            style={{
+              fontSize: 10,
+              fontFamily: "monospace",
+              fontWeight: 400,
+              color: "#444",
+              letterSpacing: "0.04em",
+              lineHeight: 1,
+            }}
+          >
+            {formatAmountAbbr(amount)}
+          </span>
+        </div>
       </div>
     </div>
   );
