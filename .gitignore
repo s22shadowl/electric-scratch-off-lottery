@@ -32,10 +32,9 @@ Thumbs.db
 coverage/
 
 # Claude Code
-.claude/worktrees/
-.claude/design-refs/
-.claude/settings.local.json
+.claude/
 .superpowers/
+.impeccable.md
 
 # Windows Zone.Identifier metadata files (WSL)
 *:Zone.Identifier
