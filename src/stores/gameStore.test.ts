@@ -142,6 +142,49 @@ describe("startScratching", () => {
   });
 });
 
+// ── currentScratchIndex / nextCard ────────────────────────
+
+describe("currentScratchIndex", () => {
+  it("startScratching 後 currentScratchIndex 應為 0", () => {
+    useGameStore.getState().initGame(config);
+    const cards = useGameStore.getState().cards;
+    useGameStore.getState().selectCard(cards[0]!.id);
+    useGameStore.getState().selectCard(cards[1]!.id);
+    useGameStore.getState().startScratching();
+    expect(useGameStore.getState().currentScratchIndex).toBe(0);
+  });
+
+  it("nextCard 應遞增 currentScratchIndex", () => {
+    useGameStore.getState().initGame(config);
+    const cards = useGameStore.getState().cards;
+    useGameStore.getState().selectCard(cards[0]!.id);
+    useGameStore.getState().selectCard(cards[1]!.id);
+    useGameStore.getState().startScratching();
+    useGameStore.getState().nextCard();
+    expect(useGameStore.getState().currentScratchIndex).toBe(1);
+  });
+
+  it("最後一張 nextCard 應跳轉 results", () => {
+    useGameStore.getState().initGame(config);
+    const cards = useGameStore.getState().cards;
+    useGameStore.getState().selectCard(cards[0]!.id);
+    useGameStore.getState().startScratching();
+    useGameStore.getState().nextCard();
+    expect(useGameStore.getState().phase).toBe("results");
+  });
+
+  it("returnToPile 後 currentScratchIndex 應重置為 0", () => {
+    useGameStore.getState().initGame(config);
+    const cards = useGameStore.getState().cards;
+    useGameStore.getState().selectCard(cards[0]!.id);
+    useGameStore.getState().selectCard(cards[1]!.id);
+    useGameStore.getState().startScratching();
+    useGameStore.getState().nextCard();
+    useGameStore.getState().returnToPile();
+    expect(useGameStore.getState().currentScratchIndex).toBe(0);
+  });
+});
+
 // ── updateCellProgress ────────────────────────────────────
 
 describe("updateCellProgress", () => {
@@ -200,10 +243,9 @@ describe("updateCellProgress", () => {
     expect(updated?.status).toBe("completed");
   });
 
-  it("所有選取卡片刮完後 phase 應自動切換為 results", () => {
+  it("多張卡片全部刮完後 phase 應仍為 scratching（需手動 nextCard 跳 results）", () => {
     useGameStore.getState().initGame(config);
     const cards = useGameStore.getState().cards;
-    // 選前兩張牌並開始刮
     useGameStore.getState().selectCard(cards[0]!.id);
     useGameStore.getState().selectCard(cards[1]!.id);
     useGameStore.getState().startScratching();
@@ -213,7 +255,6 @@ describe("updateCellProgress", () => {
         .getState()
         .updateCellProgress(cards[0]!.id, cell.id, REVEAL_THRESHOLD);
     });
-    // 尚未全部完成，phase 仍為 scratching
     expect(useGameStore.getState().phase).toBe("scratching");
     // 刮完第二張
     cards[1]!.zones[0]!.cells.forEach((cell) => {
@@ -221,7 +262,20 @@ describe("updateCellProgress", () => {
         .getState()
         .updateCellProgress(cards[1]!.id, cell.id, REVEAL_THRESHOLD);
     });
-    // 所有選取卡片完成，phase 應切換為 results
+    // 多張時不自動跳 results
+    expect(useGameStore.getState().phase).toBe("scratching");
+  });
+
+  it("單張卡片刮完後 phase 應自動跳 results", () => {
+    useGameStore.getState().initGame(config);
+    const cards = useGameStore.getState().cards;
+    useGameStore.getState().selectCard(cards[0]!.id);
+    useGameStore.getState().startScratching();
+    cards[0]!.zones[0]!.cells.forEach((cell) => {
+      useGameStore
+        .getState()
+        .updateCellProgress(cards[0]!.id, cell.id, REVEAL_THRESHOLD);
+    });
     expect(useGameStore.getState().phase).toBe("results");
   });
 
@@ -618,7 +672,7 @@ describe("revealCard", () => {
     expect(after2).toBe(after1);
   });
 
-  it("revealCard 後所有選取卡片完成時 phase 應切換為 results", () => {
+  it("revealCard 後多張卡片全部完成時 phase 應仍為 scratching（需手動 nextCard）", () => {
     useGameStore.getState().initGame(config);
     const cards = useGameStore.getState().cards;
     useGameStore.getState().selectCard(cards[0]!.id);
@@ -627,6 +681,16 @@ describe("revealCard", () => {
     useGameStore.getState().revealCard(cards[0]!.id);
     expect(useGameStore.getState().phase).toBe("scratching");
     useGameStore.getState().revealCard(cards[1]!.id);
+    // 多張時不自動跳 results
+    expect(useGameStore.getState().phase).toBe("scratching");
+  });
+
+  it("revealCard 單張卡片完成時 phase 應自動跳 results", () => {
+    useGameStore.getState().initGame(config);
+    const cards = useGameStore.getState().cards;
+    useGameStore.getState().selectCard(cards[0]!.id);
+    useGameStore.getState().startScratching();
+    useGameStore.getState().revealCard(cards[0]!.id);
     expect(useGameStore.getState().phase).toBe("results");
   });
 });

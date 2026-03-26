@@ -25,6 +25,7 @@ interface GameActions {
     progress: number,
   ) => void;
   revealCard: (cardId: string) => void;
+  nextCard: () => void;
   setPhase: (phase: GamePhase) => void;
   toggleEffects: () => void;
   returnToPile: () => void;
@@ -42,6 +43,7 @@ const initialState: GameState = {
   selectedCardIds: [],
   phase: "pile",
   effectsEnabled: true,
+  currentScratchIndex: 0,
 };
 
 // ── 純函式：三同玩法的完成獎金計算（列對列比對）──────────────
@@ -225,6 +227,7 @@ export const useGameStore = create<GameStore>((set) => ({
   startScratching: () =>
     set((state) => ({
       phase: "scratching",
+      currentScratchIndex: 0,
       cards: state.cards.map((c) =>
         state.selectedCardIds.includes(c.id)
           ? { ...c, status: "scratching" }
@@ -244,15 +247,20 @@ export const useGameStore = create<GameStore>((set) => ({
             : undefined;
         return applyProgressToCard(c, cellId, progress, mechanic, prizePerLine);
       });
+      // 單卡特判：選 1 張卡時自動跳 results，省去多餘點擊
       const allCompleted =
         state.selectedCardIds.length > 0 &&
         state.selectedCardIds.every(
           (id) => updatedCards.find((c) => c.id === id)?.status === "completed",
         );
-      return {
-        cards: updatedCards,
-        phase: allCompleted ? "results" : state.phase,
-      };
+      if (allCompleted && state.selectedCardIds.length === 1) {
+        return {
+          cards: updatedCards,
+          phase: "results",
+          currentScratchIndex: 1,
+        };
+      }
+      return { cards: updatedCards };
     }),
 
   revealCard: (cardId) =>
@@ -285,15 +293,29 @@ export const useGameStore = create<GameStore>((set) => ({
           totalWinnings: computeWinnings(updatedCard, mechanic, prizePerLine),
         };
       });
+      // 單卡特判：選 1 張卡時自動跳 results
       const allCompleted =
         state.selectedCardIds.length > 0 &&
         state.selectedCardIds.every(
           (id) => updatedCards.find((c) => c.id === id)?.status === "completed",
         );
-      return {
-        cards: updatedCards,
-        phase: allCompleted ? "results" : state.phase,
-      };
+      if (allCompleted && state.selectedCardIds.length === 1) {
+        return {
+          cards: updatedCards,
+          phase: "results",
+          currentScratchIndex: 1,
+        };
+      }
+      return { cards: updatedCards };
+    }),
+
+  nextCard: () =>
+    set((state) => {
+      const nextIdx = state.currentScratchIndex + 1;
+      if (nextIdx >= state.selectedCardIds.length) {
+        return { phase: "results" as GamePhase, currentScratchIndex: nextIdx };
+      }
+      return { currentScratchIndex: nextIdx };
     }),
 
   setPhase: (phase) => set({ phase }),
@@ -307,5 +329,6 @@ export const useGameStore = create<GameStore>((set) => ({
       selectedCardIds: [],
       cards: buildDeck(state.config),
       effectsEnabled: state.config.effectsEnabled,
+      currentScratchIndex: 0,
     })),
 }));

@@ -122,4 +122,5 @@ export interface GameState {
   selectedCardIds: string[]; // 玩家從牌堆挑選的卡
   phase: GamePhase;
   effectsEnabled: boolean; // 玩家可覆蓋主持人預設值
+  currentScratchIndex: number; // 逐張刮除的當前索引
 }
