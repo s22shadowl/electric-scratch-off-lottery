@@ -111,6 +111,35 @@ describe("ScratchCard", () => {
     ).toBeInTheDocument();
   });
 
+  it("scratching 中應顯示累計金額計數器", () => {
+    const cardId = useGameStore.getState().cards[0]!.id;
+    useGameStore.getState().selectCard(cardId);
+    useGameStore.getState().startScratching();
+    const cells = useGameStore.getState().cards[0]!.zones[0]!.cells;
+    // 揭曉部分格子（模擬 scratching 中）
+    useGameStore.getState().updateCellProgress(cardId, cells[0]!.id, 1.0);
+    render(<ScratchCard cardId={cardId} />);
+    expect(screen.getByTestId("running-total")).toBeInTheDocument();
+  });
+
+  it("completed 時也應顯示累計金額計數器", () => {
+    const cardId = useGameStore.getState().cards[0]!.id;
+    useGameStore.getState().selectCard(cardId);
+    useGameStore.getState().startScratching();
+    const cells = useGameStore.getState().cards[0]!.zones[0]!.cells;
+    cells.forEach((cell) => {
+      useGameStore.getState().updateCellProgress(cardId, cell.id, 1.0);
+    });
+    render(<ScratchCard cardId={cardId} />);
+    expect(screen.getByTestId("running-total")).toBeInTheDocument();
+  });
+
+  it("in-pile 狀態不應顯示累計金額計數器", () => {
+    const cardId = useGameStore.getState().cards[0]!.id;
+    render(<ScratchCard cardId={cardId} />);
+    expect(screen.queryByTestId("running-total")).not.toBeInTheDocument();
+  });
+
   it("完成後不應顯示一鍵刮開按鈕", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     const cells = useGameStore.getState().cards[0]!.zones[0]!.cells;

@@ -28,6 +28,18 @@ export default function ScratchCard({ cardId }: Props) {
     0,
   );
 
+  const isScratchingOrDone =
+    card.status === "scratching" || card.status === "completed";
+
+  const runningTotal = isScratchingOrDone ? (
+    <div
+      data-testid="running-total"
+      className="text-yellow-300 text-xs font-mono"
+    >
+      累計：${card.totalWinnings} 元
+    </div>
+  ) : null;
+
   const entry = getThemeLayout(cardTypeConfig.themeId, mechanic);
 
   // fullCard: Layout 接管整張卡片渲染（header + 格子 + footer）
@@ -42,15 +54,18 @@ export default function ScratchCard({ cardId }: Props) {
           maxPrize={maxPrize}
         />
         {/* 按鈕/結果在卡片外部 */}
-        {!isCompleted && (
-          <button
-            type="button"
-            onClick={() => revealCard(cardId)}
-            className="px-4 py-1.5 rounded-lg bg-yellow-400 text-red-900 text-xs font-bold hover:bg-yellow-300 transition-colors"
-          >
-            ⚡ 一鍵刮開
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {!isCompleted && (
+            <button
+              type="button"
+              onClick={() => revealCard(cardId)}
+              className="px-4 py-1.5 rounded-lg bg-yellow-400 text-red-900 text-xs font-bold hover:bg-yellow-300 transition-colors"
+            >
+              ⚡ 一鍵刮開
+            </button>
+          )}
+          {runningTotal}
+        </div>
         {isCompleted && (
           <div
             data-testid="card-result"
@@ -110,7 +125,7 @@ export default function ScratchCard({ cardId }: Props) {
 
       <footer className="mt-2 text-center">
         {!isCompleted && (
-          <div className="flex flex-col items-center gap-1.5">
+          <div className="flex items-center justify-center gap-3">
             <button
               type="button"
               onClick={() => revealCard(cardId)}
@@ -118,8 +133,10 @@ export default function ScratchCard({ cardId }: Props) {
             >
               ⚡ 一鍵刮開
             </button>
+            {runningTotal}
           </div>
         )}
+        {isCompleted && runningTotal}
 
         {/* 中獎金額 */}
         {isCompleted && (
