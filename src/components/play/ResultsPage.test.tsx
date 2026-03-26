@@ -222,6 +222,23 @@ describe("ResultsPage", () => {
     });
   });
 
+  it("結果頁應顯示統計資訊", () => {
+    setupResultsPhase(1);
+    render(<ResultsPage />);
+    const stats = screen.getByTestId("results-stats");
+    expect(stats).toBeInTheDocument();
+    expect(stats.textContent).toContain("共 2 張");
+    expect(stats.textContent).toContain("中獎 1 張");
+    expect(stats.textContent).toContain("總投入");
+    expect(stats.textContent).toContain("報酬率");
+  });
+
+  it("結果頁應有分享按鈕", () => {
+    setupResultsPhase(0);
+    render(<ResultsPage />);
+    expect(screen.getByTestId("share-btn")).toBeInTheDocument();
+  });
+
   it("allowReturnToPile=true 時應顯示「返回牌堆」按鈕", () => {
     useGameStore.getState().initGame({ ...config, allowReturnToPile: true });
     setupResultsPhase(0);

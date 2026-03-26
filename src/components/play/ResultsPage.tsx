@@ -27,6 +27,31 @@ export default function ResultsPage() {
     0,
   );
 
+  // 統計
+  const totalInvested = selectedCards.reduce((sum, card) => {
+    const ct = config.cardTypes[card.cardTypeIndex];
+    return sum + (ct?.ticketPrice ?? 0);
+  }, 0);
+  const roi = totalInvested > 0 ? Math.round((totalWinnings / totalInvested) * 100) : 0;
+
+  const handleShare = async () => {
+    const shareText =
+      totalWinnings > 0
+        ? `${config.sessionTitle} — 花了 $${totalInvested} 刮了 ${selectedCards.length} 張，中了 $${totalWinnings}！報酬率 ${roi}%！`
+        : `${config.sessionTitle} — 刮了 ${selectedCards.length} 張，下次好運！`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ text: shareText });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        showToast("已複製結果文字", "success");
+      }
+    } catch (err) {
+      console.error("[分享失敗]", err);
+      showToast("分享失敗，請再試一次", "error");
+    }
+  };
+
   const handleCaptureSummary = async () => {
     if (!summaryRef.current || summaryCapturing) return;
     setSummaryCapturing(true);
@@ -84,6 +109,18 @@ export default function ResultsPage() {
               ? `💰 總計中獎 $${totalWinnings} 元`
               : "謝謝參與，下次好運！"}
           </div>
+          <div
+            data-testid="results-stats"
+            className="mt-3 text-red-200/80 text-xs space-y-0.5"
+          >
+            <div>
+              共 {selectedCards.length} 張 · 中獎 {winningCards.length} 張
+            </div>
+            <div>
+              總投入 ${totalInvested} · 總中獎 ${totalWinnings}
+            </div>
+            {totalInvested > 0 && <div>報酬率 {roi}%</div>}
+          </div>
         </section>
 
         {/* 卡片摘要格 */}
@@ -129,6 +166,13 @@ export default function ResultsPage() {
           ].join(" ")}
         >
           {summaryCapturing ? "截圖中…" : "📷 截圖結果"}
+        </button>
+        <button
+          data-testid="share-btn"
+          onClick={handleShare}
+          className="px-6 py-2 rounded-xl font-bold text-sm border transition-all bg-yellow-400/10 text-yellow-300 border-yellow-500/50 hover:bg-yellow-400/20 cursor-pointer"
+        >
+          📤 分享結果
         </button>
         {config.allowReturnToPile && (
           <button
