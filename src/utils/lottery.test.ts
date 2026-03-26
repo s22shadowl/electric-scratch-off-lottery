@@ -265,6 +265,92 @@ describe("buildDeck", () => {
   });
 });
 
+// ── buildCard (symbol matching) ───────────────────────────
+
+describe("buildCard (symbol matching)", () => {
+  it("symbol 玩法：同一張卡的中獎格應有相同 symbolCode", () => {
+    const winOnly: Prize[] = [
+      makePrize({ id: "win", amount: 300, probability: 1 }),
+    ];
+    const cardType: CardTypeConfig = {
+      mechanic: "symbol",
+      prizes: winOnly,
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 4 } satisfies SymbolOptions,
+      ticketPrice: 100,
+    };
+    const card = buildCard(cardType, "card-0", "TEST-01", 0);
+    const cells = card.zones.flatMap((z) => z.cells);
+    const codes = cells.map((c) => c.prize.symbolCode);
+    // 全部中獎格 → 同一個 prize.id → 應共享 symbolCode
+    expect(new Set(codes).size).toBe(1);
+  });
+
+  it("symbol 玩法：未中獎格的 symbolCode 應各不相同（pool 足夠時）", () => {
+    const loseOnly: Prize[] = [
+      makePrize({ id: "lose", amount: 0, probability: 1, label: "謝謝" }),
+    ];
+    const cardType: CardTypeConfig = {
+      mechanic: "symbol",
+      prizes: loseOnly,
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 4 } satisfies SymbolOptions,
+      ticketPrice: 100,
+    };
+    const card = buildCard(cardType, "card-0", "TEST-01", 0);
+    const cells = card.zones.flatMap((z) => z.cells);
+    const codes = cells.map((c) => c.prize.symbolCode);
+    expect(new Set(codes).size).toBe(codes.length); // 各不相同
+  });
+
+  it("symbol 玩法：混合中獎/未中獎時，中獎格共享 symbolCode 且未中獎格各不同", () => {
+    const mixed: Prize[] = [
+      makePrize({ id: "win", amount: 300, probability: 1 }),
+      makePrize({ id: "lose", amount: 0, probability: 1, label: "謝謝" }),
+    ];
+    const cardType: CardTypeConfig = {
+      mechanic: "symbol",
+      prizes: mixed,
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 6 } satisfies SymbolOptions,
+      ticketPrice: 100,
+    };
+    // Run 50 times to cover randomness
+    for (let i = 0; i < 50; i++) {
+      const card = buildCard(cardType, `card-${i}`, `TEST-${i}`, 0);
+      const cells = card.zones.flatMap((z) => z.cells);
+      const winCells = cells.filter((c) => c.prize.isWin);
+      const loseCells = cells.filter((c) => !c.prize.isWin);
+
+      // All winning cells share the same symbolCode
+      if (winCells.length > 1) {
+        const winCodes = new Set(winCells.map((c) => c.prize.symbolCode));
+        expect(winCodes.size).toBe(1);
+      }
+
+      // Losing cells have distinct symbolCodes (pool size 10 > 6 cells)
+      if (loseCells.length > 1) {
+        const loseCodes = loseCells.map((c) => c.prize.symbolCode);
+        expect(new Set(loseCodes).size).toBe(loseCodes.length);
+      }
+
+      // Win code should not appear in lose codes
+      if (winCells.length > 0 && loseCells.length > 0) {
+        const winCode = winCells[0]!.prize.symbolCode;
+        loseCells.forEach((c) => {
+          expect(c.prize.symbolCode).not.toBe(winCode);
+        });
+      }
+    }
+  });
+});
+
 // ── buildCard (triple) ────────────────────────────────────
 
 const tripleCardType: CardTypeConfig = {

@@ -10,7 +10,7 @@ import type {
   CompareOptions,
   BingoOptions,
 } from "@/types";
-import { assignSymbolsToPrizes } from "@/utils/symbol-pool";
+import { assignSymbolsToPrizes, SYMBOL_POOL } from "@/utils/symbol-pool";
 
 // 生成 4 碼大寫英文 session code
 export function generateSessionCode(): string {
@@ -244,6 +244,50 @@ function buildBingoZones(cardId: string, options: BingoOptions): ScratchZone[] {
   ];
 }
 
+// Symbol 玩法後處理：中獎格共享 symbolCode、未中獎格各不相同
+function assignMatchingSymbols(zones: ScratchZone[]): ScratchZone[] {
+  const allCells = zones.flatMap((z) => z.cells);
+  const usedCodes = new Set<string>();
+
+  // 1. 收集中獎格，按 prize.id 分組
+  const winGroups = new Map<string, ScratchCell[]>();
+  for (const cell of allCells) {
+    if (cell.prize.isWin) {
+      const group = winGroups.get(cell.prize.id) ?? [];
+      group.push(cell);
+      winGroups.set(cell.prize.id, group);
+    }
+  }
+
+  // 2. 每組中獎格分配相同的 symbolCode
+  const assignedCodes = new Map<string, string>(); // prizeId → symbolCode
+  let poolIdx = 0;
+  for (const [prizeId] of winGroups) {
+    const code = SYMBOL_POOL[poolIdx % SYMBOL_POOL.length]!.code;
+    assignedCodes.set(prizeId, code);
+    usedCodes.add(code);
+    poolIdx++;
+  }
+
+  // 3. 未中獎格各分配不同的 symbolCode（避開已用的）
+  const loseCodes: string[] = [];
+  for (const sym of SYMBOL_POOL) {
+    if (!usedCodes.has(sym.code)) loseCodes.push(sym.code);
+  }
+
+  // 4. 重建 zones（不可變）
+  let loseIdx = 0;
+  return zones.map((zone) => ({
+    ...zone,
+    cells: zone.cells.map((cell) => {
+      const code = cell.prize.isWin
+        ? assignedCodes.get(cell.prize.id)!
+        : loseCodes[loseIdx++ % loseCodes.length]!;
+      return { ...cell, prize: { ...cell.prize, symbolCode: code } };
+    }),
+  }));
+}
+
 // 建立一張刮刮樂卡（在建卡時依機率分配獎項）
 export function buildCard(
   cardTypeConfig: CardTypeConfig,
@@ -283,11 +327,15 @@ export function buildCard(
                 prizes,
               ),
             ];
+  const finalZones =
+    cardTypeConfig.mechanic === "symbol"
+      ? assignMatchingSymbols(zones)
+      : zones;
   return {
     id: cardId,
     serialNumber,
     cardTypeIndex,
-    zones,
+    zones: finalZones,
     status: "in-pile",
     totalWinnings: 0,
   };
