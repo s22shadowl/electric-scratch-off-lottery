@@ -8,6 +8,64 @@ import ResultsPage from "@/components/play/ResultsPage";
 import SplashOverlay from "@/components/play/SplashOverlay";
 import type { GameConfig } from "@/types";
 
+function ScratchingView() {
+  const selectedCardIds = useGameStore((s) => s.selectedCardIds);
+  const cards = useGameStore((s) => s.cards);
+  const config = useGameStore((s) => s.config);
+  const currentScratchIndex = useGameStore((s) => s.currentScratchIndex);
+  const nextCard = useGameStore((s) => s.nextCard);
+
+  const currentCardId = selectedCardIds[currentScratchIndex];
+  const currentCard = cards.find((c) => c.id === currentCardId);
+  const isCurrentCompleted = currentCard?.status === "completed";
+  const cardTypeConfig = currentCard
+    ? config.cardTypes[currentCard.cardTypeIndex]
+    : undefined;
+  const ticketPrice = cardTypeConfig?.ticketPrice ?? 0;
+  const totalInvested = selectedCardIds.length * ticketPrice;
+  const completedCards = selectedCardIds
+    .slice(0, currentScratchIndex + (isCurrentCompleted ? 1 : 0))
+    .map((id) => cards.find((c) => c.id === id));
+  const totalWon = completedCards.reduce(
+    (s, c) => s + (c?.totalWinnings ?? 0),
+    0,
+  );
+
+  if (!currentCardId) return null;
+
+  return (
+    <section className="py-6 px-3">
+      {/* 進度列（多張才顯示） */}
+      {selectedCardIds.length > 1 && (
+        <div
+          data-testid="scratch-progress"
+          className="text-center mb-4 text-sm text-yellow-300/80"
+        >
+          <span>第 {currentScratchIndex + 1}/{selectedCardIds.length} 張</span>
+          <span> · 投入 ${totalInvested}</span>
+          <span> · 累計中獎 ${totalWon}</span>
+        </div>
+      )}
+      <div className="flex justify-center">
+        <ScratchCard cardId={currentCardId} />
+      </div>
+      {isCurrentCompleted && selectedCardIds.length > 1 && (
+        <div className="text-center mt-4">
+          <button
+            data-testid="next-card-btn"
+            onClick={nextCard}
+            className="px-6 py-2 rounded-xl bg-yellow-400 text-red-900 font-bold text-sm hover:bg-yellow-300 transition-colors"
+          >
+            {currentScratchIndex < selectedCardIds.length - 1
+              ? "下一張 →"
+              : "查看結果 →"}
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function PlayPage() {
   const [searchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -85,13 +143,7 @@ export default function PlayPage() {
 
       {/* 階段視圖 */}
       {phase === "pile" && <CardPile />}
-      {phase === "scratching" && (
-        <section className="flex flex-wrap justify-center gap-4 sm:gap-6 py-6 px-3 sm:py-8 sm:px-4">
-          {selectedCardIds.map((id) => (
-            <ScratchCard key={id} cardId={id} />
-          ))}
-        </section>
-      )}
+      {phase === "scratching" && <ScratchingView />}
       {phase === "results" && showSplash && (
         <SplashOverlay
           totalWinnings={totalWinnings}

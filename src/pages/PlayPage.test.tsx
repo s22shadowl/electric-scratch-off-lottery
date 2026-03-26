@@ -92,6 +92,55 @@ describe("PlayPage", () => {
     });
   });
 
+  it("scratching 階段應只顯示當前 index 的卡片（多張時）", async () => {
+    const encoded = encodeConfig(config);
+    renderWithRoute(`?config=${encoded}`);
+    await waitFor(() => {
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
+    });
+    // 選 3 張牌
+    const cards = useGameStore.getState().cards;
+    await act(async () => {
+      useGameStore.getState().selectCard(cards[0]!.id);
+      useGameStore.getState().selectCard(cards[1]!.id);
+      useGameStore.getState().selectCard(cards[2]!.id);
+      useGameStore.getState().startScratching();
+    });
+    // 應只渲染 1 張 scratch-card
+    const scratchCards = screen.getAllByTestId(/^scratch-card-/);
+    expect(scratchCards).toHaveLength(1);
+  });
+
+  it("scratching 多張時應顯示進度資訊", async () => {
+    const encoded = encodeConfig(config);
+    renderWithRoute(`?config=${encoded}`);
+    await waitFor(() => {
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
+    });
+    const cards = useGameStore.getState().cards;
+    await act(async () => {
+      useGameStore.getState().selectCard(cards[0]!.id);
+      useGameStore.getState().selectCard(cards[1]!.id);
+      useGameStore.getState().startScratching();
+    });
+    expect(screen.getByTestId("scratch-progress")).toBeInTheDocument();
+    expect(screen.getByText(/第 1\/2 張/)).toBeInTheDocument();
+  });
+
+  it("scratching 單張時不顯示進度資訊", async () => {
+    const encoded = encodeConfig(config);
+    renderWithRoute(`?config=${encoded}`);
+    await waitFor(() => {
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
+    });
+    const cards = useGameStore.getState().cards;
+    await act(async () => {
+      useGameStore.getState().selectCard(cards[0]!.id);
+      useGameStore.getState().startScratching();
+    });
+    expect(screen.queryByTestId("scratch-progress")).not.toBeInTheDocument();
+  });
+
   it("phase 為 results 時應先渲染 SplashOverlay", async () => {
     const encoded = encodeConfig(config);
     renderWithRoute(`?config=${encoded}`);
