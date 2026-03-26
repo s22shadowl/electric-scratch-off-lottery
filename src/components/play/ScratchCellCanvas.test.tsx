@@ -125,6 +125,54 @@ describe("ScratchCellCanvas", () => {
     expect(screen.getByText("$0")).toBeInTheDocument();
   });
 
+  it("已揭曉的中獎格應有 win-border", () => {
+    const cell = makeCell({
+      isRevealed: true,
+      prize: {
+        id: "w",
+        label: "$300",
+        amount: 300,
+        probability: 1,
+        isWin: true,
+      },
+    });
+    render(<ScratchCellCanvas cell={cell} cardId="c1" maxPrize={1000} />);
+    const el = screen.getByTestId(`scratch-cell-${cell.id}`);
+    expect(el.className).toContain("ring-");
+  });
+
+  it("未中獎格不應有 win-border", () => {
+    const cell = makeCell({
+      isRevealed: true,
+      prize: {
+        id: "l",
+        label: "謝謝",
+        amount: 0,
+        probability: 1,
+        isWin: false,
+      },
+    });
+    render(<ScratchCellCanvas cell={cell} cardId="c1" maxPrize={1000} />);
+    const el = screen.getByTestId(`scratch-cell-${cell.id}`);
+    expect(el.className).not.toContain("ring-");
+  });
+
+  it("未揭曉的中獎格不應有 win-border", () => {
+    const cell = makeCell({
+      isRevealed: false,
+      prize: {
+        id: "w",
+        label: "$300",
+        amount: 300,
+        probability: 1,
+        isWin: true,
+      },
+    });
+    render(<ScratchCellCanvas cell={cell} cardId="c1" maxPrize={1000} />);
+    const el = screen.getByTestId(`scratch-cell-${cell.id}`);
+    expect(el.className).not.toContain("ring-");
+  });
+
   it("symbolCode 有 sprite 且未揭曉時 img 應 aria-hidden 且 alt 為空", () => {
     const cell = makeCell({
       isRevealed: false,

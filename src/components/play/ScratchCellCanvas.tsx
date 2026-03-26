@@ -274,11 +274,15 @@ export default function ScratchCellCanvas({
 
   // compare 玩法：compareValue 定義時為數字格（玩家/莊家），否則為一般獎項格
   const isNumberCell = cell.compareValue !== undefined;
+  const isWinRevealed = cell.isRevealed && cell.prize.isWin;
 
   return (
     <div
       data-testid={`scratch-cell-${cell.id}`}
-      className="relative rounded-lg overflow-hidden select-none"
+      className={[
+        "relative rounded-lg overflow-hidden select-none",
+        isWinRevealed ? "ring-2 ring-red-600" : "",
+      ].join(" ")}
       style={{ width, height }}
     >
       {/* 底層：獎項內容 */}
