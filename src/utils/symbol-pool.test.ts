@@ -74,9 +74,9 @@ describe("assignSymbolsToPrizes", () => {
     expect(prizes[0]!.symbolCode).toBeUndefined();
   });
 
-  it("超過 10 個獎項時，應循環使用符號池", () => {
+  it("超過 10 個非零獎項時，應循環使用符號池", () => {
     const prizes: Prize[] = Array.from({ length: 12 }, (_, i) =>
-      makePrize(`p${i}`, i * 10),
+      makePrize(`p${i}`, (i + 1) * 10), // 全部 amount > 0
     );
     const result = assignSymbolsToPrizes(prizes);
     expect(result).toHaveLength(12);
@@ -85,12 +85,11 @@ describe("assignSymbolsToPrizes", () => {
     });
   });
 
-  it("各 prize 的 symbolCode 應對應 SYMBOL_POOL 中的有效 code", () => {
+  it("各非零 prize 的 symbolCode 應對應 SYMBOL_POOL 中的有效 code；$0 prize 不分配符號", () => {
     const prizes: Prize[] = [makePrize("p0", 0), makePrize("p1", 100)];
     const result = assignSymbolsToPrizes(prizes);
     const validCodes = new Set(SYMBOL_POOL.map((s) => s.code));
-    result.forEach((p) => {
-      expect(validCodes.has(p.symbolCode!)).toBe(true);
-    });
+    expect(result[0]!.symbolCode).toBeUndefined(); // $0 prize 不分配符號
+    expect(validCodes.has(result[1]!.symbolCode!)).toBe(true);
   });
 });

@@ -259,20 +259,15 @@ function assignMatchingSymbols(zones: ScratchZone[]): ScratchZone[] {
     }
   }
 
-  // 2. 每組中獎格分配相同的 symbolCode
+  // 2. 從 prize.symbolCode（已由 assignSymbolsToPrizes 設定）建立對應表
+  // 符號 ↔ 金額為 1:1 關係，不重新分配，直接使用 prize 上的既有 symbolCode
   const assignedCodes = new Map<string, string>(); // prizeId → symbolCode
-  let poolIdx = 0;
-  for (const [prizeId] of winGroups) {
-    const code = SYMBOL_POOL[poolIdx % SYMBOL_POOL.length]!.code;
+  const codeToAmount = new Map<string, number>();   // symbolCode → amount
+  for (const [prizeId, cells] of winGroups) {
+    const code = cells[0]!.prize.symbolCode;
+    if (!code) continue; // 安全防呆（正常情況 assignSymbolsToPrizes 已設定）
     assignedCodes.set(prizeId, code);
     usedCodes.add(code);
-    poolIdx++;
-  }
-
-  // 建立 code → amount 對應表（僅含中獎格的 code）
-  const codeToAmount = new Map<string, number>();
-  for (const [prizeId, cells] of winGroups) {
-    const code = assignedCodes.get(prizeId)!;
     codeToAmount.set(code, cells[0]!.prize.amount);
   }
 

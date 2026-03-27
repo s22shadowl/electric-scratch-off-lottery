@@ -81,8 +81,11 @@ export function getSymbolByCode(code: string): Symbol | undefined {
 // ── 自動分配符號到獎項（依 index 循環） ──────────────────────
 
 export function assignSymbolsToPrizes(prizes: Prize[]): Prize[] {
-  return prizes.map((prize, i) => ({
-    ...prize,
-    symbolCode: SYMBOL_POOL[i % SYMBOL_POOL.length]!.code,
-  }));
+  let symbolIdx = 0;
+  return prizes.map((prize) => {
+    if (!prize.isWin) return prize; // $0 prize 不分配符號
+    const code = SYMBOL_POOL[symbolIdx % SYMBOL_POOL.length]!.code;
+    symbolIdx++;
+    return { ...prize, symbolCode: code };
+  });
 }
