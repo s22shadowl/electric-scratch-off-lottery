@@ -35,6 +35,16 @@ const config: GameConfig = {
   effectsEnabled: true,
 };
 
+// 揭曉指定卡片的所有格子，使其變為 completed
+function completeCard(cardId: string) {
+  const card = useGameStore.getState().cards.find((c) => c.id === cardId)!;
+  for (const zone of card.zones) {
+    for (const cell of zone.cells) {
+      useGameStore.getState().updateCellProgress(cardId, cell.id, REVEAL_THRESHOLD);
+    }
+  }
+}
+
 // 每個測試前重置 store
 beforeEach(() => {
   useGameStore.setState(useGameStore.getInitialState());
@@ -160,6 +170,8 @@ describe("currentScratchIndex", () => {
     useGameStore.getState().selectCard(cards[0]!.id);
     useGameStore.getState().selectCard(cards[1]!.id);
     useGameStore.getState().startScratching();
+    // 完成當前卡才能 nextCard
+    completeCard(cards[0]!.id);
     useGameStore.getState().nextCard();
     expect(useGameStore.getState().currentScratchIndex).toBe(1);
   });
@@ -169,8 +181,30 @@ describe("currentScratchIndex", () => {
     const cards = useGameStore.getState().cards;
     useGameStore.getState().selectCard(cards[0]!.id);
     useGameStore.getState().startScratching();
+    completeCard(cards[0]!.id);
     useGameStore.getState().nextCard();
     expect(useGameStore.getState().phase).toBe("results");
+  });
+
+  it("phase 非 scratching 時 nextCard 不應變更狀態", () => {
+    useGameStore.getState().initGame(config);
+    const cards = useGameStore.getState().cards;
+    useGameStore.getState().selectCard(cards[0]!.id);
+    // phase 還是 pile，不應有任何效果
+    useGameStore.getState().nextCard();
+    expect(useGameStore.getState().currentScratchIndex).toBe(0);
+    expect(useGameStore.getState().phase).toBe("pile");
+  });
+
+  it("當前卡未完成時 nextCard 不應遞增", () => {
+    useGameStore.getState().initGame(config);
+    const cards = useGameStore.getState().cards;
+    useGameStore.getState().selectCard(cards[0]!.id);
+    useGameStore.getState().selectCard(cards[1]!.id);
+    useGameStore.getState().startScratching();
+    // 第一張還沒刮完，不應跳下一張
+    useGameStore.getState().nextCard();
+    expect(useGameStore.getState().currentScratchIndex).toBe(0);
   });
 
   it("returnToPile 後 currentScratchIndex 應重置為 0", () => {
@@ -179,6 +213,7 @@ describe("currentScratchIndex", () => {
     useGameStore.getState().selectCard(cards[0]!.id);
     useGameStore.getState().selectCard(cards[1]!.id);
     useGameStore.getState().startScratching();
+    completeCard(cards[0]!.id);
     useGameStore.getState().nextCard();
     useGameStore.getState().returnToPile();
     expect(useGameStore.getState().currentScratchIndex).toBe(0);

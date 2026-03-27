@@ -311,9 +311,13 @@ export const useGameStore = create<GameStore>((set) => ({
 
   nextCard: () =>
     set((state) => {
+      if (state.phase !== "scratching") return state;
+      const currentCardId = state.selectedCardIds[state.currentScratchIndex];
+      const currentCard = state.cards.find((c) => c.id === currentCardId);
+      if (currentCard?.status !== "completed") return state;
       const nextIdx = state.currentScratchIndex + 1;
       if (nextIdx >= state.selectedCardIds.length) {
-        return { phase: "results" as GamePhase, currentScratchIndex: nextIdx };
+        return { phase: "results", currentScratchIndex: nextIdx };
       }
       return { currentScratchIndex: nextIdx };
     }),
