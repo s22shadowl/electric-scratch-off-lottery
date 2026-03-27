@@ -270,9 +270,13 @@ function assignMatchingSymbols(zones: ScratchZone[]): ScratchZone[] {
   }
 
   // 3. 未中獎格各分配不同的 symbolCode（避開已用的）
-  const loseCodes: string[] = [];
+  let loseCodes: string[] = [];
   for (const sym of SYMBOL_POOL) {
     if (!usedCodes.has(sym.code)) loseCodes.push(sym.code);
+  }
+  // fallback：若中獎組數 >= SYMBOL_POOL 大小導致 loseCodes 為空，從完整池循環分配
+  if (loseCodes.length === 0) {
+    loseCodes = SYMBOL_POOL.map((s) => s.code);
   }
 
   // 4. 重建 zones（不可變）

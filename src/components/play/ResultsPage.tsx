@@ -111,7 +111,7 @@ export default function ResultsPage() {
           </div>
           <div
             data-testid="results-stats"
-            className="mt-3 text-red-200/80 text-xs space-y-0.5"
+            className="mt-3 text-yellow-200 text-xs space-y-1"
           >
             <div>
               共 {selectedCards.length} 張 · 中獎 {winningCards.length} 張
@@ -161,7 +161,7 @@ export default function ResultsPage() {
           className={[
             "px-6 py-2 rounded-xl font-bold text-sm border transition-all",
             summaryCapturing
-              ? "bg-red-700/50 text-red-400 border-red-600/50 cursor-wait"
+              ? "bg-red-700/50 text-red-400 border-red-600/50 opacity-60 cursor-not-allowed"
               : "bg-yellow-400/10 text-yellow-300 border-yellow-500/50 hover:bg-yellow-400/20 cursor-pointer",
           ].join(" ")}
         >
@@ -218,7 +218,7 @@ export default function ResultsPage() {
               className={[
                 "px-5 py-2 rounded-xl font-bold text-sm border transition-all",
                 cardCapturing
-                  ? "bg-red-700/50 text-red-400 border-red-600/50 cursor-wait"
+                  ? "bg-red-700/50 text-red-400 border-red-600/50 opacity-60 cursor-not-allowed"
                   : "bg-yellow-400/10 text-yellow-300 border-yellow-500/50 hover:bg-yellow-400/20 cursor-pointer",
               ].join(" ")}
             >

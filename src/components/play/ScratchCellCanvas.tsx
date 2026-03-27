@@ -281,7 +281,7 @@ export default function ScratchCellCanvas({
       data-testid={`scratch-cell-${cell.id}`}
       className={[
         "relative rounded-lg overflow-hidden select-none",
-        isWinRevealed ? "ring-2 ring-red-600" : "",
+        isWinRevealed ? "ring-4 ring-offset-2 ring-red-700" : "",
       ].join(" ")}
       style={{ width, height }}
     >

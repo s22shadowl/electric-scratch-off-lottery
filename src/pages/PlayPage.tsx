@@ -18,11 +18,11 @@ function ScratchingView() {
   const currentCardId = selectedCardIds[currentScratchIndex];
   const currentCard = cards.find((c) => c.id === currentCardId);
   const isCurrentCompleted = currentCard?.status === "completed";
-  const cardTypeConfig = currentCard
-    ? config.cardTypes[currentCard.cardTypeIndex]
-    : undefined;
-  const ticketPrice = cardTypeConfig?.ticketPrice ?? 0;
-  const totalInvested = selectedCardIds.length * ticketPrice;
+  const totalInvested = selectedCardIds.reduce((sum, id) => {
+    const card = cards.find((c) => c.id === id);
+    const ct = card ? config.cardTypes[card.cardTypeIndex] : undefined;
+    return sum + (ct?.ticketPrice ?? 0);
+  }, 0);
   const completedCards = selectedCardIds
     .slice(0, currentScratchIndex + (isCurrentCompleted ? 1 : 0))
     .map((id) => cards.find((c) => c.id === id));
@@ -39,7 +39,7 @@ function ScratchingView() {
       {selectedCardIds.length > 1 && (
         <div
           data-testid="scratch-progress"
-          className="text-center mb-4 text-sm text-yellow-300/80"
+          className="text-center mb-4 text-sm text-yellow-200"
         >
           <span>第 {currentScratchIndex + 1}/{selectedCardIds.length} 張</span>
           <span> · 投入 ${totalInvested}</span>
