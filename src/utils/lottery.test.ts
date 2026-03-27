@@ -332,7 +332,7 @@ describe("buildCard (symbol matching)", () => {
     }
   });
 
-  it("symbol 玩法：混合中獎/未中獎時，中獎格共享 symbolCode 且未中獎格各不同", () => {
+  it("symbol 玩法：混合中獎/未中獎時，中獎格共享 symbolCode", () => {
     const mixed: Prize[] = [
       makePrize({ id: "win", amount: 300, probability: 1 }),
       makePrize({ id: "lose", amount: 0, probability: 1, label: "謝謝" }),
@@ -351,28 +351,90 @@ describe("buildCard (symbol matching)", () => {
       const card = buildCard(cardType, `card-${i}`, `TEST-${i}`, 0);
       const cells = card.zones.flatMap((z) => z.cells);
       const winCells = cells.filter((c) => c.prize.isWin);
-      const loseCells = cells.filter((c) => !c.prize.isWin);
 
       // All winning cells share the same symbolCode
       if (winCells.length > 1) {
         const winCodes = new Set(winCells.map((c) => c.prize.symbolCode));
         expect(winCodes.size).toBe(1);
       }
+    }
+  });
 
-      // Losing cells have distinct symbolCodes (pool size 10 > 6 cells)
-      if (loseCells.length > 1) {
-        const loseCodes = loseCells.map((c) => c.prize.symbolCode);
-        expect(new Set(loseCodes).size).toBe(loseCodes.length);
-      }
+  it("symbol 玩法：多種中獎 prize 均出現時，未中獎格的兩側 symbolCode 應來自中獎格的 code", () => {
+    // Use a large cellsPerZone with high win probability to ensure both win prizes appear
+    const multiWin: Prize[] = [
+      makePrize({ id: "win1", amount: 300, probability: 5 }),
+      makePrize({ id: "win2", amount: 500, probability: 5 }),
+      makePrize({ id: "lose", amount: 0, probability: 1, label: "謝謝" }),
+    ];
+    const cardType: CardTypeConfig = {
+      mechanic: "symbol",
+      prizes: multiWin,
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 20 } satisfies SymbolOptions,
+      ticketPrice: 100,
+    };
+    let testedAtLeastOnce = false;
+    for (let i = 0; i < 50; i++) {
+      const card = buildCard(cardType, `card-${i}`, `TEST-${i}`, 0);
+      const cells = card.zones.flatMap((z) => z.cells);
+      const winCells = cells.filter((c) => c.prize.isWin);
+      const loseCells = cells.filter((c) => !c.prize.isWin);
+      const winCodeSet = new Set(winCells.map((c) => c.prize.symbolCode));
 
-      // Win code should not appear in lose codes
-      if (winCells.length > 0 && loseCells.length > 0) {
-        const winCode = winCells[0]!.prize.symbolCode;
-        loseCells.forEach((c) => {
-          expect(c.prize.symbolCode).not.toBe(winCode);
+      // Only test the case where both win prize types actually appeared (winCodes.length >= 2)
+      if (winCodeSet.size >= 2 && loseCells.length > 0) {
+        testedAtLeastOnce = true;
+        loseCells.forEach((cell) => {
+          expect(winCodeSet.has(cell.prize.symbolCode!)).toBe(true);
+          expect(winCodeSet.has(cell.prize.loseSymbolCode!)).toBe(true);
         });
       }
     }
+    // Sanity check: with high win probability and 20 cells, this should trigger
+    expect(testedAtLeastOnce).toBe(true);
+  });
+
+  it("symbol 玩法：未中獎格的 symbolAmount 和 loseAmount 應為正數（多種中獎 prize 均出現時）", () => {
+    const mixed: Prize[] = [
+      makePrize({ id: "win1", amount: 300, probability: 5 }),
+      makePrize({ id: "win2", amount: 500, probability: 5 }),
+      makePrize({ id: "lose", amount: 0, probability: 1, label: "謝謝" }),
+    ];
+    const cardType: CardTypeConfig = {
+      mechanic: "symbol",
+      prizes: mixed,
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 20 } satisfies SymbolOptions,
+      ticketPrice: 100,
+    };
+    let testedAtLeastOnce = false;
+    for (let i = 0; i < 50; i++) {
+      const card = buildCard(cardType, `card-${i}`, `TEST-${i}`, 0);
+      const cells = card.zones.flatMap((z) => z.cells);
+      const winCells = cells.filter((c) => c.prize.isWin);
+      const loseCells = cells.filter((c) => !c.prize.isWin);
+      const winCodeSet = new Set(winCells.map((c) => c.prize.symbolCode));
+
+      // Only test when multiple win prize types appeared (symbolAmount/loseAmount are set)
+      if (winCodeSet.size >= 2 && loseCells.length > 0) {
+        testedAtLeastOnce = true;
+        loseCells.forEach((cell) => {
+          // symbolAmount and loseAmount should be defined and positive
+          expect(cell.prize.symbolAmount).toBeDefined();
+          expect(cell.prize.symbolAmount!).toBeGreaterThan(0);
+          expect(cell.prize.loseAmount).toBeDefined();
+          expect(cell.prize.loseAmount!).toBeGreaterThan(0);
+          // symbolCode and loseSymbolCode should differ (no accidental match)
+          expect(cell.prize.symbolCode).not.toBe(cell.prize.loseSymbolCode);
+        });
+      }
+    }
+    expect(testedAtLeastOnce).toBe(true);
   });
 });
 

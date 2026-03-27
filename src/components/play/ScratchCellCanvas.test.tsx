@@ -116,13 +116,16 @@ describe("ScratchCellCanvas", () => {
       },
     });
     render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
-    expect(screen.getByText("$1,000")).toBeInTheDocument();
+    // Both left and right sides show the same amount for winning cells
+    const amountEls = screen.getAllByText("$1,000");
+    expect(amountEls.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("未中獎格揭曉後應顯示 $0 金額", () => {
+  it("未中獎格揭曉後應顯示 $0 金額（無 symbolAmount 時）", () => {
     const cell = makeCell({ isRevealed: true });
     render(<ScratchCellCanvas cell={cell} cardId="card-1" maxPrize={1000} />);
-    expect(screen.getByText("$0")).toBeInTheDocument();
+    const amountEls = screen.getAllByText("$0");
+    expect(amountEls.length).toBeGreaterThanOrEqual(1);
   });
 
   it("已揭曉的中獎格應有 win-border", () => {

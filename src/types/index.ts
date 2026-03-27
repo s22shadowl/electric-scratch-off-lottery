@@ -7,6 +7,8 @@ export interface Prize {
   amount: number; // 金額（0 = 未中獎）
   symbolCode?: string; // 英文防偽碼，如「FIVHUND」（視覺用）
   loseSymbolCode?: string; // right-side symbol for losing cells (undefined = same as symbolCode)
+  symbolAmount?: number; // display amount for left side (undefined = use prize.amount)
+  loseAmount?: number; // display amount for right side (undefined = use symbolAmount)
   probability: number; // 相對權重（系統正規化為實際機率）
   isWin: boolean; // amount > 0 的快捷旗標
 }

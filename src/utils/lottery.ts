@@ -269,7 +269,17 @@ function assignMatchingSymbols(zones: ScratchZone[]): ScratchZone[] {
     poolIdx++;
   }
 
-  // 3. 未中獎格各分配不同的 symbolCode（避開已用的）
+  // 建立 code → amount 對應表（僅含中獎格的 code）
+  const codeToAmount = new Map<string, number>();
+  for (const [prizeId, cells] of winGroups) {
+    const code = assignedCodes.get(prizeId)!;
+    codeToAmount.set(code, cells[0]!.prize.amount);
+  }
+
+  // 從中獎格的 code 建立 winCodes 陣列
+  const winCodes = Array.from(codeToAmount.keys());
+
+  // 3. 未中獎格各分配不同的 symbolCode（避開已用的）—— 僅作為 fallback
   let loseCodes: string[] = [];
   for (const sym of SYMBOL_POOL) {
     if (!usedCodes.has(sym.code)) loseCodes.push(sym.code);
@@ -288,16 +298,44 @@ function assignMatchingSymbols(zones: ScratchZone[]): ScratchZone[] {
         const code = assignedCodes.get(cell.prize.id)!;
         return { ...cell, prize: { ...cell.prize, symbolCode: code } };
       }
-      const code = loseCodes[loseIdx % loseCodes.length]!;
-      const loseSymbolCode =
-        SYMBOL_POOL[
-          (SYMBOL_POOL.findIndex((s) => s.code === code) + 1) %
-            SYMBOL_POOL.length
-        ]!.code;
+
+      let leftCode: string;
+      let rightCode: string;
+
+      if (winCodes.length >= 2) {
+        // 使用中獎格的 code 讓未中獎格也顯示有意義的金額
+        leftCode = winCodes[loseIdx % winCodes.length]!;
+        rightCode = winCodes[(loseIdx + 1) % winCodes.length]!;
+      } else if (winCodes.length === 1) {
+        // 只有一種中獎 code：左側用該 code，右側從 SYMBOL_POOL 取下一個
+        leftCode = winCodes[0]!;
+        rightCode =
+          SYMBOL_POOL[
+            (SYMBOL_POOL.findIndex((s) => s.code === leftCode) + 1) %
+              SYMBOL_POOL.length
+          ]!.code;
+      } else {
+        // 無中獎格 fallback：使用舊邏輯
+        leftCode = loseCodes[loseIdx % loseCodes.length]!;
+        rightCode =
+          SYMBOL_POOL[
+            (SYMBOL_POOL.findIndex((s) => s.code === leftCode) + 1) %
+              SYMBOL_POOL.length
+          ]!.code;
+      }
+
+      const symbolAmount = codeToAmount.get(leftCode);
+      const loseAmount = codeToAmount.get(rightCode);
       loseIdx++;
       return {
         ...cell,
-        prize: { ...cell.prize, symbolCode: code, loseSymbolCode },
+        prize: {
+          ...cell.prize,
+          symbolCode: leftCode,
+          loseSymbolCode: rightCode,
+          ...(symbolAmount !== undefined ? { symbolAmount } : {}),
+          ...(loseAmount !== undefined ? { loseAmount } : {}),
+        },
       };
     }),
   }));

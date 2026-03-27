@@ -87,7 +87,10 @@ function CellContent({
     (cell.prize.loseSymbolCode
       ? getSymbolByCode(cell.prize.loseSymbolCode)
       : undefined) ?? leftSymbol;
-  const amount = cell.prize.amount;
+  const leftDisplayAmount =
+    cell.prize.symbolAmount ?? cell.prize.amount;
+  const rightDisplayAmount =
+    cell.prize.loseAmount ?? cell.prize.symbolAmount ?? cell.prize.amount;
   const hash = cell.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   const dashSign = hash % 2 === 0 ? 1 : -1;
   const dashDeg = dashSign * ((hash % 4) + 3);
@@ -145,6 +148,20 @@ function CellContent({
             }}
           >
             {leftSymbol?.abbr ?? ""}
+          </span>
+          <span
+            style={{
+              fontSize: 13,
+              fontFamily: "monospace",
+              fontWeight: 600,
+              color: "#000",
+              lineHeight: 1.1,
+              fontStyle: "italic",
+              transform: "scaleX(0.78)",
+              display: "inline-block",
+            }}
+          >
+            ${leftDisplayAmount.toLocaleString()}
           </span>
         </div>
       </div>
@@ -224,7 +241,7 @@ function CellContent({
               display: "inline-block",
             }}
           >
-            ${amount.toLocaleString()}
+            ${rightDisplayAmount.toLocaleString()}
           </span>
           <span
             style={{
@@ -236,7 +253,7 @@ function CellContent({
               lineHeight: 1,
             }}
           >
-            {formatAmountAbbr(amount)}
+            {formatAmountAbbr(rightDisplayAmount)}
           </span>
         </div>
       </div>
