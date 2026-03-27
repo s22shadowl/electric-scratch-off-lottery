@@ -28,8 +28,7 @@ export default function ScratchCard({ cardId }: Props) {
     0,
   );
 
-  const isScratchingOrDone =
-    card.status === "scratching" || card.status === "completed";
+  const isScratchingOrDone = card.status === "scratching";
 
   const runningTotal = isScratchingOrDone ? (
     <div
@@ -136,7 +135,6 @@ export default function ScratchCard({ cardId }: Props) {
             {runningTotal}
           </div>
         )}
-        {isCompleted && runningTotal}
 
         {/* 中獎金額 */}
         {isCompleted && (

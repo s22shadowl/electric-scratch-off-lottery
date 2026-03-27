@@ -6,6 +6,7 @@ export interface Prize {
   label: string; // 顯示文字，如「$300」、「謝謝」
   amount: number; // 金額（0 = 未中獎）
   symbolCode?: string; // 英文防偽碼，如「FIVHUND」（視覺用）
+  loseSymbolCode?: string; // right-side symbol for losing cells (undefined = same as symbolCode)
   probability: number; // 相對權重（系統正規化為實際機率）
   isWin: boolean; // amount > 0 的快捷旗標
 }

@@ -284,10 +284,21 @@ function assignMatchingSymbols(zones: ScratchZone[]): ScratchZone[] {
   return zones.map((zone) => ({
     ...zone,
     cells: zone.cells.map((cell) => {
-      const code = cell.prize.isWin
-        ? assignedCodes.get(cell.prize.id)!
-        : loseCodes[loseIdx++ % loseCodes.length]!;
-      return { ...cell, prize: { ...cell.prize, symbolCode: code } };
+      if (cell.prize.isWin) {
+        const code = assignedCodes.get(cell.prize.id)!;
+        return { ...cell, prize: { ...cell.prize, symbolCode: code } };
+      }
+      const code = loseCodes[loseIdx % loseCodes.length]!;
+      const loseSymbolCode =
+        SYMBOL_POOL[
+          (SYMBOL_POOL.findIndex((s) => s.code === code) + 1) %
+            SYMBOL_POOL.length
+        ]!.code;
+      loseIdx++;
+      return {
+        ...cell,
+        prize: { ...cell.prize, symbolCode: code, loseSymbolCode },
+      };
     }),
   }));
 }

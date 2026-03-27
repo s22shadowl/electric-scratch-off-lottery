@@ -80,10 +80,13 @@ function CellContent({
     );
   }
 
-  const symbol = cell.prize.symbolCode
+  const leftSymbol = cell.prize.symbolCode
     ? getSymbolByCode(cell.prize.symbolCode)
     : undefined;
-  const abbr = symbol?.abbr ?? "";
+  const rightSymbol =
+    (cell.prize.loseSymbolCode
+      ? getSymbolByCode(cell.prize.loseSymbolCode)
+      : undefined) ?? leftSymbol;
   const amount = cell.prize.amount;
   const hash = cell.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   const dashSign = hash % 2 === 0 ? 1 : -1;
@@ -113,10 +116,10 @@ function CellContent({
             transform: `rotate(${leftTilt}deg)`,
           }}
         >
-          {symbol?.spriteFile && (
+          {leftSymbol?.spriteFile && (
             <img
-              src={symbol.spriteFile}
-              alt={cell.isRevealed ? (symbol.spriteLabel ?? symbol.label) : ""}
+              src={leftSymbol.spriteFile}
+              alt={cell.isRevealed ? (leftSymbol.spriteLabel ?? leftSymbol.label) : ""}
               aria-hidden={!cell.isRevealed || undefined}
               width={38}
               height={38}
@@ -141,7 +144,7 @@ function CellContent({
               marginTop: -2,
             }}
           >
-            {abbr}
+            {leftSymbol?.abbr ?? ""}
           </span>
         </div>
       </div>
@@ -179,9 +182,9 @@ function CellContent({
             transform: `rotate(${rightTilt}deg)`,
           }}
         >
-          {symbol?.spriteFile && (
+          {rightSymbol?.spriteFile && (
             <img
-              src={symbol.spriteFile}
+              src={rightSymbol.spriteFile}
               alt=""
               aria-hidden="true"
               width={41}
@@ -207,7 +210,7 @@ function CellContent({
               marginTop: -2,
             }}
           >
-            {abbr}
+            {rightSymbol?.abbr ?? ""}
           </span>
           <span
             style={{

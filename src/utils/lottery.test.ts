@@ -307,6 +307,31 @@ describe("buildCard (symbol matching)", () => {
     expect(new Set(codes).size).toBe(codes.length); // 各不相同
   });
 
+  it("未中獎格的左右符號應不同（symbolCode ≠ loseSymbolCode）", () => {
+    const mixed: Prize[] = [
+      makePrize({ id: "win", amount: 300, probability: 1 }),
+      makePrize({ id: "lose", amount: 0, probability: 1, label: "謝謝" }),
+    ];
+    const cardType: CardTypeConfig = {
+      mechanic: "symbol",
+      prizes: mixed,
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 6 } satisfies SymbolOptions,
+      ticketPrice: 100,
+    };
+    for (let i = 0; i < 50; i++) {
+      const card = buildCard(cardType, `card-${i}`, `TEST-${i}`, 0);
+      const cells = card.zones.flatMap((z) => z.cells);
+      const loseCells = cells.filter((c) => !c.prize.isWin);
+      loseCells.forEach((cell) => {
+        expect(cell.prize.loseSymbolCode).toBeDefined();
+        expect(cell.prize.loseSymbolCode).not.toBe(cell.prize.symbolCode);
+      });
+    }
+  });
+
   it("symbol 玩法：混合中獎/未中獎時，中獎格共享 symbolCode 且未中獎格各不同", () => {
     const mixed: Prize[] = [
       makePrize({ id: "win", amount: 300, probability: 1 }),

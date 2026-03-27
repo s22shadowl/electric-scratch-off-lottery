@@ -123,7 +123,7 @@ describe("ScratchCard", () => {
     expect(screen.getByTestId("running-total")).toBeInTheDocument();
   });
 
-  it("completed 時也應顯示累計金額計數器", () => {
+  it("completed 時不應顯示累計金額計數器", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     useGameStore.getState().selectCard(cardId);
     useGameStore.getState().startScratching();
@@ -132,7 +132,7 @@ describe("ScratchCard", () => {
       useGameStore.getState().updateCellProgress(cardId, cell.id, 1.0);
     });
     render(<ScratchCard cardId={cardId} />);
-    expect(screen.getByTestId("running-total")).toBeInTheDocument();
+    expect(screen.queryByTestId("running-total")).not.toBeInTheDocument();
   });
 
   it("in-pile 狀態不應顯示累計金額計數器", () => {
