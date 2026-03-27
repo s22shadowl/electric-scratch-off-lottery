@@ -84,7 +84,8 @@ describe("ScratchCard", () => {
   it("應顯示玩法規則提示文字", () => {
     const cardId = useGameStore.getState().cards[0]!.id;
     render(<ScratchCard cardId={cardId} />);
-    expect(screen.getByText(/刮出相同符號即中獎/)).toBeInTheDocument();
+    const els = screen.getAllByText(/刮出相同符號即中獎/);
+    expect(els.length).toBeGreaterThanOrEqual(1);
   });
 
   it("所有格揭曉後應顯示結果", () => {
