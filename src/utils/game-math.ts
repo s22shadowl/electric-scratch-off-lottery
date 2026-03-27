@@ -25,6 +25,21 @@ import type { DifficultyPreset } from "@/types";
 /**
  * 依目前獎項草稿 + 票面計算 RTP（期望值 / ticketPrice）。
  * 無效輸入（ticketPrice <= 0 或無有效 prizes）回傳 null。
+ *
+ * ⚠️  已知 Bug（待修）：此函式計算的是「每格」期望值，不是「每張卡」期望值。
+ *
+ * 問題：symbol / triple 等玩法每張卡有 N 格，每格獨立抽獎結算。
+ * 實際每卡期望值 = per-cell EV × cellCount，實際 RTP = (per-cell EV × cellCount) / ticketPrice。
+ *
+ * 範例（standard 預設，ticketPrice=100，cellsPerZone=6）：
+ *   per-cell EV = 0×0.45 + 100×0.45 + 500×0.10 = $95
+ *   此函式回傳：95 / 100 = 0.95（看似正確）
+ *   實際每卡 EV：$95 × 6 = $570，實際 RTP = 5.7（570%）← 嚴重高估
+ *
+ * 修正方向：加入 cellCount 參數，回傳值改為 (ev * cellCount) / ticketPrice。
+ * 同時需調整 DIFFICULTY_PRESETS 的獎項金額，使 per-cell EV 降至
+ * ticketPrice × targetRTP / cellCount。
+ * 主持人頁的 EVDisplay 也需傳入對應格數。
  */
 export function calculateRTP(
   prizes: PrizeDraft[],
