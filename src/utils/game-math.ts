@@ -23,12 +23,14 @@ import type { PrizeDraft } from "@/hooks/useHostForm";
 import type { DifficultyPreset } from "@/types";
 
 /**
- * 依目前獎項草稿 + 票面計算 RTP（期望值 / ticketPrice）。
+ * 依目前獎項草稿 + 票面計算 RTP（期望值 × cellCount / ticketPrice）。
+ * cellCount 為每張卡的格數（預設 1，向下相容）。
  * 無效輸入（ticketPrice <= 0 或無有效 prizes）回傳 null。
  */
 export function calculateRTP(
   prizes: PrizeDraft[],
   ticketPrice: number,
+  cellCount = 1,
 ): number | null {
   if (ticketPrice <= 0) return null;
 
@@ -44,7 +46,23 @@ export function calculateRTP(
     return sum + (amount * weight) / totalWeight;
   }, 0);
 
-  return ev / ticketPrice;
+  return (ev * cellCount) / ticketPrice;
+}
+
+/**
+ * 計算獎項的中獎率（中獎 weight 總和 / 所有有效 weight 總和）。
+ * amount > 0 視為中獎項。
+ * 無效輸入回傳 null。
+ */
+export function calculateWinRate(prizes: PrizeDraft[]): number | null {
+  const valid = prizes.filter((p) => parseFloat(p.weight) > 0);
+  if (valid.length === 0) return null;
+  const totalWeight = valid.reduce((sum, p) => sum + parseFloat(p.weight), 0);
+  if (totalWeight <= 0) return null;
+  const winWeight = valid
+    .filter((p) => parseFloat(p.amount) > 0)
+    .reduce((sum, p) => sum + parseFloat(p.weight), 0);
+  return winWeight / totalWeight;
 }
 
 // ── classifyDifficulty ─────────────────────────────────────

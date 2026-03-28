@@ -64,25 +64,63 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPreset, PresetTemplate> = {
 let uidCounter = 1000;
 
 /**
- * 依票面價格縮放模板獎項金額，回傳新的 PrizeDraft 陣列。
- * $0 的 label 固定「謝謝參與」；其他 label 更新為縮放後金額。
+ * 依票面價格與格數縮放模板獎項，回傳新的 PrizeDraft 陣列。
+ *
+ * 金額：依 ticketPrice/100 等比縮放（不除以 cellCount）。
+ * 中獎率：透過膨脹 $0 的 weight 來壓低 per-cell EV，使
+ *   per-card RTP = targetRtp（金額 × cellCount / ticketPrice）。
+ *
+ * 數學推導：
+ *   S = Σ(scaledAmount_i × weight_i)  // 中獎項的加權金額和
+ *   W = Σ(weight_i)                    // 中獎項的權重和
+ *   requiredTotalWeight = S × cellCount / (targetRtp × ticketPrice)
+ *   loseWeight = requiredTotalWeight − W
  */
 export function scalePrizesToTicketPrice(
   preset: DifficultyPreset,
   ticketPrice: number,
+  cellCount = 1,
 ): PrizeDraft[] {
   const template = DIFFICULTY_PRESETS[preset];
-  return template.prizes.map((p) => {
-    const scaled = Math.round((p.amount * ticketPrice) / 100);
-    const label = scaled === 0 ? "謝謝參與" : `$${scaled}`;
+
+  // 1. 縮放金額（只依 ticketPrice，不除以 cellCount）
+  const scaled = template.prizes.map((p) => ({
+    ...p,
+    scaledAmount: Math.round((p.amount * ticketPrice) / 100),
+  }));
+
+  // 2. 計算中獎項的加權金額和 & 權重和
+  const winPrizes = scaled.filter((p) => p.scaledAmount > 0);
+  const S = winPrizes.reduce((sum, p) => sum + p.scaledAmount * p.weight, 0);
+  const W = winPrizes.reduce((sum, p) => sum + p.weight, 0);
+
+  // 3. 解出不中獎總 weight
+  const targetEV = (template.targetRtp * ticketPrice) / cellCount;
+  const requiredTotalWeight = targetEV > 0 ? S / targetEV : W;
+  const totalLoseWeight = Math.max(0, Math.round(requiredTotalWeight - W));
+
+  // 4. 原始不中獎 weight 總和（用於按比例分配）
+  const originalLoseWeightSum = template.prizes
+    .filter((p) => p.amount === 0)
+    .reduce((sum, p) => sum + p.weight, 0);
+
+  // 5. 組裝結果
+  return scaled.map((p) => {
+    const isLose = p.scaledAmount === 0;
+    const weight = isLose
+      ? originalLoseWeightSum > 0
+        ? Math.round((p.weight / originalLoseWeightSum) * totalLoseWeight)
+        : totalLoseWeight
+      : p.weight;
+
     return {
       uid: `preset-uid-${++uidCounter}`,
-      label,
-      amount: String(scaled),
-      weight: String(p.weight),
+      label: isLose ? "謝謝參與" : `$${p.scaledAmount}`,
+      amount: String(p.scaledAmount),
+      weight: String(weight),
     };
   });
 }
 
 // ── re-export from game-math（正式實作已移至 game-math.ts）──
-export { calculateRTP, classifyDifficulty } from "./game-math";
+export { calculateRTP, classifyDifficulty, calculateWinRate } from "./game-math";

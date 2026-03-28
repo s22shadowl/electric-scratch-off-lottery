@@ -152,6 +152,22 @@ describe("scalePrizesToTicketPrice", () => {
     const rtp = calculateRTP(prizes, 100);
     expect(rtp).toBeCloseTo(DIFFICULTY_PRESETS.realistic.targetRtp, 1);
   });
+
+  it("cellCount=4 時 standard 金額不變（$100/$500），$0 weight 膨脹為 345", () => {
+    const prizes = scalePrizesToTicketPrice("standard", 100, 4);
+    expect(prizes.find((p) => p.amount === "100")?.weight).toBe("45");
+    expect(prizes.find((p) => p.amount === "500")?.weight).toBe("10");
+    expect(prizes.find((p) => p.amount === "0")?.weight).toBe("345");
+  });
+
+  it("cellCount=4 時中獎率 = 55/400 = 13.75%", () => {
+    const prizes = scalePrizesToTicketPrice("standard", 100, 4);
+    const totalWeight = prizes.reduce((s, p) => s + parseFloat(p.weight), 0);
+    const winWeight = prizes
+      .filter((p) => parseFloat(p.amount) > 0)
+      .reduce((s, p) => s + parseFloat(p.weight), 0);
+    expect(winWeight / totalWeight).toBeCloseTo(0.1375, 4);
+  });
 });
 
 // ── DIFFICULTY_PRESETS ─────────────────────────────────────
@@ -172,4 +188,17 @@ describe("DIFFICULTY_PRESETS", () => {
       expect(Math.abs(rtp! - preset.targetRtp)).toBeLessThan(0.02);
     }
   });
+});
+
+describe("scalePrizesToTicketPrice — 跨 cellCount RTP 恆等", () => {
+  const CELL_COUNTS = [1, 2, 3, 4, 6, 9];
+  for (const [key, preset] of Object.entries(DIFFICULTY_PRESETS)) {
+    for (const cc of CELL_COUNTS) {
+      it(`${key} cellCount=${cc} → RTP ≈ ${preset.targetRtp}`, () => {
+        const prizes = scalePrizesToTicketPrice(key as DifficultyPreset, 100, cc);
+        const rtp = calculateRTP(prizes, 100, cc);
+        expect(rtp).toBeCloseTo(preset.targetRtp, 2);
+      });
+    }
+  }
 });
