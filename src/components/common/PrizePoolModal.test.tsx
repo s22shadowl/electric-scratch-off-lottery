@@ -78,8 +78,8 @@ describe("PrizePoolModal", () => {
       render(<PrizePoolModal cardTypes={[unevenCardType]} onClose={vi.fn()} />);
       // 3/(3+1)*100 = 75.0%
       expect(screen.getByText("75.0%")).toBeInTheDocument();
-      // 1/(3+1)*100 = 25.0%
-      expect(screen.getByText("25.0%")).toBeInTheDocument();
+      // 1/(3+1)*100 = 25.0% — appears in both prize row and win rate summary
+      expect(screen.getAllByText("25.0%").length).toBeGreaterThanOrEqual(1);
     });
   });
 

@@ -10,7 +10,7 @@ export default function SharePanel({ playUrl, qrCode, copied, onCopy }: Props) {
     return (
       <div
         data-testid="share-panel-placeholder"
-        className="flex items-center justify-center h-48 rounded-xl border-2 border-dashed border-red-600 text-red-400 text-sm"
+        className="flex items-center justify-center min-h-[18rem] rounded-xl border-2 border-dashed border-red-600 text-red-400 text-sm"
       >
         填寫完整設定後產生連結
       </div>
@@ -18,7 +18,7 @@ export default function SharePanel({ playUrl, qrCode, copied, onCopy }: Props) {
   }
 
   return (
-    <div data-testid="share-panel" className="space-y-4">
+    <div data-testid="share-panel" className="space-y-4 min-h-[18rem]">
       {/* QR Code */}
       {qrCode && (
         <div className="flex justify-center">

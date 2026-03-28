@@ -153,11 +153,13 @@ describe("scalePrizesToTicketPrice", () => {
     expect(rtp).toBeCloseTo(DIFFICULTY_PRESETS.realistic.targetRtp, 1);
   });
 
-  it("cellCount=4 時 standard 金額不變（$100/$500），$0 weight 膨脹為 345", () => {
+  it("cellCount=4 時 standard 金額不變（$100/$500），權重正規化加總=100", () => {
     const prizes = scalePrizesToTicketPrice("standard", 100, 4);
-    expect(prizes.find((p) => p.amount === "100")?.weight).toBe("45");
-    expect(prizes.find((p) => p.amount === "500")?.weight).toBe("10");
-    expect(prizes.find((p) => p.amount === "0")?.weight).toBe("345");
+    expect(prizes.find((p) => p.amount === "100")?.weight).toBe("11.25");
+    expect(prizes.find((p) => p.amount === "500")?.weight).toBe("2.5");
+    expect(prizes.find((p) => p.amount === "0")?.weight).toBe("86.25");
+    const total = prizes.reduce((s, p) => s + parseFloat(p.weight), 0);
+    expect(total).toBeCloseTo(100, 1);
   });
 
   it("cellCount=4 時中獎率 = 55/400 = 13.75%", () => {

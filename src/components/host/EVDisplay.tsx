@@ -5,12 +5,14 @@ import type { CardTypeConfig } from "@/types";
 
 interface EVDisplayProps {
   rtp: number | null;
+  winRate: number | null;
   cardTypes?: CardTypeConfig[];
   totalExpectedPayout?: number | null;
 }
 
 export default function EVDisplay({
   rtp,
+  winRate,
   cardTypes,
   totalExpectedPayout,
 }: EVDisplayProps) {
@@ -69,6 +71,14 @@ export default function EVDisplay({
               )}
             </div>
           </div>
+          {winRate !== null && (
+            <div>
+              <span className="text-xs opacity-70 block">中獎率</span>
+              <span className="text-lg font-bold">
+                {(winRate * 100).toFixed(1)}%
+              </span>
+            </div>
+          )}
           <div>
             <span className="text-xs opacity-70 block">
               {housePositive ? "賺錢率（主持人抽成）" : "主持人倒貼"}

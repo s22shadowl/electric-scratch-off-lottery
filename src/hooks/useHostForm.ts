@@ -119,9 +119,9 @@ function newPrize(
 const defaultForm: HostFormState = {
   sessionTitle: "",
   prizes: [
-    newPrize("uid-0", "謝謝參與", "0", "345"),
-    newPrize("uid-1", "$100", "100", "45"),
-    newPrize("uid-2", "$500", "500", "10"),
+    newPrize("uid-0", "謝謝參與", "0", "86.25"),
+    newPrize("uid-1", "$100", "100", "11.25"),
+    newPrize("uid-2", "$500", "500", "2.5"),
   ],
   cardCount: "10",
   cellsPerZone: "4",

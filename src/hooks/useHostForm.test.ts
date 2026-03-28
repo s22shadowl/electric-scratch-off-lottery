@@ -370,12 +370,17 @@ describe("useHostForm", () => {
 
   // ── 初始狀態 ──────────────────────────────────────────────
 
-  it("初始 prizes 金額應為 $100/$500，$0 weight=345（standard, cellCount=4）", () => {
+  it("初始 prizes 金額應為 $100/$500，權重加總=100（standard, cellCount=4）", () => {
     const { result } = renderHook(() => useHostForm(BASE));
     expect(result.current.form.prizes.some((p) => p.amount === "100")).toBe(true);
     expect(result.current.form.prizes.some((p) => p.amount === "500")).toBe(true);
     const losePrize = result.current.form.prizes.find((p) => p.amount === "0");
-    expect(losePrize?.weight).toBe("345");
+    expect(losePrize?.weight).toBe("86.25");
+    const totalWeight = result.current.form.prizes.reduce(
+      (s, p) => s + parseFloat(p.weight),
+      0,
+    );
+    expect(totalWeight).toBeCloseTo(100, 1);
   });
 
   it("winRate 初始值 = 55/400 = 0.1375", () => {
@@ -390,9 +395,9 @@ describe("useHostForm", () => {
     const { result } = renderHook(() => useHostForm(BASE));
     act(() => result.current.setCellsPerZone("6"));
     expect(result.current.showRescalePrompt).toBe(false);
-    // cellCount=6 → $0 weight = 100*6-55 = 545
+    // cellCount=6 → 正規化後 $0 weight ≈ 90.83
     const losePrize = result.current.form.prizes.find((p) => p.amount === "0");
-    expect(losePrize?.weight).toBe("545");
+    expect(losePrize?.weight).toBe("90.83");
     // 金額不變
     expect(result.current.form.prizes.some((p) => p.amount === "100")).toBe(true);
   });
@@ -469,9 +474,9 @@ describe("useHostForm", () => {
     act(() => result.current.setMechanic("triple"));
     act(() => result.current.setRowsPerCard("5"));
     expect(result.current.showRescalePrompt).toBe(false);
-    // cellCount=5 → $0 weight = 100*5-55 = 445
+    // cellCount=5 → 正規化後 $0 weight = 89
     const losePrize = result.current.form.prizes.find((p) => p.amount === "0");
-    expect(losePrize?.weight).toBe("445");
+    expect(losePrize?.weight).toBe("89");
   });
 
   it("triple 玩法 dirty 時 setRowsPerCard 不出 banner", () => {

@@ -18,34 +18,47 @@ const MECHANIC_LABELS: Record<string, string> = {
 function PrizeTable({ cardType }: { cardType: CardTypeConfig }) {
   const { prizes } = cardType;
   const totalWeight = prizes.reduce((sum, p) => sum + p.probability, 0);
+  const winWeight = prizes
+    .filter((p) => p.amount > 0)
+    .reduce((sum, p) => sum + p.probability, 0);
 
   return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="border-b border-red-700">
-          <th className="text-left py-2 text-yellow-300 font-bold">獎項名稱</th>
-          <th className="text-right py-2 text-yellow-300 font-bold">金額</th>
-          <th className="text-right py-2 text-yellow-300 font-bold">機率</th>
-        </tr>
-      </thead>
-      <tbody>
-        {prizes.map((prize) => {
-          const pct =
-            totalWeight > 0
-              ? ((prize.probability / totalWeight) * 100).toFixed(1)
-              : "0.0";
-          return (
-            <tr key={prize.id} className="border-b border-red-800">
-              <td className="py-2 text-white">{prize.label}</td>
-              <td className="py-2 text-right text-white">
-                {prize.amount > 0 ? `$${prize.amount}` : "—"}
-              </td>
-              <td className="py-2 text-right text-red-200">{pct}%</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <>
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-red-700">
+            <th className="text-left py-2 text-yellow-300 font-bold">獎項名稱</th>
+            <th className="text-right py-2 text-yellow-300 font-bold">金額</th>
+            <th className="text-right py-2 text-yellow-300 font-bold">機率</th>
+          </tr>
+        </thead>
+        <tbody>
+          {prizes.map((prize) => {
+            const pct =
+              totalWeight > 0
+                ? ((prize.probability / totalWeight) * 100).toFixed(1)
+                : "0.0";
+            return (
+              <tr key={prize.id} className="border-b border-red-800">
+                <td className="py-2 text-white">{prize.label}</td>
+                <td className="py-2 text-right text-white">
+                  {prize.amount > 0 ? `$${prize.amount}` : "—"}
+                </td>
+                <td className="py-2 text-right text-red-200">{pct}%</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {totalWeight > 0 && (
+        <div className="mt-3 flex justify-between items-center border-t border-red-700 pt-3">
+          <span className="text-sm text-yellow-300 font-bold">中獎率</span>
+          <span className="text-sm text-white font-bold">
+            {((winWeight / totalWeight) * 100).toFixed(1)}%
+          </span>
+        </div>
+      )}
+    </>
   );
 }
 

@@ -1,12 +1,12 @@
-import { useHostForm } from "@/hooks/useHostForm";
-import PrizeEditor from "@/components/host/PrizeEditor";
-import SharePanel from "@/components/host/SharePanel";
-import DifficultySelector from "@/components/host/DifficultySelector";
-import EVDisplay from "@/components/host/EVDisplay";
-import InfoTooltip from "@/components/ui/InfoTooltip";
-import { HOST_HELP_TEXT } from "@/utils/host-help-text";
+import { useHostForm } from "@/hooks/useHostForm"
+import PrizeEditor from "@/components/host/PrizeEditor"
+import SharePanel from "@/components/host/SharePanel"
+import DifficultySelector from "@/components/host/DifficultySelector"
+import EVDisplay from "@/components/host/EVDisplay"
+import InfoTooltip from "@/components/ui/InfoTooltip"
+import { HOST_HELP_TEXT } from "@/utils/host-help-text"
 
-const BASE_URL = window.location.origin;
+const BASE_URL = window.location.origin
 
 export default function HostPage() {
   const {
@@ -20,6 +20,7 @@ export default function HostPage() {
     bingoRTP,
     totalExpectedPayout,
     showRescalePrompt,
+    winRate,
     setTitle,
     updatePrize,
     addPrize,
@@ -33,7 +34,7 @@ export default function HostPage() {
     setPrizePerLine,
     copyUrl,
     confirmRescale,
-  } = useHostForm(BASE_URL);
+  } = useHostForm(BASE_URL)
 
   return (
     <main
@@ -55,7 +56,7 @@ export default function HostPage() {
           <section>
             <label
               htmlFor="session-title"
-              className="block text-sm font-bold text-yellow-300 mb-1"
+              className="block text-lg font-bold text-yellow-300 mb-3"
             >
               活動名稱
             </label>
@@ -69,29 +70,29 @@ export default function HostPage() {
             />
           </section>
 
-          {/* 格數變更重新縮放提示 */}
+          {/* 預設覆蓋提示 */}
           {showRescalePrompt && (
             <div
               data-testid="rescale-prompt"
-              className="border-l-4 border-yellow-400 bg-red-900/60 pl-3 pr-4 py-3 text-sm flex items-center justify-between gap-4 flex-wrap"
+              className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 text-sm"
             >
-              <span className="text-red-200">
-                格數已變更，獎項金額需重新對應調整。
-              </span>
-              <div className="flex items-center gap-3 shrink-0">
+              <p className="text-red-200 mb-3">
+                你已手動修改過獎項，套用預設將覆蓋現有設定。
+              </p>
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => confirmRescale(true)}
-                  className="px-3 py-1.5 bg-yellow-400 text-red-950 text-xs font-bold hover:bg-yellow-300 transition-colors"
+                  className="px-3 py-1.5 bg-yellow-400 text-red-900 text-sm font-bold rounded-lg hover:bg-yellow-300 transition-colors"
                 >
-                  重套預設金額
+                  套用預設
                 </button>
                 <button
                   type="button"
                   onClick={() => confirmRescale(false)}
-                  className="text-red-400 text-xs hover:text-red-200 transition-colors underline underline-offset-2"
+                  className="px-3 py-1.5 text-red-300 text-sm hover:text-white transition-colors"
                 >
-                  保留現有設定
+                  保留現有
                 </button>
               </div>
             </div>
@@ -153,7 +154,7 @@ export default function HostPage() {
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <div className="flex items-center gap-1 mb-1">
                   <label htmlFor="card-count" className="text-xs text-red-200">
@@ -171,118 +172,121 @@ export default function HostPage() {
                   className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
                 />
               </div>
-
-              {form.mechanic === "bingo" ? (
-                <div>
-                  <div className="flex items-center gap-1 mb-1">
-                    <label
-                      htmlFor="prize-per-line"
-                      className="text-xs text-red-200"
-                    >
-                      每線獎金（元）
-                    </label>
-                    <InfoTooltip content={HOST_HELP_TEXT.prizePerLine} />
-                  </div>
-                  <input
-                    id="prize-per-line"
-                    type="number"
-                    value={form.prizePerLine}
-                    onChange={(e) => setPrizePerLine(e.target.value)}
-                    min="0"
-                    className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
-                  />
+              <div>
+                <div className="flex items-center gap-1 mb-1">
+                  <label
+                    htmlFor="ticket-price"
+                    className="text-xs text-red-200"
+                  >
+                    票面價格（元）
+                  </label>
+                  <InfoTooltip content={HOST_HELP_TEXT.ticketPrice} />
                 </div>
-              ) : null}
+                <input
+                  id="ticket-price"
+                  type="number"
+                  value={form.ticketPrice}
+                  onChange={(e) => setTicketPrice(e.target.value)}
+                  min="1"
+                  className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
+                />
+              </div>
             </div>
 
-            <div className="mt-3">
-              <div className="flex items-center gap-1 mb-1">
-                <label htmlFor="ticket-price" className="text-xs text-red-200">
-                  票面價格（元）
-                </label>
-                <InfoTooltip content={HOST_HELP_TEXT.ticketPrice} />
+            {form.mechanic === "bingo" && (
+              <div className="mt-3">
+                <div className="flex items-center gap-1 mb-1">
+                  <label
+                    htmlFor="prize-per-line"
+                    className="text-xs text-red-200"
+                  >
+                    每線獎金（元）
+                  </label>
+                  <InfoTooltip content={HOST_HELP_TEXT.prizePerLine} />
+                </div>
+                <input
+                  id="prize-per-line"
+                  type="number"
+                  value={form.prizePerLine}
+                  onChange={(e) => setPrizePerLine(e.target.value)}
+                  min="0"
+                  className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
+                />
               </div>
-              <input
-                id="ticket-price"
-                type="number"
-                value={form.ticketPrice}
-                onChange={(e) => setTicketPrice(e.target.value)}
-                min="1"
-                className="w-full px-3 py-2 rounded-lg bg-red-900 border border-red-700 text-white text-center focus:outline-none focus:border-yellow-400"
-              />
-            </div>
+            )}
           </section>
+        </div>
+
+        {/* 右欄：分享 + 統計 + 開關 */}
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-lg font-bold text-yellow-300 mb-4">
+              分享給玩家
+            </h2>
+            <SharePanel
+              playUrl={playUrl}
+              qrCode={qrCode}
+              copied={copied}
+              onCopy={copyUrl}
+            />
+          </div>
 
           {/* 即時 EV 顯示 */}
           <EVDisplay
             rtp={bingoRTP ?? currentRTP}
+            winRate={winRate}
             cardTypes={config?.cardTypes}
             totalExpectedPayout={totalExpectedPayout}
           />
 
-          {/* 特效開關 */}
-          <section className="flex items-center justify-between">
-            <span className="flex items-center gap-1 text-sm text-red-200">
-              粒子特效（預設）
-              <InfoTooltip content={HOST_HELP_TEXT.effectsEnabled} />
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={form.effectsEnabled}
-              onClick={toggleEffects}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                form.effectsEnabled ? "bg-yellow-400" : "bg-red-700"
-              }`}
-            >
-              <span
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                  form.effectsEnabled ? "left-7" : "left-1"
+          {/* 開關群 */}
+          <div className="space-y-3">
+            <section className="flex items-center justify-between">
+              <span className="flex items-center gap-1 text-sm text-red-200">
+                粒子特效（預設）
+                <InfoTooltip content={HOST_HELP_TEXT.effectsEnabled} />
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.effectsEnabled}
+                onClick={toggleEffects}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  form.effectsEnabled ? "bg-yellow-400" : "bg-red-700"
                 }`}
-              />
-            </button>
-          </section>
+              >
+                <span
+                  className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                    form.effectsEnabled ? "left-7" : "left-1"
+                  }`}
+                />
+              </button>
+            </section>
 
-          {/* 允許返回牌堆開關 */}
-          <section className="flex items-center justify-between">
-            <span className="flex items-center gap-1 text-sm text-red-200">
-              允許返回牌堆
-              <InfoTooltip content={HOST_HELP_TEXT.allowReturnToPile} />
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={form.allowReturnToPile}
-              onClick={toggleAllowReturnToPile}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                form.allowReturnToPile ? "bg-yellow-400" : "bg-red-700"
-              }`}
-            >
-              <span
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                  form.allowReturnToPile ? "left-7" : "left-1"
+            <section className="flex items-center justify-between">
+              <span className="flex items-center gap-1 text-sm text-red-200">
+                允許返回牌堆
+                <InfoTooltip content={HOST_HELP_TEXT.allowReturnToPile} />
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={form.allowReturnToPile}
+                onClick={toggleAllowReturnToPile}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  form.allowReturnToPile ? "bg-yellow-400" : "bg-red-700"
                 }`}
-              />
-            </button>
-          </section>
-        </div>
-
-        {/* 右欄：分享面板 */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-yellow-300">分享給玩家</h2>
-          {!isValid && (
-            <p className="text-sm text-red-300">
-              請完整填寫活動名稱與至少一個有效獎項
-            </p>
-          )}
-          <SharePanel
-            playUrl={playUrl}
-            qrCode={qrCode}
-            copied={copied}
-            onCopy={copyUrl}
-          />
+              >
+                <span
+                  className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                    form.allowReturnToPile ? "left-7" : "left-1"
+                  }`}
+                />
+              </button>
+            </section>
+          </div>
         </div>
       </div>
     </main>
-  );
+  )
 }
