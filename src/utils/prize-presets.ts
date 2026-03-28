@@ -64,16 +64,18 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPreset, PresetTemplate> = {
 let uidCounter = 1000;
 
 /**
- * 依票面價格縮放模板獎項金額，回傳新的 PrizeDraft 陣列。
+ * 依票面價格與格數縮放模板獎項金額，回傳新的 PrizeDraft 陣列。
  * $0 的 label 固定「謝謝參與」；其他 label 更新為縮放後金額。
+ * cellCount 為每張卡的格數，金額會除以 cellCount（預設 1，向下相容）。
  */
 export function scalePrizesToTicketPrice(
   preset: DifficultyPreset,
   ticketPrice: number,
+  cellCount: number,
 ): PrizeDraft[] {
   const template = DIFFICULTY_PRESETS[preset];
   return template.prizes.map((p) => {
-    const scaled = Math.round((p.amount * ticketPrice) / 100);
+    const scaled = Math.round((p.amount * ticketPrice) / 100 / cellCount);
     const label = scaled === 0 ? "謝謝參與" : `$${scaled}`;
     return {
       uid: `preset-uid-${++uidCounter}`,

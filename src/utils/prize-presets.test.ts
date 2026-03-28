@@ -106,51 +106,63 @@ describe("classifyDifficulty", () => {
 
 describe("scalePrizesToTicketPrice", () => {
   it("ticketPrice=100 時獎項金額不變", () => {
-    const result = scalePrizesToTicketPrice("standard", 100);
+    const result = scalePrizesToTicketPrice("standard", 100, 1);
     expect(result.find((p) => p.label === "$100")?.amount).toBe("100");
     expect(result.find((p) => p.label === "$500")?.amount).toBe("500");
   });
 
   it("ticketPrice=200 時金額加倍", () => {
-    const result = scalePrizesToTicketPrice("standard", 200);
+    const result = scalePrizesToTicketPrice("standard", 200, 1);
     expect(result.find((p) => p.amount === "200")).toBeTruthy();
     expect(result.find((p) => p.amount === "1000")).toBeTruthy();
   });
 
   it("ticketPrice=50 時金額減半", () => {
-    const result = scalePrizesToTicketPrice("standard", 50);
+    const result = scalePrizesToTicketPrice("standard", 50, 1);
     expect(result.find((p) => p.amount === "50")).toBeTruthy();
     expect(result.find((p) => p.amount === "250")).toBeTruthy();
   });
 
   it("$0 的獎項 label 固定「謝謝參與」，金額仍為 0", () => {
-    const result = scalePrizesToTicketPrice("standard", 200);
+    const result = scalePrizesToTicketPrice("standard", 200, 1);
     const loseItem = result.find((p) => p.amount === "0");
     expect(loseItem?.label).toBe("謝謝參與");
   });
 
   it("回傳新陣列（不可變）", () => {
-    const result1 = scalePrizesToTicketPrice("standard", 100);
-    const result2 = scalePrizesToTicketPrice("standard", 100);
+    const result1 = scalePrizesToTicketPrice("standard", 100, 1);
+    const result2 = scalePrizesToTicketPrice("standard", 100, 1);
     expect(result1).not.toBe(result2);
   });
 
   it("generous 模板 RTP 接近 1.20", () => {
-    const prizes = scalePrizesToTicketPrice("generous", 100);
-    const rtp = calculateRTP(prizes, 100);
+    const prizes = scalePrizesToTicketPrice("generous", 100, 1);
+    const rtp = calculateRTP(prizes, 100, 1);
     expect(rtp).toBeCloseTo(DIFFICULTY_PRESETS.generous.targetRtp, 1);
   });
 
   it("conservative 模板 RTP 接近 0.80", () => {
-    const prizes = scalePrizesToTicketPrice("conservative", 100);
-    const rtp = calculateRTP(prizes, 100);
+    const prizes = scalePrizesToTicketPrice("conservative", 100, 1);
+    const rtp = calculateRTP(prizes, 100, 1);
     expect(rtp).toBeCloseTo(DIFFICULTY_PRESETS.conservative.targetRtp, 1);
   });
 
   it("realistic 模板 RTP 接近 0.63", () => {
-    const prizes = scalePrizesToTicketPrice("realistic", 100);
-    const rtp = calculateRTP(prizes, 100);
+    const prizes = scalePrizesToTicketPrice("realistic", 100, 1);
+    const rtp = calculateRTP(prizes, 100, 1);
     expect(rtp).toBeCloseTo(DIFFICULTY_PRESETS.realistic.targetRtp, 1);
+  });
+
+  it("standard 模板 cellCount=4 時 RTP 仍接近 targetRtp（金額已縮小 4 倍）", () => {
+    const prizes = scalePrizesToTicketPrice("standard", 100, 4);
+    const rtp = calculateRTP(prizes, 100, 4);
+    expect(rtp).toBeCloseTo(DIFFICULTY_PRESETS.standard.targetRtp, 1);
+  });
+
+  it("cellCount=4 時 standard $100 獎項縮小為 $25", () => {
+    const prizes = scalePrizesToTicketPrice("standard", 100, 4);
+    expect(prizes.find((p) => p.amount === "25")).toBeTruthy();
+    expect(prizes.find((p) => p.amount === "125")).toBeTruthy();
   });
 });
 
@@ -166,8 +178,8 @@ describe("DIFFICULTY_PRESETS", () => {
 
   it("每個 preset 的 calculateRTP(prizes, 100) 應接近 targetRtp（容差 ±0.02）", () => {
     for (const [key, preset] of Object.entries(DIFFICULTY_PRESETS)) {
-      const prizes = scalePrizesToTicketPrice(key as DifficultyPreset, 100);
-      const rtp = calculateRTP(prizes, 100);
+      const prizes = scalePrizesToTicketPrice(key as DifficultyPreset, 100, 1);
+      const rtp = calculateRTP(prizes, 100, 1);
       expect(rtp).not.toBeNull();
       expect(Math.abs(rtp! - preset.targetRtp)).toBeLessThan(0.02);
     }
