@@ -21,6 +21,7 @@ export default function HostPage() {
     totalExpectedPayout,
     showRescalePrompt,
     winRate,
+    weightTotal,
     setTitle,
     updatePrize,
     addPrize,
@@ -101,6 +102,7 @@ export default function HostPage() {
           {/* 獎項編輯 */}
           <PrizeEditor
             prizes={form.prizes}
+            weightTotal={weightTotal}
             onUpdate={updatePrize}
             onAdd={addPrize}
             onRemove={removePrize}
