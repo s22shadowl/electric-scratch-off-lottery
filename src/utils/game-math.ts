@@ -52,6 +52,8 @@ export function calculateRTP(
   return (ev * cellCount) / ticketPrice;
 }
 
+// ── calculateWinRate ───────────────────────────────────────
+
 /**
  * 計算中獎率：weight > 0 且 amount > 0 的權重佔總權重比例。
  * 回傳 0–1 的小數（0.1375 = 13.75%）。
