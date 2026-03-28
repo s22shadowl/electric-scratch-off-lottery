@@ -19,6 +19,7 @@ export default function HostPage() {
     currentRTP,
     bingoRTP,
     totalExpectedPayout,
+    showRescalePrompt,
     setTitle,
     updatePrize,
     addPrize,
@@ -31,6 +32,7 @@ export default function HostPage() {
     setMechanic,
     setPrizePerLine,
     copyUrl,
+    confirmRescale,
   } = useHostForm(BASE_URL);
 
   return (
@@ -66,6 +68,34 @@ export default function HostPage() {
               className="w-full px-4 py-2 rounded-lg bg-red-900 border border-red-700 text-white placeholder-red-400 focus:outline-none focus:border-yellow-400"
             />
           </section>
+
+          {/* 格數變更重新縮放提示 */}
+          {showRescalePrompt && (
+            <div
+              data-testid="rescale-prompt"
+              className="border-l-4 border-yellow-400 bg-red-900/60 pl-3 pr-4 py-3 text-sm flex items-center justify-between gap-4 flex-wrap"
+            >
+              <span className="text-red-200">
+                格數已變更，獎項金額需重新對應調整。
+              </span>
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => confirmRescale(true)}
+                  className="px-3 py-1.5 bg-yellow-400 text-red-950 text-xs font-bold hover:bg-yellow-300 transition-colors"
+                >
+                  重套預設金額
+                </button>
+                <button
+                  type="button"
+                  onClick={() => confirmRescale(false)}
+                  className="text-red-400 text-xs hover:text-red-200 transition-colors underline underline-offset-2"
+                >
+                  保留現有設定
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* 獎項編輯 */}
           <PrizeEditor
