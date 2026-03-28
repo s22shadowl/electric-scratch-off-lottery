@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcBingoLineProbabilities } from "./game-math";
+import { calcBingoLineProbabilities, calculateRTP, calculateWinRate } from "./game-math";
 
 // ── calcBingoLineProbabilities ─────────────────────────────
 
@@ -72,5 +72,53 @@ describe("calcBingoLineProbabilities", () => {
     const a = calcBingoLineProbabilities(3, 6);
     const b = calcBingoLineProbabilities(3, 6);
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+  });
+});
+
+// ── calculateWinRate ──────────────────────────────────────
+
+describe("calculateWinRate", () => {
+  it("standard prizes (cellCount=1): 55/100 = 0.55", () => {
+    const prizes = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+    ];
+    expect(calculateWinRate(prizes)).toBeCloseTo(0.55, 5);
+  });
+
+  it("inflated $0 weight (cellCount=4): 55/400 = 0.1375", () => {
+    const prizes = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "345" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+    ];
+    expect(calculateWinRate(prizes)).toBeCloseTo(0.1375, 5);
+  });
+
+  it("全部中獎 → 1.0", () => {
+    const prizes = [
+      { uid: "a", label: "$100", amount: "100", weight: "50" },
+      { uid: "b", label: "$500", amount: "500", weight: "50" },
+    ];
+    expect(calculateWinRate(prizes)).toBeCloseTo(1.0, 5);
+  });
+
+  it("全部不中獎 → 0", () => {
+    const prizes = [
+      { uid: "a", label: "謝謝", amount: "0", weight: "100" },
+    ];
+    expect(calculateWinRate(prizes)).toBeCloseTo(0, 5);
+  });
+
+  it("空 prizes → null", () => {
+    expect(calculateWinRate([])).toBeNull();
+  });
+
+  it("全部 weight=0 → null", () => {
+    const prizes = [
+      { uid: "a", label: "謝謝", amount: "0", weight: "0" },
+    ];
+    expect(calculateWinRate(prizes)).toBeNull();
   });
 });
