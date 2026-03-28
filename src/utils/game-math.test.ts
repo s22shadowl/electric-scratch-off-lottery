@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcBingoLineProbabilities, calculateRTP } from "./game-math";
+import { calcBingoLineProbabilities, calculateRTP, calculateWinRate } from "./game-math";
 
 // ── calcBingoLineProbabilities ─────────────────────────────
 
@@ -75,32 +75,50 @@ describe("calcBingoLineProbabilities", () => {
   });
 });
 
-// ── calculateRTP ───────────────────────────────────────────
+// ── calculateWinRate ──────────────────────────────────────
 
-describe("calculateRTP", () => {
-  const stdPrizes = [
-    { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
-    { uid: "b", label: "$100", amount: "100", weight: "45" },
-    { uid: "c", label: "$500", amount: "500", weight: "10" },
-  ];
-
-  it("cellCount 預設 1 時等同舊行為，per-cell EV / ticketPrice", () => {
-    expect(calculateRTP(stdPrizes, 100)).toBeCloseTo(0.95, 5);
+describe("calculateWinRate", () => {
+  it("standard prizes (cellCount=1): 55/100 = 0.55", () => {
+    const prizes = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+    ];
+    expect(calculateWinRate(prizes)).toBeCloseTo(0.55, 5);
   });
 
-  it("cellCount=4 時回傳 per-card RTP = 0.95 * 4 = 3.80", () => {
-    expect(calculateRTP(stdPrizes, 100, 4)).toBeCloseTo(3.8, 5);
+  it("inflated $0 weight (cellCount=4): 55/400 = 0.1375", () => {
+    const prizes = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "345" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+    ];
+    expect(calculateWinRate(prizes)).toBeCloseTo(0.1375, 5);
   });
 
-  it("cellCount=1 明確傳入時與預設相同", () => {
-    expect(calculateRTP(stdPrizes, 100, 1)).toBeCloseTo(0.95, 5);
+  it("全部中獎 → 1.0", () => {
+    const prizes = [
+      { uid: "a", label: "$100", amount: "100", weight: "50" },
+      { uid: "b", label: "$500", amount: "500", weight: "50" },
+    ];
+    expect(calculateWinRate(prizes)).toBeCloseTo(1.0, 5);
   });
 
-  it("ticketPrice <= 0 → null（cellCount 不影響）", () => {
-    expect(calculateRTP(stdPrizes, 0, 4)).toBeNull();
+  it("全部不中獎 → 0", () => {
+    const prizes = [
+      { uid: "a", label: "謝謝", amount: "0", weight: "100" },
+    ];
+    expect(calculateWinRate(prizes)).toBeCloseTo(0, 5);
   });
 
   it("空 prizes → null", () => {
-    expect(calculateRTP([], 100, 4)).toBeNull();
+    expect(calculateWinRate([])).toBeNull();
+  });
+
+  it("全部 weight=0 → null", () => {
+    const prizes = [
+      { uid: "a", label: "謝謝", amount: "0", weight: "0" },
+    ];
+    expect(calculateWinRate(prizes)).toBeNull();
   });
 });
