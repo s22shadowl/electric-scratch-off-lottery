@@ -397,6 +397,49 @@ describe("buildCard (symbol matching)", () => {
     expect(testedAtLeastOnce).toBe(true);
   });
 
+  it("symbol 玩法：未中獎格的 loseAmount 應對應右側符號的正確金額（即使本卡只抽到一種中獎 prize）", () => {
+    // 回歸測試：原本 codeToAmount 從本卡中獎格建立，當只有一種 prize 被抽到時，
+    // 右側符號(SYMBOL_POOL 下一個)的 loseAmount 查不到 → 錯誤 fallback 到左側金額
+    const prizes2: Prize[] = [
+      makePrize({ id: "win1", amount: 100, probability: 1 }),
+      makePrize({ id: "win2", amount: 500, probability: 0 }), // 永遠不會被抽到
+      makePrize({ id: "lose", amount: 0, probability: 99, label: "謝謝" }),
+    ];
+    const cardType2: CardTypeConfig = {
+      mechanic: "symbol",
+      prizes: prizes2,
+      count: 1,
+      themeId: "wealth-god",
+      difficultyPreset: "standard",
+      mechanicOptions: { cellsPerZone: 10 } satisfies SymbolOptions,
+      ticketPrice: 100,
+    };
+    const normalizedPrizes2 = prizes2.map((p) => ({
+      ...p,
+      probability: p.probability / prizes2.reduce((s, x) => s + x.probability, 0),
+    }));
+    // 所有卡都只有 win1 ($100)，不可能抽到 win2 ($500)
+    for (let i = 0; i < 10; i++) {
+      const card = buildCard(cardType2, `card-${i}`, `TEST-${i}`, 0);
+      const cells = card.zones.flatMap((z) => z.cells);
+      const loseCells = cells.filter((c) => !c.prize.isWin);
+      loseCells.forEach((cell) => {
+        // symbolAmount / loseAmount 應對應各自 symbolCode 的定義金額，不能互相混用
+        // 重點：loseAmount 不能因為 loseSymbolCode 沒被本卡抽到就 fallback 成 symbolAmount
+        expect(cell.prize.symbolAmount).toBeGreaterThan(0);
+        expect(cell.prize.loseAmount).toBeGreaterThan(0);
+        expect(cell.prize.symbolAmount).not.toBe(undefined);
+        expect(cell.prize.loseAmount).not.toBe(undefined);
+        // 兩個不能完全一樣（元寶$100 / 錢幣$100 的 bug 情境）
+        // 除非 symbolCode === loseSymbolCode（不應發生）
+        if (cell.prize.symbolCode !== cell.prize.loseSymbolCode) {
+          expect(cell.prize.symbolAmount).not.toBe(cell.prize.loseAmount);
+        }
+      });
+    }
+    void normalizedPrizes2; // suppress unused warning
+  });
+
   it("symbol 玩法：未中獎格的 symbolAmount 和 loseAmount 應為正數（多種中獎 prize 均出現時）", () => {
     const mixed: Prize[] = [
       makePrize({ id: "win1", amount: 300, probability: 5 }),

@@ -245,7 +245,8 @@ function buildBingoZones(cardId: string, options: BingoOptions): ScratchZone[] {
 }
 
 // Symbol 玩法後處理：中獎格共享 symbolCode、未中獎格各不相同
-function assignMatchingSymbols(zones: ScratchZone[]): ScratchZone[] {
+// prizes 必須已由 assignSymbolsToPrizes 處理（帶 symbolCode）
+function assignMatchingSymbols(zones: ScratchZone[], prizes: Prize[]): ScratchZone[] {
   const allCells = zones.flatMap((z) => z.cells);
   const usedCodes = new Set<string>();
 
@@ -259,20 +260,29 @@ function assignMatchingSymbols(zones: ScratchZone[]): ScratchZone[] {
     }
   }
 
-  // 2. 從 prize.symbolCode（已由 assignSymbolsToPrizes 設定）建立對應表
-  // 符號 ↔ 金額為 1:1 關係，不重新分配，直接使用 prize 上的既有 symbolCode
-  const assignedCodes = new Map<string, string>(); // prizeId → symbolCode
-  const codeToAmount = new Map<string, number>();   // symbolCode → amount
-  for (const [prizeId, cells] of winGroups) {
-    const code = cells[0]!.prize.symbolCode;
-    if (!code) continue; // 安全防呆（正常情況 assignSymbolsToPrizes 已設定）
-    assignedCodes.set(prizeId, code);
-    usedCodes.add(code);
-    codeToAmount.set(code, cells[0]!.prize.amount);
+  // 2. 從全量 prizes 定義建立 symbolCode → amount 對應表
+  // 不依賴本卡實際抽到的中獎格：某張卡可能恰好沒抽到某個獎項，
+  // 但該符號仍代表固定金額，必須從設定中取值
+  const codeToAmount = new Map<string, number>(); // symbolCode → amount
+  for (const prize of prizes) {
+    if (prize.symbolCode) {
+      codeToAmount.set(prize.symbolCode, prize.amount);
+    }
   }
 
-  // 從中獎格的 code 建立 winCodes 陣列
-  const winCodes = Array.from(codeToAmount.keys());
+  // 2b. 從中獎格確認 prizeId → symbolCode 對應（供步驟 4 中獎格使用）
+  const assignedCodes = new Map<string, string>(); // prizeId → symbolCode
+  for (const [prizeId, cells] of winGroups) {
+    const code = cells[0]!.prize.symbolCode;
+    if (!code) continue;
+    assignedCodes.set(prizeId, code);
+    usedCodes.add(code);
+  }
+
+  // winCodes 從全量 prizes 建立，確保即使本卡沒抽到某獎項，右側符號金額仍查得到
+  const winCodes = prizes
+    .filter((p) => p.isWin && p.symbolCode)
+    .map((p) => p.symbolCode!);
 
   // 3. 未中獎格各分配不同的 symbolCode（避開已用的）—— 僅作為 fallback
   let loseCodes: string[] = [];
@@ -377,7 +387,7 @@ export function buildCard(
             ];
   const finalZones =
     cardTypeConfig.mechanic === "symbol"
-      ? assignMatchingSymbols(zones)
+      ? assignMatchingSymbols(zones, prizes)
       : zones;
   return {
     id: cardId,
