@@ -23,12 +23,17 @@ import type { PrizeDraft } from "@/hooks/useHostForm";
 import type { DifficultyPreset } from "@/types";
 
 /**
- * 依目前獎項草稿 + 票面計算 RTP（期望值 / ticketPrice）。
+ * 依目前獎項草稿 + 票面計算 RTP（期望值 × cellCount / ticketPrice）。
+ * cellCount 為每張卡的格數（預設 1）。
  * 無效輸入（ticketPrice <= 0 或無有效 prizes）回傳 null。
+ *
+ * 搭配 scalePrizesToTicketPrice 使用時，該函式已透過膨脹 $0 weight
+ * 來壓低 per-cell EV，使 per-card RTP = targetRtp。
  */
 export function calculateRTP(
   prizes: PrizeDraft[],
   ticketPrice: number,
+  cellCount = 1,
 ): number | null {
   if (ticketPrice <= 0) return null;
 
@@ -44,7 +49,30 @@ export function calculateRTP(
     return sum + (amount * weight) / totalWeight;
   }, 0);
 
-  return ev / ticketPrice;
+  return (ev * cellCount) / ticketPrice;
+}
+
+// ── calculateWinRate ───────────────────────────────────────
+
+/**
+ * 計算中獎率：weight > 0 且 amount > 0 的權重佔總權重比例。
+ * 回傳 0–1 的小數（0.1375 = 13.75%）。
+ * 無有效 prizes 時回傳 null。
+ */
+export function calculateWinRate(
+  prizes: PrizeDraft[],
+): number | null {
+  const valid = prizes.filter((p) => parseFloat(p.weight) > 0);
+  if (valid.length === 0) return null;
+
+  const totalWeight = valid.reduce((sum, p) => sum + parseFloat(p.weight), 0);
+  if (totalWeight <= 0) return null;
+
+  const winWeight = valid
+    .filter((p) => (parseFloat(p.amount) || 0) > 0)
+    .reduce((sum, p) => sum + parseFloat(p.weight), 0);
+
+  return winWeight / totalWeight;
 }
 
 // ── classifyDifficulty ─────────────────────────────────────

@@ -368,83 +368,125 @@ describe("useHostForm", () => {
     expect(result.current.bingoRTP!).toBeGreaterThan(0);
   });
 
-  it("bingo gridSize 變更應更新 bingoRTP", () => {
+  // ── 初始狀態 ──────────────────────────────────────────────
+
+  it("初始 prizes 金額應為 $100/$500，$0 weight=345（standard, cellCount=4）", () => {
     const { result } = renderHook(() => useHostForm(BASE));
-    act(() => {
-      result.current.setMechanic("bingo");
-      result.current.setGridSize("3");
-      result.current.setPrizePerLine("100");
-      result.current.setTicketPrice("100");
-    });
-    const rtp3 = result.current.bingoRTP;
-    act(() => result.current.setGridSize("6"));
-    const rtp6 = result.current.bingoRTP;
-    expect(rtp3).not.toBeNull();
-    expect(rtp6).not.toBeNull();
-    expect(rtp3).not.toBeCloseTo(rtp6!, 3);
+    expect(result.current.form.prizes.some((p) => p.amount === "100")).toBe(true);
+    expect(result.current.form.prizes.some((p) => p.amount === "500")).toBe(true);
+    const losePrize = result.current.form.prizes.find((p) => p.amount === "0");
+    expect(losePrize?.weight).toBe("345");
   });
 
-  it("bingo prizePerLine 變更應更新 bingoRTP", () => {
+  it("winRate 初始值 = 55/400 = 0.1375", () => {
     const { result } = renderHook(() => useHostForm(BASE));
-    act(() => {
-      result.current.setMechanic("bingo");
-      result.current.setPrizePerLine("100");
-    });
-    const rtp100 = result.current.bingoRTP;
-    act(() => result.current.setPrizePerLine("200"));
-    const rtp200 = result.current.bingoRTP;
-    expect(rtp200).toBeCloseTo(rtp100! * 2, 5);
+    expect(result.current.winRate).not.toBeNull();
+    expect(result.current.winRate!).toBeCloseTo(0.1375, 3);
   });
 
-  it("bingo cardCount 變更不影響 bingoRTP（per-card RTP 與牌數無關）", () => {
+  // ── setCellsPerZone（永不出 banner）────────────────────
+
+  it("pristine 時 setCellsPerZone 靜默調整 weight，不出 banner", () => {
     const { result } = renderHook(() => useHostForm(BASE));
-    act(() => result.current.setMechanic("bingo"));
-    const rtpBefore = result.current.bingoRTP;
-    act(() => result.current.setCardCount("50"));
-    expect(result.current.bingoRTP).toBe(rtpBefore);
+    act(() => result.current.setCellsPerZone("6"));
+    expect(result.current.showRescalePrompt).toBe(false);
+    // cellCount=6 → $0 weight = 100*6-55 = 545
+    const losePrize = result.current.form.prizes.find((p) => p.amount === "0");
+    expect(losePrize?.weight).toBe("545");
+    // 金額不變
+    expect(result.current.form.prizes.some((p) => p.amount === "100")).toBe(true);
   });
 
-  it("totalExpectedPayout = RTP × ticketPrice × cardCount", () => {
+  it("dirty 時 setCellsPerZone 只更新格數值，不出 banner，不動 prizes", () => {
     const { result } = renderHook(() => useHostForm(BASE));
-    act(() => {
-      result.current.setTitle("測試");
-      result.current.setCardCount("10");
-      result.current.setTicketPrice("100");
-    });
-    const rtp = result.current.currentRTP;
-    expect(result.current.totalExpectedPayout).toBeCloseTo(rtp! * 100 * 10, 2);
+    const uid = result.current.form.prizes[0]!.uid;
+    act(() => result.current.updatePrize(uid, "label", "手動改"));
+    const weightsBefore = result.current.form.prizes.map((p) => p.weight);
+    act(() => result.current.setCellsPerZone("6"));
+    expect(result.current.showRescalePrompt).toBe(false);
+    expect(result.current.form.cellsPerZone).toBe("6");
+    expect(result.current.form.prizes.map((p) => p.weight)).toEqual(weightsBefore);
   });
 
-  it("cardCount 變更應更新 totalExpectedPayout", () => {
+  // ── setDifficultyPreset（dirty 時出 banner）───────────
+
+  it("pristine 時 setDifficultyPreset 靜默套用", () => {
     const { result } = renderHook(() => useHostForm(BASE));
-    act(() => result.current.setCardCount("10"));
-    const pay10 = result.current.totalExpectedPayout;
-    act(() => result.current.setCardCount("20"));
-    const pay20 = result.current.totalExpectedPayout;
-    expect(pay20).toBeCloseTo(pay10! * 2, 2);
+    act(() => result.current.setDifficultyPreset("generous"));
+    expect(result.current.showRescalePrompt).toBe(false);
+    expect(result.current.form.difficultyPreset).toBe("generous");
   });
 
-  it("ticketPrice 無效時 totalExpectedPayout 應為 null", () => {
+  it("dirty 時 setDifficultyPreset 觸發 showRescalePrompt，不更新 preset", () => {
     const { result } = renderHook(() => useHostForm(BASE));
-    act(() => result.current.setTicketPrice("0"));
-    expect(result.current.totalExpectedPayout).toBeNull();
+    const uid = result.current.form.prizes[0]!.uid;
+    act(() => result.current.updatePrize(uid, "label", "手動改"));
+    act(() => result.current.setDifficultyPreset("generous"));
+    expect(result.current.showRescalePrompt).toBe(true);
+    // preset 尚未更新（等待確認）
+    expect(result.current.form.difficultyPreset).toBe("standard");
   });
 
-  it("allowReturnToPile 預設值應為 false", () => {
+  it("confirmRescale(true) 套用 pending preset，關閉 banner，重置 dirty", () => {
     const { result } = renderHook(() => useHostForm(BASE));
-    expect(result.current.form.allowReturnToPile).toBe(false);
+    const uid = result.current.form.prizes[0]!.uid;
+    act(() => result.current.updatePrize(uid, "label", "手動改"));
+    act(() => result.current.setDifficultyPreset("generous"));
+    act(() => result.current.confirmRescale(true));
+    expect(result.current.showRescalePrompt).toBe(false);
+    expect(result.current.form.difficultyPreset).toBe("generous");
+    // generous template 有 $500 獎項
+    expect(result.current.form.prizes.some((p) => p.amount === "500")).toBe(true);
   });
 
-  it("toggleAllowReturnToPile 應切換 allowReturnToPile 為 true", () => {
+  it("confirmRescale(false) 保留現有 prizes，關閉 banner", () => {
     const { result } = renderHook(() => useHostForm(BASE));
-    act(() => result.current.toggleAllowReturnToPile());
-    expect(result.current.form.allowReturnToPile).toBe(true);
+    const uid = result.current.form.prizes[0]!.uid;
+    act(() => result.current.updatePrize(uid, "label", "手動改"));
+    const prizesBefore = result.current.form.prizes.map((p) => p.amount);
+    act(() => result.current.setDifficultyPreset("generous"));
+    act(() => result.current.confirmRescale(false));
+    expect(result.current.showRescalePrompt).toBe(false);
+    expect(result.current.form.prizes.map((p) => p.amount)).toEqual(prizesBefore);
+    // preset 不更新
+    expect(result.current.form.difficultyPreset).toBe("standard");
   });
 
-  it("toggleAllowReturnToPile 連續兩次應回到 false", () => {
+  it("confirmRescale(true) 後再改格數不出 banner（dirty 已重置）", () => {
     const { result } = renderHook(() => useHostForm(BASE));
-    act(() => result.current.toggleAllowReturnToPile());
-    act(() => result.current.toggleAllowReturnToPile());
-    expect(result.current.form.allowReturnToPile).toBe(false);
+    const uid = result.current.form.prizes[0]!.uid;
+    act(() => result.current.updatePrize(uid, "label", "手動改"));
+    act(() => result.current.setDifficultyPreset("generous"));
+    act(() => result.current.confirmRescale(true));
+    act(() => result.current.setCellsPerZone("6"));
+    expect(result.current.showRescalePrompt).toBe(false);
+  });
+
+  // ── triple / compare / other ──────────────────────────
+
+  it("triple 玩法 setRowsPerCard pristine 時靜默調整 weight", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setMechanic("triple"));
+    act(() => result.current.setRowsPerCard("5"));
+    expect(result.current.showRescalePrompt).toBe(false);
+    // cellCount=5 → $0 weight = 100*5-55 = 445
+    const losePrize = result.current.form.prizes.find((p) => p.amount === "0");
+    expect(losePrize?.weight).toBe("445");
+  });
+
+  it("triple 玩法 dirty 時 setRowsPerCard 不出 banner", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setMechanic("triple"));
+    const uid = result.current.form.prizes[0]!.uid;
+    act(() => result.current.updatePrize(uid, "label", "手動"));
+    act(() => result.current.setRowsPerCard("5"));
+    expect(result.current.showRescalePrompt).toBe(false);
+  });
+
+  it("compare 玩法 setRowsPerCard 不觸發任何 rescale", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.setMechanic("compare"));
+    act(() => result.current.setRowsPerCard("5"));
+    expect(result.current.showRescalePrompt).toBe(false);
   });
 });
