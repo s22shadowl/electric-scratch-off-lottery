@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcBingoLineProbabilities } from "./game-math";
+import { calcBingoLineProbabilities, calculateRTP } from "./game-math";
 
 // ── calcBingoLineProbabilities ─────────────────────────────
 
@@ -72,5 +72,35 @@ describe("calcBingoLineProbabilities", () => {
     const a = calcBingoLineProbabilities(3, 6);
     const b = calcBingoLineProbabilities(3, 6);
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+  });
+});
+
+// ── calculateRTP ───────────────────────────────────────────
+
+describe("calculateRTP", () => {
+  const stdPrizes = [
+    { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
+    { uid: "b", label: "$100", amount: "100", weight: "45" },
+    { uid: "c", label: "$500", amount: "500", weight: "10" },
+  ];
+
+  it("cellCount 預設 1 時等同舊行為，per-cell EV / ticketPrice", () => {
+    expect(calculateRTP(stdPrizes, 100)).toBeCloseTo(0.95, 5);
+  });
+
+  it("cellCount=4 時回傳 per-card RTP = 0.95 * 4 = 3.80", () => {
+    expect(calculateRTP(stdPrizes, 100, 4)).toBeCloseTo(3.8, 5);
+  });
+
+  it("cellCount=1 明確傳入時與預設相同", () => {
+    expect(calculateRTP(stdPrizes, 100, 1)).toBeCloseTo(0.95, 5);
+  });
+
+  it("ticketPrice <= 0 → null（cellCount 不影響）", () => {
+    expect(calculateRTP(stdPrizes, 0, 4)).toBeNull();
+  });
+
+  it("空 prizes → null", () => {
+    expect(calculateRTP([], 100, 4)).toBeNull();
   });
 });
