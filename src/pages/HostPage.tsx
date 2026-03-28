@@ -35,6 +35,7 @@ export default function HostPage() {
     setPrizePerLine,
     copyUrl,
     confirmRescale,
+    normalizeWeights,
   } = useHostForm(BASE_URL)
 
   return (
@@ -71,8 +72,8 @@ export default function HostPage() {
             />
           </section>
 
-          {/* 預設覆蓋提示 */}
-          {showRescalePrompt && (
+          {/* 提示 banner（preset 覆蓋 / 權重正規化，互斥顯示） */}
+          {showRescalePrompt ? (
             <div
               data-testid="rescale-prompt"
               className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 text-sm"
@@ -97,7 +98,25 @@ export default function HostPage() {
                 </button>
               </div>
             </div>
-          )}
+          ) : Math.abs(weightTotal - 100) >= 0.01 ? (
+            <div
+              data-testid="normalize-prompt"
+              className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 text-sm"
+            >
+              <p className="text-red-200 mb-3">
+                權重加總為 {weightTotal.toFixed(1)}，非 100%。
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={normalizeWeights}
+                  className="px-3 py-1.5 bg-yellow-400 text-red-900 text-sm font-bold rounded-lg hover:bg-yellow-300 transition-colors"
+                >
+                  正規化為 100%
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           {/* 獎項編輯 */}
           <PrizeEditor
