@@ -33,6 +33,7 @@ import type { DifficultyPreset } from "@/types";
 export function calculateRTP(
   prizes: PrizeDraft[],
   ticketPrice: number,
+  cellCount = 1,
 ): number | null {
   if (ticketPrice <= 0) return null;
 
@@ -48,7 +49,7 @@ export function calculateRTP(
     return sum + (amount * weight) / totalWeight;
   }, 0);
 
-  return ev / ticketPrice;
+  return (ev * cellCount) / ticketPrice;
 }
 
 /**
