@@ -654,21 +654,23 @@ const {
 {showRescalePrompt && (
   <div
     data-testid="rescale-prompt"
-    className="rounded-lg border border-yellow-600 bg-yellow-900/20 px-4 py-3 text-sm text-yellow-300 flex items-center justify-between gap-4"
+    className="border-l-4 border-yellow-400 bg-red-900/60 pl-3 pr-4 py-3 text-sm flex items-center justify-between gap-4 flex-wrap"
   >
-    <span>格數已變更，獎項金額需重新調整。</span>
-    <div className="flex gap-2 shrink-0">
+    <span className="text-red-200">
+      格數已變更，獎項金額需重新對應調整。
+    </span>
+    <div className="flex items-center gap-3 shrink-0">
       <button
         type="button"
         onClick={() => confirmRescale(true)}
-        className="rounded px-3 py-1 bg-yellow-600 text-black font-medium hover:bg-yellow-500 transition-colors"
+        className="px-3 py-1.5 bg-yellow-400 text-red-950 text-xs font-bold hover:bg-yellow-300 transition-colors"
       >
         重套預設金額
       </button>
       <button
         type="button"
         onClick={() => confirmRescale(false)}
-        className="rounded px-3 py-1 border border-yellow-600 hover:bg-yellow-900/40 transition-colors"
+        className="text-red-400 text-xs hover:text-red-200 transition-colors underline underline-offset-2"
       >
         保留現有設定
       </button>
