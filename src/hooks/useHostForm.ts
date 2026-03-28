@@ -169,6 +169,12 @@ export function useHostForm(baseUrl: string) {
     [form.prizes],
   );
 
+  const weightTotal = useMemo(
+    () =>
+      form.prizes.reduce((sum, p) => sum + (parseFloat(p.weight) || 0), 0),
+    [form.prizes],
+  );
+
   // bingo 專用 RTP（prizePerLine × 期望連線數 / ticketPrice）
   const bingoRTP = useMemo<number | null>(() => {
     if (form.mechanic !== "bingo") return null;
@@ -341,6 +347,37 @@ export function useHostForm(baseUrl: string) {
     [pendingPreset, form.ticketPrice, cellCount],
   );
 
+  const normalizeWeights = useCallback(() => {
+    setForm((f) => {
+      const weights = f.prizes.map((p) => parseFloat(p.weight) || 0);
+      const total = weights.reduce((s, w) => s + w, 0);
+      if (total <= 0) return f;
+
+      const normalized = weights.map(
+        (w) => Math.round((w / total) * 10000) / 100,
+      );
+      const sum = normalized.reduce((s, w) => s + w, 0);
+      const diff = Math.round((100 - sum) * 100) / 100;
+      if (diff !== 0) {
+        let maxIdx = 0;
+        for (let i = 1; i < normalized.length; i++) {
+          if (normalized[i] > normalized[maxIdx]) maxIdx = i;
+        }
+        normalized[maxIdx] =
+          Math.round((normalized[maxIdx] + diff) * 100) / 100;
+      }
+
+      return {
+        ...f,
+        prizes: f.prizes.map((p, i) => ({
+          ...p,
+          weight: String(normalized[i]),
+        })),
+      };
+    });
+    setPrizesDirty(false);
+  }, []);
+
   const copyUrl = useCallback(async () => {
     if (!playUrl) return;
     await navigator.clipboard.writeText(playUrl);
@@ -360,6 +397,7 @@ export function useHostForm(baseUrl: string) {
     config,
     currentRTP,
     winRate,
+    weightTotal,
     bingoRTP,
     totalExpectedPayout,
     showRescalePrompt,
@@ -379,6 +417,7 @@ export function useHostForm(baseUrl: string) {
     setPrizePerLine,
     copyUrl,
     confirmRescale,
+    normalizeWeights,
   };
 }
 

@@ -467,6 +467,66 @@ describe("useHostForm", () => {
     expect(result.current.showRescalePrompt).toBe(false);
   });
 
+  // ── weightTotal + normalizeWeights ────────────────────
+
+  it("weightTotal 初始 = 100", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    expect(result.current.weightTotal).toBeCloseTo(100, 1);
+  });
+
+  it("addPrize 後 weightTotal > 100", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.addPrize());
+    expect(result.current.weightTotal).toBeGreaterThan(100);
+  });
+
+  it("removePrize 後 weightTotal < 100", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    const uid = result.current.form.prizes[2]!.uid; // $500, weight=2.5
+    act(() => result.current.removePrize(uid));
+    expect(result.current.weightTotal).toBeLessThan(100);
+  });
+
+  it("normalizeWeights 將所有 weight 正規化為加總=100", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.addPrize()); // weight="10" → total=110
+    act(() => result.current.normalizeWeights());
+    expect(result.current.weightTotal).toBeCloseTo(100, 1);
+  });
+
+  it("normalizeWeights 保持各項比例不變", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    const uid0 = result.current.form.prizes[0]!.uid;
+    act(() => result.current.updatePrize(uid0, "weight", "50"));
+    act(() => result.current.normalizeWeights());
+    const p0 = result.current.form.prizes.find((p) => p.uid === uid0)!;
+    expect(parseFloat(p0.weight)).toBeCloseTo((50 / 63.75) * 100, 0);
+    expect(result.current.weightTotal).toBeCloseTo(100, 1);
+  });
+
+  it("全部 weight=0 時 normalizeWeights 不動作", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    const prizes = result.current.form.prizes;
+    for (const p of prizes) {
+      act(() => result.current.updatePrize(p.uid, "weight", "0"));
+    }
+    const before = result.current.form.prizes.map((p) => p.weight);
+    act(() => result.current.normalizeWeights());
+    expect(result.current.form.prizes.map((p) => p.weight)).toEqual(before);
+  });
+
+  it("normalizeWeights 後 prizesDirty 重置為 false", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    const uid = result.current.form.prizes[0]!.uid;
+    act(() => result.current.updatePrize(uid, "weight", "50"));
+    act(() => result.current.setDifficultyPreset("generous"));
+    expect(result.current.showRescalePrompt).toBe(true);
+    act(() => result.current.confirmRescale(false));
+    act(() => result.current.normalizeWeights());
+    act(() => result.current.setDifficultyPreset("generous"));
+    expect(result.current.showRescalePrompt).toBe(false);
+  });
+
   // ── triple / compare / other ──────────────────────────
 
   it("triple 玩法 setRowsPerCard pristine 時靜默調整 weight", () => {
