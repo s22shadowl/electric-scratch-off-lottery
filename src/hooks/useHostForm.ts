@@ -120,8 +120,8 @@ const defaultForm: HostFormState = {
   sessionTitle: "",
   prizes: [
     newPrize("uid-0", "謝謝參與", "0", "45"),
-    newPrize("uid-1", "$100", "100", "45"),
-    newPrize("uid-2", "$500", "500", "10"),
+    newPrize("uid-1", "$25", "25", "45"),
+    newPrize("uid-2", "$125", "125", "10"),
   ],
   cardCount: "10",
   cellsPerZone: "4",
@@ -144,13 +144,26 @@ export function useHostForm(baseUrl: string) {
   const [playUrl, setPlayUrl] = useState<string>("");
   const [qrCode, setQrCode] = useState<string>("");
   const [copied, setCopied] = useState(false);
+  const [prizesDirty, setPrizesDirty] = useState(false);
+  const [showRescalePrompt, setShowRescalePrompt] = useState(false);
 
-  // 即時 RTP（依賴 prizes + ticketPrice）
+  // cellCount：symbol/triple 玩法從對應欄位取格數
+  const cellCount = useMemo<number>(() => {
+    if (form.mechanic === "triple") {
+      return parseInt(form.rowsPerCard, 10) || 1;
+    }
+    if (form.mechanic === "symbol") {
+      return parseInt(form.cellsPerZone, 10) || 1;
+    }
+    return 1;
+  }, [form.mechanic, form.cellsPerZone, form.rowsPerCard]);
+
+  // 即時 RTP（依賴 prizes + ticketPrice + cellCount）
   const currentRTP = useMemo<number | null>(() => {
     const price = parseInt(form.ticketPrice, 10);
     if (!price || price < 1) return null;
-    return calculateRTP(form.prizes, price);
-  }, [form.prizes, form.ticketPrice]);
+    return calculateRTP(form.prizes, price, cellCount);
+  }, [form.prizes, form.ticketPrice, cellCount]);
 
   // bingo 專用 RTP（prizePerLine × 期望連線數 / ticketPrice）
   const bingoRTP = useMemo<number | null>(() => {
@@ -207,6 +220,7 @@ export function useHostForm(baseUrl: string) {
 
   const updatePrize = useCallback(
     (uid: string, field: keyof Omit<PrizeDraft, "uid">, value: string) => {
+      setPrizesDirty(true);
       setForm((f) => ({
         ...f,
         prizes: f.prizes.map((p) =>
@@ -219,6 +233,7 @@ export function useHostForm(baseUrl: string) {
 
   const addPrize = useCallback(() => {
     const uid = `uid-${++uidCounter}`;
+    setPrizesDirty(true);
     setForm((f) => ({
       ...f,
       prizes: [...f.prizes, newPrize(uid, "", "0", "10")],
@@ -226,6 +241,7 @@ export function useHostForm(baseUrl: string) {
   }, []);
 
   const removePrize = useCallback((uid: string) => {
+    setPrizesDirty(true);
     setForm((f) => ({ ...f, prizes: f.prizes.filter((p) => p.uid !== uid) }));
   }, []);
 
@@ -233,9 +249,24 @@ export function useHostForm(baseUrl: string) {
     setForm((f) => ({ ...f, cardCount: v }));
   }, []);
 
-  const setCellsPerZone = useCallback((v: string) => {
-    setForm((f) => ({ ...f, cellsPerZone: v }));
-  }, []);
+  const setCellsPerZone = useCallback(
+    (v: string) => {
+      const newCellCount = parseInt(v, 10) || 1;
+      if (prizesDirty) {
+        setForm((f) => ({ ...f, cellsPerZone: v }));
+        setShowRescalePrompt(true);
+      } else {
+        const price = parseInt(form.ticketPrice, 10) || 100;
+        const newPrizes = scalePrizesToTicketPrice(
+          form.difficultyPreset,
+          price,
+          newCellCount,
+        );
+        setForm((f) => ({ ...f, cellsPerZone: v, prizes: newPrizes }));
+      }
+    },
+    [prizesDirty, form.ticketPrice, form.difficultyPreset],
+  );
 
   const toggleEffects = useCallback(() => {
     setForm((f) => ({ ...f, effectsEnabled: !f.effectsEnabled }));
@@ -248,10 +279,12 @@ export function useHostForm(baseUrl: string) {
   const setDifficultyPreset = useCallback(
     (preset: DifficultyPreset) => {
       const price = parseInt(form.ticketPrice, 10) || 100;
-      const newPrizes = scalePrizesToTicketPrice(preset, price);
+      const newPrizes = scalePrizesToTicketPrice(preset, price, cellCount);
+      setPrizesDirty(false);
+      setShowRescalePrompt(false);
       setForm((f) => ({ ...f, difficultyPreset: preset, prizes: newPrizes }));
     },
-    [form.ticketPrice],
+    [form.ticketPrice, cellCount],
   );
 
   const setTicketPrice = useCallback((v: string) => {
@@ -262,9 +295,30 @@ export function useHostForm(baseUrl: string) {
     setForm((f) => ({ ...f, mechanic }));
   }, []);
 
-  const setRowsPerCard = useCallback((v: string) => {
-    setForm((f) => ({ ...f, rowsPerCard: v }));
-  }, []);
+  const setRowsPerCard = useCallback(
+    (v: string) => {
+      const isTripleOrSymbol =
+        form.mechanic === "triple" || form.mechanic === "symbol";
+      if (!isTripleOrSymbol) {
+        setForm((f) => ({ ...f, rowsPerCard: v }));
+        return;
+      }
+      const newCellCount = parseInt(v, 10) || 1;
+      if (prizesDirty) {
+        setForm((f) => ({ ...f, rowsPerCard: v }));
+        setShowRescalePrompt(true);
+      } else {
+        const price = parseInt(form.ticketPrice, 10) || 100;
+        const newPrizes = scalePrizesToTicketPrice(
+          form.difficultyPreset,
+          price,
+          newCellCount,
+        );
+        setForm((f) => ({ ...f, rowsPerCard: v, prizes: newPrizes }));
+      }
+    },
+    [prizesDirty, form.mechanic, form.ticketPrice, form.difficultyPreset],
+  );
 
   const setGridSize = useCallback((v: string) => {
     setForm((f) => ({ ...f, gridSize: v }));
@@ -281,6 +335,22 @@ export function useHostForm(baseUrl: string) {
     setTimeout(() => setCopied(false), 2000);
   }, [playUrl]);
 
+  const confirmRescale = useCallback(
+    (doRescale: boolean) => {
+      if (doRescale) {
+        const price = parseInt(form.ticketPrice, 10) || 100;
+        const newPrizes = scalePrizesToTicketPrice(
+          form.difficultyPreset,
+          price,
+          cellCount,
+        );
+        setForm((f) => ({ ...f, prizes: newPrizes }));
+      }
+      setShowRescalePrompt(false);
+    },
+    [form.ticketPrice, form.difficultyPreset, cellCount],
+  );
+
   const config = draftToConfig(form);
   const isValid = config !== null;
 
@@ -294,6 +364,7 @@ export function useHostForm(baseUrl: string) {
     currentRTP,
     bingoRTP,
     totalExpectedPayout,
+    showRescalePrompt,
     setTitle,
     updatePrize,
     addPrize,
@@ -309,6 +380,7 @@ export function useHostForm(baseUrl: string) {
     setGridSize,
     setPrizePerLine,
     copyUrl,
+    confirmRescale,
   };
 }
 
