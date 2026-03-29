@@ -4,7 +4,7 @@ import {
   generateQRCode,
   encodeConfig,
 } from "@/utils/config-codec";
-import { scalePrizesToTicketPrice, calculateRTP, calculateWinRate } from "@/utils/prize-presets";
+import { scalePrizesToTicketPrice, applyPresetKeepExtras, calculateRTP, calculateWinRate } from "@/utils/prize-presets";
 import { calcBingoLineProbabilities } from "@/utils/game-math";
 import type {
   GameConfig,
@@ -337,14 +337,21 @@ export function useHostForm(baseUrl: string) {
     (doRescale: boolean) => {
       if (doRescale && pendingPreset) {
         const price = parseInt(form.ticketPrice, 10) || 100;
-        const newPrizes = scalePrizesToTicketPrice(pendingPreset, price, cellCount);
-        setForm((f) => ({ ...f, difficultyPreset: pendingPreset, prizes: newPrizes }));
+        // 嘗試保留額外獎項
+        const merged = applyPresetKeepExtras(pendingPreset, form.prizes, price, cellCount);
+        if (merged) {
+          setForm((f) => ({ ...f, difficultyPreset: pendingPreset, prizes: merged }));
+        } else {
+          // fallback：全取代
+          const newPrizes = scalePrizesToTicketPrice(pendingPreset, price, cellCount);
+          setForm((f) => ({ ...f, difficultyPreset: pendingPreset, prizes: newPrizes }));
+        }
         setPrizesDirty(false);
       }
       setPendingPreset(null);
       setShowRescalePrompt(false);
     },
-    [pendingPreset, form.ticketPrice, cellCount],
+    [pendingPreset, form.ticketPrice, form.prizes, cellCount],
   );
 
   const normalizeWeights = useCallback(() => {
@@ -376,6 +383,15 @@ export function useHostForm(baseUrl: string) {
       };
     });
     setPrizesDirty(false);
+  }, []);
+
+  const sortPrizesByAmount = useCallback(() => {
+    setForm((f) => ({
+      ...f,
+      prizes: [...f.prizes].sort(
+        (a, b) => (parseInt(a.amount, 10) || 0) - (parseInt(b.amount, 10) || 0),
+      ),
+    }));
   }, []);
 
   const copyUrl = useCallback(async () => {
@@ -418,6 +434,7 @@ export function useHostForm(baseUrl: string) {
     copyUrl,
     confirmRescale,
     normalizeWeights,
+    sortPrizesByAmount,
   };
 }
 

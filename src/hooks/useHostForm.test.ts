@@ -467,6 +467,64 @@ describe("useHostForm", () => {
     expect(result.current.showRescalePrompt).toBe(false);
   });
 
+  // ── sortPrizesByAmount ──────────────────────────────────
+
+  it("sortPrizesByAmount 按金額小到大排序", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    // 預設順序：$0, $100, $500
+    const uid0 = result.current.form.prizes[0]!.uid;
+    act(() => result.current.updatePrize(uid0, "amount", "999"));
+    // 排序前：$999, $100, $500
+    act(() => result.current.sortPrizesByAmount());
+    const amounts = result.current.form.prizes.map((p) => p.amount);
+    expect(amounts).toEqual(["100", "500", "999"]);
+  });
+
+  it("sortPrizesByAmount 金額相同時維持原順序", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.addPrize());
+    const newUid = result.current.form.prizes[3]!.uid;
+    act(() => result.current.updatePrize(newUid, "amount", "0"));
+    act(() => result.current.updatePrize(newUid, "label", "再接再厲"));
+    // 排序前：$0(謝謝參與), $100, $500, $0(再接再厲)
+    act(() => result.current.sortPrizesByAmount());
+    const labels = result.current.form.prizes
+      .filter((p) => p.amount === "0")
+      .map((p) => p.label);
+    expect(labels).toEqual(["謝謝參與", "再接再厲"]);
+  });
+
+  // ── confirmRescale 保留額外獎項 ─────────────────────────
+
+  it("dirty + 有額外獎項時 confirmRescale(true) 保留額外獎項", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    // 新增一筆額外獎項
+    act(() => result.current.addPrize());
+    const extraUid = result.current.form.prizes[3]!.uid;
+    act(() => result.current.updatePrize(extraUid, "label", "$1000"));
+    act(() => result.current.updatePrize(extraUid, "amount", "1000"));
+    // dirty=true，切 preset
+    act(() => result.current.setDifficultyPreset("generous"));
+    expect(result.current.showRescalePrompt).toBe(true);
+    act(() => result.current.confirmRescale(true));
+    // 額外獎項應保留
+    expect(result.current.form.prizes.some((p) => p.amount === "1000")).toBe(true);
+    expect(result.current.form.prizes.length).toBe(4);
+  });
+
+  it("dirty + 額外獎項金額極低時 confirmRescale(true) fallback 為全取代", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.addPrize());
+    const extraUid = result.current.form.prizes[3]!.uid;
+    act(() => result.current.updatePrize(extraUid, "label", "$1"));
+    act(() => result.current.updatePrize(extraUid, "amount", "1"));
+    act(() => result.current.setDifficultyPreset("generous"));
+    act(() => result.current.confirmRescale(true));
+    // fallback：用全取代（模板 3 筆）
+    expect(result.current.form.prizes.length).toBe(3);
+    expect(result.current.form.difficultyPreset).toBe("generous");
+  });
+
   // ── weightTotal + normalizeWeights ────────────────────
 
   it("weightTotal 初始 = 100", () => {
