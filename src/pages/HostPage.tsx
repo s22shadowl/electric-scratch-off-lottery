@@ -36,6 +36,7 @@ export default function HostPage() {
     copyUrl,
     confirmRescale,
     normalizeWeights,
+    sortPrizesByAmount,
   } = useHostForm(BASE_URL)
 
   return (
@@ -125,6 +126,7 @@ export default function HostPage() {
             onUpdate={updatePrize}
             onAdd={addPrize}
             onRemove={removePrize}
+            onAmountBlur={sortPrizesByAmount}
             disabled={form.mechanic === "bingo"}
           />
 

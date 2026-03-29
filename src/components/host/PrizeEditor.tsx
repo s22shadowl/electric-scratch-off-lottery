@@ -10,6 +10,7 @@ interface Props {
   ) => void;
   onAdd: () => void;
   onRemove: (uid: string) => void;
+  onAmountBlur?: () => void;
   disabled?: boolean;
 }
 
@@ -19,6 +20,7 @@ export default function PrizeEditor({
   onUpdate,
   onAdd,
   onRemove,
+  onAmountBlur,
   disabled,
 }: Props) {
   return (
@@ -70,6 +72,7 @@ export default function PrizeEditor({
               type="number"
               value={prize.amount}
               onChange={(e) => onUpdate(prize.uid, "amount", e.target.value)}
+              onBlur={onAmountBlur}
               min="0"
               aria-label="獎項金額"
               disabled={disabled}
