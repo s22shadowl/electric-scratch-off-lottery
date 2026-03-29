@@ -4,7 +4,7 @@ import {
   generateQRCode,
   encodeConfig,
 } from "@/utils/config-codec";
-import { scalePrizesToTicketPrice, applyPresetKeepExtras, DIFFICULTY_PRESETS, calculateRTP, calculateWinRate } from "@/utils/prize-presets";
+import { scalePrizesToTicketPrice, applyPresetKeepExtras, DIFFICULTY_PRESETS, normalizeToHundred, calculateRTP, calculateWinRate } from "@/utils/prize-presets";
 import { calcBingoLineProbabilities } from "@/utils/game-math";
 import type {
   GameConfig,
@@ -370,23 +370,11 @@ export function useHostForm(baseUrl: string) {
 
   const normalizeWeights = useCallback(() => {
     setForm((f) => {
-      const weights = f.prizes.map((p) => parseFloat(p.weight) || 0);
-      const total = weights.reduce((s, w) => s + w, 0);
+      const rawWeights = f.prizes.map((p) => parseFloat(p.weight) || 0);
+      const total = rawWeights.reduce((s, w) => s + w, 0);
       if (total <= 0) return f;
 
-      const normalized = weights.map(
-        (w) => Math.round((w / total) * 10000) / 100,
-      );
-      const sum = normalized.reduce((s, w) => s + w, 0);
-      const diff = Math.round((100 - sum) * 100) / 100;
-      if (diff !== 0) {
-        let maxIdx = 0;
-        for (let i = 1; i < normalized.length; i++) {
-          if (normalized[i] > normalized[maxIdx]) maxIdx = i;
-        }
-        normalized[maxIdx] =
-          Math.round((normalized[maxIdx] + diff) * 100) / 100;
-      }
+      const normalized = normalizeToHundred(rawWeights);
 
       return {
         ...f,
