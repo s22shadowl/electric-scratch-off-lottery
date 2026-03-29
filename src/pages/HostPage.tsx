@@ -104,7 +104,7 @@ export default function HostPage() {
               className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 text-sm"
             >
               <p className="text-red-200 mb-3">
-                將權重轉換為百分比
+                將權重依百分比轉換
               </p>
               <div className="flex items-center gap-2">
                 <button

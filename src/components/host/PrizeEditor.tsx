@@ -43,7 +43,7 @@ export default function PrizeEditor({
       </div>
 
       {/* 欄位標題 */}
-      <div className="grid grid-cols-[1fr_5rem_5rem_2.5rem] gap-2 mb-1 px-1">
+      <div className="grid grid-cols-[1fr_5rem_5rem_2.5rem] gap-2 mb-1">
         <span className="text-xs text-red-200">獎項名稱</span>
         <span className="text-xs text-red-200 text-center">金額（元）</span>
         <span className="text-xs text-red-200 text-center">權重</span>
@@ -101,7 +101,7 @@ export default function PrizeEditor({
       </ul>
 
       {/* 加總行 */}
-      <div className="grid grid-cols-[1fr_5rem_5rem_2.5rem] gap-2 mt-2 px-1 border-t border-red-700 pt-2">
+      <div className="grid grid-cols-[1fr_5rem_5rem_2.5rem] gap-2 mt-2 border-t border-red-700 pt-2">
         <span className="text-xs text-red-300">合計</span>
         <span />
         <span
