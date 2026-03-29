@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   DIFFICULTY_PRESETS,
   scalePrizesToTicketPrice,
+  applyPresetKeepExtras,
   calculateRTP,
   classifyDifficulty,
 } from "./prize-presets";
@@ -203,4 +204,104 @@ describe("scalePrizesToTicketPrice — 跨 cellCount RTP 恆等", () => {
       });
     }
   }
+});
+
+// ── applyPresetKeepExtras ─────────────────────────────────
+
+describe("applyPresetKeepExtras", () => {
+  it("沒有額外獎項時行為與 scalePrizesToTicketPrice 一致", () => {
+    const current: PrizeDraft[] = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+    ];
+    const result = applyPresetKeepExtras("standard", current, 100, 1);
+    expect(result).not.toBeNull();
+    const rtp = calculateRTP(result!, 100, 1);
+    expect(rtp!).toBeCloseTo(0.95, 1);
+  });
+
+  it("有額外獎項時保留它們並命中目標 RTP", () => {
+    const current: PrizeDraft[] = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+      { uid: "d", label: "$1000", amount: "1000", weight: "5" },
+    ];
+    const result = applyPresetKeepExtras("standard", current, 100, 1);
+    expect(result).not.toBeNull();
+    expect(result!).toHaveLength(4);
+    expect(result!.some((p) => p.label === "$1000")).toBe(true);
+    const rtp = calculateRTP(result!, 100, 1);
+    expect(rtp!).toBeCloseTo(0.95, 1);
+  });
+
+  it("權重加總 = 100", () => {
+    const current: PrizeDraft[] = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+      { uid: "d", label: "$200", amount: "200", weight: "8" },
+    ];
+    const result = applyPresetKeepExtras("standard", current, 100, 1);
+    expect(result).not.toBeNull();
+    const total = result!.reduce((s, p) => s + parseFloat(p.weight), 0);
+    expect(total).toBeCloseTo(100, 1);
+  });
+
+  it("額外獎項導致 EV 超標無解時回傳 null（低金額高權重）", () => {
+    const current: PrizeDraft[] = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+      { uid: "d", label: "$10", amount: "10", weight: "5" },
+    ];
+    const result = applyPresetKeepExtras("standard", current, 100, 1);
+    expect(result).toBeNull();
+  });
+
+  it("cellCount > 1 時仍命中目標 RTP", () => {
+    const current: PrizeDraft[] = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+      { uid: "d", label: "$300", amount: "300", weight: "8" },
+    ];
+    const result = applyPresetKeepExtras("standard", current, 100, 4);
+    expect(result).not.toBeNull();
+    const rtp = calculateRTP(result!, 100, 4);
+    expect(rtp!).toBeCloseTo(0.95, 1);
+  });
+
+  it("額外不中獎獎項（amount=0）視為 lose 組一起調節", () => {
+    const current: PrizeDraft[] = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+      { uid: "d", label: "安慰獎", amount: "0", weight: "5" },
+    ];
+    const result = applyPresetKeepExtras("standard", current, 100, 1);
+    expect(result).not.toBeNull();
+    expect(result!).toHaveLength(4);
+    const rtp = calculateRTP(result!, 100, 1);
+    expect(rtp!).toBeCloseTo(0.95, 1);
+  });
+
+  it("ticketPrice=200 時金額按比例縮放", () => {
+    const current: PrizeDraft[] = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
+      { uid: "b", label: "$100", amount: "100", weight: "45" },
+      { uid: "c", label: "$500", amount: "500", weight: "10" },
+      { uid: "d", label: "$600", amount: "600", weight: "5" },
+    ];
+    const result = applyPresetKeepExtras("standard", current, 200, 1);
+    expect(result).not.toBeNull();
+    // 模板 $100 → $200, $500 → $1000
+    expect(result!.some((p) => p.amount === "200")).toBe(true);
+    expect(result!.some((p) => p.amount === "1000")).toBe(true);
+    // 額外獎項金額不縮放
+    expect(result!.some((p) => p.amount === "600")).toBe(true);
+    const rtp = calculateRTP(result!, 200, 1);
+    expect(rtp!).toBeCloseTo(0.95, 1);
+  });
 });

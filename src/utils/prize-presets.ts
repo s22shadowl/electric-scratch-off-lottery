@@ -146,5 +146,106 @@ export function scalePrizesToTicketPrice(
   }))
 }
 
+// ── applyPresetKeepExtras ─────────────────────────────────
+
+/**
+ * 套用難度預設，但保留使用者額外新增的獎項。
+ *
+ * 演算法：
+ * - 模板獎項金額依 ticketPrice/100 縮放；額外獎項金額不變。
+ * - Win 組（amount > 0）初始權重 w_i = 1 / amount_i（金額反比）。
+ * - Lose 組（amount = 0）初始權重 w_j = k（待求縮放因子）。
+ * - 解 k 使 EV = targetRtp × ticketPrice / cellCount。
+ * - 若 k < 0（額外獎項金額太高）則回傳 null。
+ */
+export function applyPresetKeepExtras(
+  preset: DifficultyPreset,
+  currentPrizes: PrizeDraft[],
+  ticketPrice: number,
+  cellCount = 1,
+): PrizeDraft[] | null {
+  const template = DIFFICULTY_PRESETS[preset]
+  const templateCount = template.prizes.length
+
+  // 沒有額外獎項 → 直接用原邏輯
+  if (currentPrizes.length <= templateCount) {
+    return scalePrizesToTicketPrice(preset, ticketPrice, cellCount)
+  }
+
+  const scale = ticketPrice / 100
+
+  // 模板獎項：縮放金額
+  const templateDrafts = template.prizes.map((p) => ({
+    uid: `preset-uid-${++uidCounter}`,
+    label: p.amount === 0 ? "謝謝參與" : `$${Math.round(p.amount * scale)}`,
+    amount: Math.round(p.amount * scale),
+  }))
+
+  // 額外獎項：保留原 label + amount（不縮放）
+  const extraDrafts = currentPrizes.slice(templateCount).map((p) => ({
+    uid: p.uid,
+    label: p.label,
+    amount: parseInt(p.amount, 10) || 0,
+  }))
+
+  const allDrafts = [...templateDrafts, ...extraDrafts]
+  const amounts = allDrafts.map((d) => d.amount)
+
+  // 分組
+  const winIndices = amounts
+    .map((a, i) => (a > 0 ? i : -1))
+    .filter((i) => i >= 0)
+  const loseIndices = amounts
+    .map((a, i) => (a === 0 ? i : -1))
+    .filter((i) => i >= 0)
+
+  const nWin = winIndices.length
+  const winWSum = winIndices.reduce((s, i) => s + 1 / amounts[i], 0)
+
+  // 目標 per-cell EV
+  const targetEV = (template.targetRtp * ticketPrice) / cellCount
+
+  // 無 lose 項可調節時，檢查 EV 是否已符合
+  if (loseIndices.length === 0 && nWin > 0) {
+    const fixedEV = winWSum > 0 ? nWin / winWSum : 0
+    if (Math.abs(fixedEV - targetEV) > targetEV * 0.05) return null
+  }
+
+  // 解 k
+  const k =
+    loseIndices.length > 0
+      ? (nWin - targetEV * winWSum) / (targetEV * loseIndices.length)
+      : 0
+
+  if (k < 0) return null // 無解：額外獎項金額太高
+
+  // 組裝 raw weights
+  const rawWeights = amounts.map((a) => (a > 0 ? 1 / a : k))
+
+  // Normalize 至加總 = 100（2 位小數 + 餘數修正）
+  const rawTotal = rawWeights.reduce((s, w) => s + w, 0)
+  if (rawTotal <= 0) return null
+
+  const normalized = rawWeights.map(
+    (w) => Math.round((w / rawTotal) * 10000) / 100,
+  )
+  const sum = normalized.reduce((s, w) => s + w, 0)
+  const diff = Math.round((100 - sum) * 100) / 100
+  if (diff !== 0) {
+    let maxIdx = 0
+    for (let i = 1; i < normalized.length; i++) {
+      if (normalized[i] > normalized[maxIdx]) maxIdx = i
+    }
+    normalized[maxIdx] = Math.round((normalized[maxIdx] + diff) * 100) / 100
+  }
+
+  return allDrafts.map((d, i) => ({
+    uid: d.uid,
+    label: d.label,
+    amount: String(d.amount),
+    weight: String(normalized[i]),
+  }))
+}
+
 // ── re-export from game-math（正式實作已移至 game-math.ts）──
 export { calculateRTP, classifyDifficulty, calculateWinRate } from "./game-math"
