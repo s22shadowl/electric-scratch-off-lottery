@@ -30,8 +30,9 @@ export default function PrizeEditor({
           <span className="text-gray-300 text-sm">賓果玩法不使用獎項設定</span>
         </div>
       )}
-      <div className="flex items-center justify-between mb-3">
+      <div className="grid grid-cols-[1fr_5rem_5rem_2.5rem] gap-2 mb-3 items-center">
         <h2 className="text-lg font-bold text-yellow-300">獎項設定</h2>
+        <span />
         <button
           type="button"
           onClick={onAdd}
@@ -40,15 +41,16 @@ export default function PrizeEditor({
           tabIndex={disabled ? -1 : undefined}
           className="px-3 py-1 text-sm bg-yellow-400 text-red-900 font-bold rounded hover:bg-yellow-300 transition-colors"
         >
-          ＋ 新增獎項
+          ＋ 新增
         </button>
+        <span />
       </div>
 
       {/* 欄位標題 */}
       <div className="grid grid-cols-[1fr_5rem_5rem_2.5rem] gap-2 mb-1">
-        <span className="text-xs text-red-200">獎項名稱</span>
-        <span className="text-xs text-red-200 text-center">金額（元）</span>
-        <span className="text-xs text-red-200 text-center">權重</span>
+        <span className="text-xs text-red-200 pl-2">獎項名稱</span>
+        <span className="text-xs text-red-200 pl-2">金額（元）</span>
+        <span className="text-xs text-red-200 pl-2">權重</span>
         <span />
       </div>
 
@@ -77,7 +79,7 @@ export default function PrizeEditor({
               aria-label="獎項金額"
               disabled={disabled}
               tabIndex={disabled ? -1 : undefined}
-              className="px-2 py-1 rounded bg-red-900 border border-red-700 text-white text-sm text-center focus:outline-none focus:border-yellow-400"
+              className="px-2 py-1 rounded bg-red-900 border border-red-700 text-white text-sm focus:outline-none focus:border-yellow-400"
             />
             <input
               type="number"
@@ -87,7 +89,7 @@ export default function PrizeEditor({
               aria-label="相對權重"
               disabled={disabled}
               tabIndex={disabled ? -1 : undefined}
-              className="px-2 py-1 rounded bg-red-900 border border-red-700 text-white text-sm text-center focus:outline-none focus:border-yellow-400"
+              className="px-2 py-1 rounded bg-red-900 border border-red-700 text-white text-sm focus:outline-none focus:border-yellow-400"
             />
             <button
               type="button"
@@ -105,10 +107,10 @@ export default function PrizeEditor({
 
       {/* 加總行 */}
       <div className="grid grid-cols-[1fr_5rem_5rem_2.5rem] gap-2 mt-2 border-t border-red-700 pt-2">
-        <span className="text-xs text-red-300">合計</span>
+        <span className="text-xs text-red-300 pl-2">合計</span>
         <span />
         <span
-          className={`text-sm font-bold text-center ${
+          className={`text-sm font-bold pl-2 ${
             Math.abs(weightTotal - 100) < 0.01
               ? "text-green-400"
               : "text-red-200"

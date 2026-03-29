@@ -4,7 +4,7 @@ import {
   generateQRCode,
   encodeConfig,
 } from "@/utils/config-codec";
-import { scalePrizesToTicketPrice, applyPresetKeepExtras, calculateRTP, calculateWinRate } from "@/utils/prize-presets";
+import { scalePrizesToTicketPrice, applyPresetKeepExtras, DIFFICULTY_PRESETS, calculateRTP, calculateWinRate } from "@/utils/prize-presets";
 import { calcBingoLineProbabilities } from "@/utils/game-math";
 import type {
   GameConfig,
@@ -243,6 +243,7 @@ export function useHostForm(baseUrl: string) {
 
   const addPrize = useCallback(() => {
     const uid = `uid-${++uidCounter}`;
+    setPrizesDirty(true);
     setForm((f) => ({
       ...f,
       prizes: [...f.prizes, newPrize(uid, "", "0", "10")],
@@ -290,11 +291,24 @@ export function useHostForm(baseUrl: string) {
         setShowRescalePrompt(true);
       } else {
         const price = parseInt(form.ticketPrice, 10) || 100;
-        const newPrizes = scalePrizesToTicketPrice(preset, price, cellCount);
-        setForm((f) => ({ ...f, difficultyPreset: preset, prizes: newPrizes }));
+        const templateCount = DIFFICULTY_PRESETS[preset].prizes.length;
+        if (form.prizes.length > templateCount) {
+          // 有額外獎項 → 嘗試保留
+          const merged = applyPresetKeepExtras(preset, form.prizes, price, cellCount);
+          if (merged) {
+            setForm((f) => ({ ...f, difficultyPreset: preset, prizes: merged }));
+            return;
+          }
+          // 無解 → 提示用戶確認是否覆蓋
+          setPendingPreset(preset);
+          setShowRescalePrompt(true);
+        } else {
+          const newPrizes = scalePrizesToTicketPrice(preset, price, cellCount);
+          setForm((f) => ({ ...f, difficultyPreset: preset, prizes: newPrizes }));
+        }
       }
     },
-    [prizesDirty, form.ticketPrice, cellCount],
+    [prizesDirty, form.ticketPrice, form.prizes, cellCount],
   );
 
   const setTicketPrice = useCallback((v: string) => {

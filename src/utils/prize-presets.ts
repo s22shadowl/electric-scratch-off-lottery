@@ -149,14 +149,14 @@ export function scalePrizesToTicketPrice(
 // ── applyPresetKeepExtras ─────────────────────────────────
 
 /**
- * 套用難度預設，但保留使用者額外新增的獎項。
+ * 套用難度預設，保留所有現有獎項（含額外新增的），只重算權重命中目標 RTP。
  *
  * 演算法：
- * - 模板獎項金額依 ticketPrice/100 縮放；額外獎項金額不變。
+ * - 保留所有 currentPrizes 的 uid / label / amount 不變。
  * - Win 組（amount > 0）初始權重 w_i = 1 / amount_i（金額反比）。
  * - Lose 組（amount = 0）初始權重 w_j = k（待求縮放因子）。
  * - 解 k 使 EV = targetRtp × ticketPrice / cellCount。
- * - 若 k < 0（額外獎項金額太高）則回傳 null。
+ * - 若 k < 0（獎項金額組合無法命中目標 RTP）則回傳 null。
  */
 export function applyPresetKeepExtras(
   preset: DifficultyPreset,
@@ -167,31 +167,14 @@ export function applyPresetKeepExtras(
   const template = DIFFICULTY_PRESETS[preset]
   const templateCount = template.prizes.length
 
-  // 沒有額外獎項 → 直接用原邏輯
+  // 沒有額外獎項 → 直接用原邏輯（全取代）
   if (currentPrizes.length <= templateCount) {
     return scalePrizesToTicketPrice(preset, ticketPrice, cellCount)
   }
 
-  const scale = ticketPrice / 100
+  // 有額外獎項 → 保留所有獎項金額，只調整權重
+  const amounts = currentPrizes.map((p) => parseInt(p.amount, 10) || 0)
 
-  // 模板獎項：縮放金額
-  const templateDrafts = template.prizes.map((p) => ({
-    uid: `preset-uid-${++uidCounter}`,
-    label: p.amount === 0 ? "謝謝參與" : `$${Math.round(p.amount * scale)}`,
-    amount: Math.round(p.amount * scale),
-  }))
-
-  // 額外獎項：保留原 label + amount（不縮放）
-  const extraDrafts = currentPrizes.slice(templateCount).map((p) => ({
-    uid: p.uid,
-    label: p.label,
-    amount: parseInt(p.amount, 10) || 0,
-  }))
-
-  const allDrafts = [...templateDrafts, ...extraDrafts]
-  const amounts = allDrafts.map((d) => d.amount)
-
-  // 分組
   const winIndices = amounts
     .map((a, i) => (a > 0 ? i : -1))
     .filter((i) => i >= 0)
@@ -217,7 +200,7 @@ export function applyPresetKeepExtras(
       ? (nWin - targetEV * winWSum) / (targetEV * loseIndices.length)
       : 0
 
-  if (k < 0) return null // 無解：額外獎項金額太高
+  if (k < 0) return null // 無解
 
   // 組裝 raw weights
   const rawWeights = amounts.map((a) => (a > 0 ? 1 / a : k))
@@ -239,10 +222,8 @@ export function applyPresetKeepExtras(
     normalized[maxIdx] = Math.round((normalized[maxIdx] + diff) * 100) / 100
   }
 
-  return allDrafts.map((d, i) => ({
-    uid: d.uid,
-    label: d.label,
-    amount: String(d.amount),
+  return currentPrizes.map((p, i) => ({
+    ...p,
     weight: String(normalized[i]),
   }))
 }

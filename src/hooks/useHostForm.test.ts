@@ -525,6 +525,38 @@ describe("useHostForm", () => {
     expect(result.current.form.difficultyPreset).toBe("generous");
   });
 
+  // ── setDifficultyPreset non-dirty 路徑保留額外獎項 ─────
+
+  it("not dirty + 有額外獎項時切 preset 仍保留額外獎項", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    // 新增 + 編輯 → dirty=true
+    act(() => result.current.addPrize());
+    const extraUid = result.current.form.prizes[3]!.uid;
+    act(() => result.current.updatePrize(extraUid, "label", "$1000"));
+    act(() => result.current.updatePrize(extraUid, "amount", "1000"));
+    // confirm 一次 preset → dirty 被重設為 false
+    act(() => result.current.setDifficultyPreset("generous"));
+    act(() => result.current.confirmRescale(true));
+    expect(result.current.form.prizes.length).toBe(4);
+    // 記錄所有金額
+    const amountsBefore = result.current.form.prizes.map((p) => p.amount);
+    // 再切 preset（此時 dirty=false 但有額外獎項）
+    act(() => result.current.setDifficultyPreset("conservative"));
+    // 應直接保留額外獎項，不出 prompt
+    expect(result.current.showRescalePrompt).toBe(false);
+    expect(result.current.form.prizes.length).toBe(4);
+    // 所有金額不變
+    expect(result.current.form.prizes.map((p) => p.amount)).toEqual(amountsBefore);
+  });
+
+  it("addPrize 應設定 prizesDirty，切 preset 時顯示 prompt", () => {
+    const { result } = renderHook(() => useHostForm(BASE));
+    act(() => result.current.addPrize());
+    // addPrize 本身就該標記 dirty
+    act(() => result.current.setDifficultyPreset("generous"));
+    expect(result.current.showRescalePrompt).toBe(true);
+  });
+
   // ── weightTotal + normalizeWeights ────────────────────
 
   it("weightTotal 初始 = 100", () => {

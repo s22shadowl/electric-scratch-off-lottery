@@ -287,7 +287,23 @@ describe("applyPresetKeepExtras", () => {
     expect(rtp!).toBeCloseTo(0.95, 1);
   });
 
-  it("ticketPrice=200 時金額按比例縮放", () => {
+  it("排序後順序不同仍保留所有金額", () => {
+    // 模擬 auto-sort 後額外獎項 $200 排到模板獎項之間
+    const current: PrizeDraft[] = [
+      { uid: "a", label: "謝謝參與", amount: "0", weight: "40" },
+      { uid: "d", label: "$200", amount: "200", weight: "10" },
+      { uid: "b", label: "$300", amount: "300", weight: "30" },
+      { uid: "c", label: "$500", amount: "500", weight: "20" },
+    ];
+    const result = applyPresetKeepExtras("standard", current, 100, 1);
+    expect(result).not.toBeNull();
+    expect(result!.map((p) => p.amount)).toEqual(["0", "200", "300", "500"]);
+    expect(result!.map((p) => p.uid)).toEqual(["a", "d", "b", "c"]);
+    const rtp = calculateRTP(result!, 100, 1);
+    expect(rtp!).toBeCloseTo(0.95, 1);
+  });
+
+  it("所有獎項金額保持不變，只調整權重", () => {
     const current: PrizeDraft[] = [
       { uid: "a", label: "謝謝參與", amount: "0", weight: "45" },
       { uid: "b", label: "$100", amount: "100", weight: "45" },
@@ -296,11 +312,11 @@ describe("applyPresetKeepExtras", () => {
     ];
     const result = applyPresetKeepExtras("standard", current, 200, 1);
     expect(result).not.toBeNull();
-    // 模板 $100 → $200, $500 → $1000
-    expect(result!.some((p) => p.amount === "200")).toBe(true);
-    expect(result!.some((p) => p.amount === "1000")).toBe(true);
-    // 額外獎項金額不縮放
-    expect(result!.some((p) => p.amount === "600")).toBe(true);
+    // 所有金額原封不動
+    expect(result!.map((p) => p.amount)).toEqual(["0", "100", "500", "600"]);
+    // uid 和 label 也不變
+    expect(result!.map((p) => p.uid)).toEqual(["a", "b", "c", "d"]);
+    expect(result!.map((p) => p.label)).toEqual(["謝謝參與", "$100", "$500", "$600"]);
     const rtp = calculateRTP(result!, 200, 1);
     expect(rtp!).toBeCloseTo(0.95, 1);
   });
