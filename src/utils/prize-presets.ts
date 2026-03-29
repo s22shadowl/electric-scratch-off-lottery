@@ -59,6 +59,39 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPreset, PresetTemplate> = {
   },
 }
 
+// ── normalizeToHundred ────────────────────────────────────
+
+/**
+ * 將 raw weights 正規化至加總 = 100。
+ * - 權重 ≥ 0.01%：四捨五入至 2 位小數
+ * - 權重 < 0.01%：四捨五入至 4 位小數（避免歸零）
+ * - 餘數修正加到最大權重項
+ */
+export function normalizeToHundred(rawWeights: number[]): number[] {
+  const rawTotal = rawWeights.reduce((s, w) => s + w, 0)
+  if (rawTotal <= 0) return rawWeights
+
+  const percentages = rawWeights.map((w) => (w / rawTotal) * 100)
+
+  const rounded = percentages.map((p) =>
+    p >= 0.01
+      ? Math.round(p * 100) / 100      // 2dp
+      : Math.round(p * 10000) / 10000   // 4dp
+  )
+
+  const sum = rounded.reduce((s, w) => s + w, 0)
+  const diff = Math.round((100 - sum) * 100) / 100
+  if (diff !== 0) {
+    let maxIdx = 0
+    for (let i = 1; i < rounded.length; i++) {
+      if (rounded[i] > rounded[maxIdx]) maxIdx = i
+    }
+    rounded[maxIdx] = Math.round((rounded[maxIdx] + diff) * 100) / 100
+  }
+
+  return rounded
+}
+
 // ── scalePrizesToTicketPrice ───────────────────────────────
 
 let uidCounter = 1000
@@ -121,22 +154,11 @@ export function scalePrizesToTicketPrice(
     }
   })
 
-  // 6. 正規化 weights 使加總 = 100（2 位小數）
+  // 6. 正規化 weights 使加總 = 100（混合精度）
   const rawTotal = rawDrafts.reduce((s, p) => s + p.weight, 0)
   if (rawTotal <= 0) return rawDrafts.map((p) => ({ ...p, weight: "0" }))
 
-  const normalized = rawDrafts.map(
-    (p) => Math.round((p.weight / rawTotal) * 10000) / 100,
-  )
-  const sum = normalized.reduce((s, w) => s + w, 0)
-  const diff = Math.round((100 - sum) * 100) / 100
-  if (diff !== 0) {
-    let maxIdx = 0
-    for (let i = 1; i < normalized.length; i++) {
-      if (normalized[i] > normalized[maxIdx]) maxIdx = i
-    }
-    normalized[maxIdx] = Math.round((normalized[maxIdx] + diff) * 100) / 100
-  }
+  const normalized = normalizeToHundred(rawDrafts.map((p) => p.weight))
 
   return rawDrafts.map((p, i) => ({
     uid: p.uid,
@@ -205,22 +227,11 @@ export function applyPresetKeepExtras(
   // 組裝 raw weights
   const rawWeights = amounts.map((a) => (a > 0 ? 1 / a : k))
 
-  // Normalize 至加總 = 100（2 位小數 + 餘數修正）
+  // Normalize 至加總 = 100（混合精度）
   const rawTotal = rawWeights.reduce((s, w) => s + w, 0)
   if (rawTotal <= 0) return null
 
-  const normalized = rawWeights.map(
-    (w) => Math.round((w / rawTotal) * 10000) / 100,
-  )
-  const sum = normalized.reduce((s, w) => s + w, 0)
-  const diff = Math.round((100 - sum) * 100) / 100
-  if (diff !== 0) {
-    let maxIdx = 0
-    for (let i = 1; i < normalized.length; i++) {
-      if (normalized[i] > normalized[maxIdx]) maxIdx = i
-    }
-    normalized[maxIdx] = Math.round((normalized[maxIdx] + diff) * 100) / 100
-  }
+  const normalized = normalizeToHundred(rawWeights)
 
   return currentPrizes.map((p, i) => ({
     ...p,

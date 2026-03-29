@@ -5,6 +5,7 @@ import {
   applyPresetKeepExtras,
   calculateRTP,
   classifyDifficulty,
+  normalizeToHundred,
 } from "./prize-presets";
 import type { PrizeDraft } from "@/hooks/useHostForm";
 import type { DifficultyPreset } from "@/types";
@@ -204,6 +205,45 @@ describe("scalePrizesToTicketPrice — 跨 cellCount RTP 恆等", () => {
       });
     }
   }
+});
+
+// ── normalizeToHundred ────────────────────────────────────
+
+describe("normalizeToHundred", () => {
+  it("一般權重四捨五入至 2 位小數", () => {
+    const result = normalizeToHundred([70, 20, 10]);
+    expect(result).toEqual([70, 20, 10]);
+  });
+
+  it("加總 = 100（含餘數修正）", () => {
+    const result = normalizeToHundred([33, 33, 34]);
+    expect(result.reduce((s, w) => s + w, 0)).toBeCloseTo(100, 4);
+  });
+
+  it("極小權重（< 0.01%）保留 4 位小數", () => {
+    const result = normalizeToHundred([68, 19, 7, 3, 0.5, 0.05, 0.0001]);
+    const headPrize = result[6];
+    expect(headPrize).toBeGreaterThan(0);
+    expect(headPrize).toBeLessThan(0.01);
+    // 確認不被四捨五入為 0
+    expect(headPrize.toString()).toMatch(/^0\.000/);
+  });
+
+  it("混合精度下加總仍接近 100", () => {
+    const result = normalizeToHundred([68, 19, 7, 3, 0.5, 0.05, 0.0001]);
+    const total = result.reduce((s, w) => s + w, 0);
+    expect(total).toBeCloseTo(100, 2);
+  });
+
+  it("全部為 0 時回傳原陣列", () => {
+    const result = normalizeToHundred([0, 0, 0]);
+    expect(result).toEqual([0, 0, 0]);
+  });
+
+  it("單一元素回傳 [100]", () => {
+    const result = normalizeToHundred([42]);
+    expect(result).toEqual([100]);
+  });
 });
 
 // ── applyPresetKeepExtras ─────────────────────────────────
