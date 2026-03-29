@@ -79,7 +79,7 @@ export default function HostPage() {
               className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 text-sm"
             >
               <p className="text-red-200 mb-3">
-                你已手動修改過獎項，套用預設將覆蓋現有設定。
+                要套用新的難度預設嗎？目前的獎項設定會被覆蓋。
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -87,14 +87,14 @@ export default function HostPage() {
                   onClick={() => confirmRescale(true)}
                   className="px-3 py-1.5 bg-yellow-400 text-red-900 text-sm font-bold rounded-lg hover:bg-yellow-300 transition-colors"
                 >
-                  套用預設
+                  套用
                 </button>
                 <button
                   type="button"
                   onClick={() => confirmRescale(false)}
                   className="px-3 py-1.5 text-red-300 text-sm hover:text-white transition-colors"
                 >
-                  保留現有
+                  取消
                 </button>
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function HostPage() {
               className="rounded-lg border border-yellow-400/40 bg-yellow-400/10 px-4 py-3 text-sm"
             >
               <p className="text-red-200 mb-3">
-                權重加總為 {weightTotal.toFixed(1)}，非 100%。
+                將權重轉換為百分比
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -112,7 +112,7 @@ export default function HostPage() {
                   onClick={normalizeWeights}
                   className="px-3 py-1.5 bg-yellow-400 text-red-900 text-sm font-bold rounded-lg hover:bg-yellow-300 transition-colors"
                 >
-                  正規化為 100%
+                  自動調整
                 </button>
               </div>
             </div>
