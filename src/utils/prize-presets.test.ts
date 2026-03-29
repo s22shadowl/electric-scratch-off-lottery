@@ -6,6 +6,7 @@ import {
   calculateRTP,
   classifyDifficulty,
   normalizeToHundred,
+  autoLabel,
 } from "./prize-presets";
 import type { PrizeDraft } from "@/hooks/useHostForm";
 import type { DifficultyPreset } from "@/types";
@@ -125,10 +126,10 @@ describe("scalePrizesToTicketPrice", () => {
     expect(result.find((p) => p.amount === "250")).toBeTruthy();
   });
 
-  it("$0 的獎項 label 固定「謝謝參與」，金額仍為 0", () => {
+  it("$0 的獎項 label 自動生成為「$0」，金額仍為 0", () => {
     const result = scalePrizesToTicketPrice("standard", 200);
     const loseItem = result.find((p) => p.amount === "0");
-    expect(loseItem?.label).toBe("謝謝參與");
+    expect(loseItem?.label).toBe("$0");
   });
 
   it("回傳新陣列（不可變）", () => {
@@ -243,6 +244,26 @@ describe("normalizeToHundred", () => {
   it("單一元素回傳 [100]", () => {
     const result = normalizeToHundred([42]);
     expect(result).toEqual([100]);
+  });
+});
+
+// ── autoLabel ──────────────────────────────────────────────
+
+describe("autoLabel", () => {
+  it("$0 → '$0'", () => {
+    expect(autoLabel("0")).toBe("$0");
+  });
+
+  it("$100 → '$100'", () => {
+    expect(autoLabel("100")).toBe("$100");
+  });
+
+  it("$300000 → '$300,000'", () => {
+    expect(autoLabel("300000")).toBe("$300,000");
+  });
+
+  it("空字串 → '$0'", () => {
+    expect(autoLabel("")).toBe("$0");
   });
 });
 

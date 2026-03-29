@@ -265,8 +265,8 @@ describe("useHostForm", () => {
     const { result } = renderHook(() => useHostForm(BASE));
     act(() => result.current.setDifficultyPreset("generous"));
     expect(result.current.form.difficultyPreset).toBe("generous");
-    // generous 模板下不中獎的 label 應為「謝謝參與」
-    expect(result.current.form.prizes.some((p) => p.label === "謝謝參與")).toBe(
+    // generous 模板下不中獎的 label 應為「$0」（autoLabel 自動生成）
+    expect(result.current.form.prizes.some((p) => p.label === "$0")).toBe(
       true,
     );
   });
@@ -465,6 +465,24 @@ describe("useHostForm", () => {
     act(() => result.current.confirmRescale(true));
     act(() => result.current.setCellsPerZone("6"));
     expect(result.current.showRescalePrompt).toBe(false);
+  });
+
+  // ── autoLabel 整合 ─────────────────────────────────────
+
+  it("label 為空的獎項在 draftToConfig 中自動生成標籤", () => {
+    const form: HostFormState = {
+      ...validForm,
+      prizes: [
+        { uid: "a", label: "", amount: "0", weight: "60" },
+        { uid: "b", label: "", amount: "500", weight: "30" },
+        { uid: "c", label: "自訂名稱", amount: "1000", weight: "10" },
+      ],
+    };
+    const config = draftToConfig(form);
+    expect(config).not.toBeNull();
+    expect(config!.cardTypes[0]!.prizes[0]!.label).toBe("$0");
+    expect(config!.cardTypes[0]!.prizes[1]!.label).toBe("$500");
+    expect(config!.cardTypes[0]!.prizes[2]!.label).toBe("自訂名稱");
   });
 
   // ── sortPrizesByAmount ──────────────────────────────────

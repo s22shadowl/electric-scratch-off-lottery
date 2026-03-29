@@ -4,7 +4,7 @@ import {
   generateQRCode,
   encodeConfig,
 } from "@/utils/config-codec";
-import { scalePrizesToTicketPrice, applyPresetKeepExtras, DIFFICULTY_PRESETS, normalizeToHundred, calculateRTP, calculateWinRate } from "@/utils/prize-presets";
+import { scalePrizesToTicketPrice, applyPresetKeepExtras, DIFFICULTY_PRESETS, normalizeToHundred, autoLabel, calculateRTP, calculateWinRate } from "@/utils/prize-presets";
 import { calcBingoLineProbabilities } from "@/utils/game-math";
 import type {
   GameConfig,
@@ -78,7 +78,7 @@ export function draftToConfig(form: HostFormState): GameConfig | null {
   const prizes: Prize[] = form.prizes
     .map((p, i) => ({
       id: `prize-${i}`,
-      label: p.label.trim(),
+      label: p.label.trim() || autoLabel(p.amount),
       amount: Math.max(0, parseInt(p.amount, 10) || 0),
       probability: Math.max(0, parseFloat(p.weight) || 0),
       isWin: (parseInt(p.amount, 10) || 0) > 0,

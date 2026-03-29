@@ -92,6 +92,14 @@ export function normalizeToHundred(rawWeights: number[]): number[] {
   return rounded
 }
 
+// ── autoLabel ──────────────────────────────────────────────
+
+/** 從金額字串自動生成標籤。 */
+export function autoLabel(amount: string): string {
+  const n = parseInt(amount, 10) || 0
+  return `$${n.toLocaleString("en-US")}`
+}
+
 // ── scalePrizesToTicketPrice ───────────────────────────────
 
 let uidCounter = 1000
@@ -148,7 +156,7 @@ export function scalePrizesToTicketPrice(
 
     return {
       uid: `preset-uid-${++uidCounter}`,
-      label: isLose ? "謝謝參與" : `$${p.scaledAmount}`,
+      label: autoLabel(String(p.scaledAmount)),
       amount: String(p.scaledAmount),
       weight,
     }
