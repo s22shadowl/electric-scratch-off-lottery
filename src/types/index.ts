@@ -52,7 +52,8 @@ export type DifficultyPreset =
   | "generous"
   | "standard"
   | "conservative"
-  | "realistic";
+  | "realistic"
+  | "party";
 
 // symbol 玩法選項
 export interface SymbolOptions {

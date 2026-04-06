@@ -52,9 +52,28 @@ export const DIFFICULTY_PRESETS: Record<DifficultyPreset, PresetTemplate> = {
     targetRtp: 0.63,
     description: "仿台彩 $100 面額水準",
     prizes: [
-      { label: "謝謝參與", amount: 0, weight: 65 },
-      { label: "$100", amount: 100, weight: 28 },
-      { label: "$500", amount: 500, weight: 7 },
+      { label: "$0", amount: 0, weight: 68 },
+      { label: "$100", amount: 100, weight: 19 },
+      { label: "$200", amount: 200, weight: 7 },
+      { label: "$500", amount: 500, weight: 3 },
+      { label: "$2,000", amount: 2000, weight: 0.5 },
+      { label: "$10,000", amount: 10000, weight: 0.05 },
+      { label: "$300,000", amount: 300000, weight: 0.0001 },
+    ],
+  },
+  party: {
+    label: "派對",
+    emoji: "🎉",
+    targetRtp: 0.95,
+    description: "多層獎項、頭獎可中",
+    prizes: [
+      { label: "$0", amount: 0, weight: 50 },
+      { label: "$100", amount: 100, weight: 14 },
+      { label: "$200", amount: 200, weight: 6 },
+      { label: "$500", amount: 500, weight: 3 },
+      { label: "$2,000", amount: 2000, weight: 0.6 },
+      { label: "$10,000", amount: 10000, weight: 0.15 },
+      { label: "$50,000", amount: 50000, weight: 0.05 },
     ],
   },
 }
@@ -138,7 +157,7 @@ export function scalePrizesToTicketPrice(
   // 3. 解出不中獎總 weight
   const targetEV = (template.targetRtp * ticketPrice) / cellCount
   const requiredTotalWeight = targetEV > 0 ? S / targetEV : W
-  const totalLoseWeight = Math.max(0, Math.round(requiredTotalWeight - W))
+  const totalLoseWeight = Math.max(0, requiredTotalWeight - W)
 
   // 4. 原始不中獎 weight 總和（用於按比例分配）
   const originalLoseWeightSum = template.prizes
@@ -150,7 +169,7 @@ export function scalePrizesToTicketPrice(
     const isLose = p.scaledAmount === 0
     const weight = isLose
       ? originalLoseWeightSum > 0
-        ? Math.round((p.weight / originalLoseWeightSum) * totalLoseWeight)
+        ? (p.weight / originalLoseWeightSum) * totalLoseWeight
         : totalLoseWeight
       : p.weight
 
