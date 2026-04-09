@@ -3,7 +3,7 @@
 // 獎項定義
 export interface Prize {
   id: string;
-  label: string; // 顯示文字，如「$300」、「謝謝」
+  label: string; // 顯示文字；空字串表示由 autoLabel(amount) 自動生成
   amount: number; // 金額（0 = 未中獎）
   symbolCode?: string; // 英文防偽碼，如「FIVHUND」（視覺用）
   loseSymbolCode?: string; // right-side symbol for losing cells (undefined = same as symbolCode)
@@ -47,7 +47,7 @@ export interface ScratchCard {
 // 玩法識別碼
 export type Mechanic = "symbol" | "triple" | "compare" | "bingo";
 
-// 難度預設（v1 先加欄位，UI 選擇器 v2 再實作）
+// 難度預設（主持人介面選擇，對應 DIFFICULTY_PRESETS）
 export type DifficultyPreset =
   | "generous"
   | "standard"
