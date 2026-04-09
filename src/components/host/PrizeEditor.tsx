@@ -45,7 +45,6 @@ export default function PrizeEditor({
 
   const handleLabelKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    prize: PrizeDraft,
   ) => {
     if (e.key === "Enter") {
       e.currentTarget.blur();
@@ -134,7 +133,7 @@ export default function PrizeEditor({
                     defaultValue={prize.label}
                     autoFocus
                     onBlur={(e) => handleLabelBlur(prize, e.target.value)}
-                    onKeyDown={(e) => handleLabelKeyDown(e, prize)}
+                    onKeyDown={handleLabelKeyDown}
                     placeholder={autoLabel(prize.amount)}
                     aria-label="獎項名稱"
                     className="px-2 py-1 rounded bg-red-900 border border-yellow-400 text-white placeholder-red-400 text-sm focus:outline-none"

@@ -504,12 +504,12 @@ describe("useHostForm", () => {
     const newUid = result.current.form.prizes[3]!.uid;
     act(() => result.current.updatePrize(newUid, "amount", "0"));
     act(() => result.current.updatePrize(newUid, "label", "再接再厲"));
-    // 排序前：$0(謝謝參與), $100, $500, $0(再接再厲)
+    // 排序前：$0(auto), $100, $500, $0(再接再厲)
     act(() => result.current.sortPrizesByAmount());
     const labels = result.current.form.prizes
       .filter((p) => p.amount === "0")
       .map((p) => p.label);
-    expect(labels).toEqual(["謝謝參與", "再接再厲"]);
+    expect(labels).toEqual(["", "再接再厲"]);
   });
 
   // ── confirmRescale 保留額外獎項 ─────────────────────────
