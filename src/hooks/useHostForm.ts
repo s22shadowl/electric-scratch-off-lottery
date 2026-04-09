@@ -233,9 +233,15 @@ export function useHostForm(baseUrl: string) {
       setPrizesDirty(true);
       setForm((f) => ({
         ...f,
-        prizes: f.prizes.map((p) =>
-          p.uid === uid ? { ...p, [field]: value } : p,
-        ),
+        prizes: f.prizes.map((p) => {
+          if (p.uid !== uid) return p;
+          const updated = { ...p, [field]: value };
+          // When amount changes and label matches old auto-label, clear it
+          if (field === "amount" && p.label === autoLabel(p.amount)) {
+            updated.label = "";
+          }
+          return updated;
+        }),
       }));
     },
     [],

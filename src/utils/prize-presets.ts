@@ -98,6 +98,14 @@ export function normalizeToHundred(rawWeights: number[]): number[] {
       : Math.round(p * 10000) / 10000   // 4dp
   )
 
+  // Guarantee: original weight > 0 → normalized >= 0.0001
+  for (let i = 0; i < rounded.length; i++) {
+    if (rawWeights[i] > 0 && rounded[i] === 0) {
+      rounded[i] = 0.0001
+    }
+  }
+
+  // Adjust largest item to keep sum ≈ 100 (2dp precision — micro residual ≤0.001 is acceptable)
   const sum = rounded.reduce((s, w) => s + w, 0)
   const diff = Math.round((100 - sum) * 100) / 100
   if (diff !== 0) {
@@ -175,7 +183,7 @@ export function scalePrizesToTicketPrice(
 
     return {
       uid: `preset-uid-${++uidCounter}`,
-      label: autoLabel(String(p.scaledAmount)),
+      label: "",
       amount: String(p.scaledAmount),
       weight,
     }

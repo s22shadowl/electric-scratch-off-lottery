@@ -110,8 +110,8 @@ describe("classifyDifficulty", () => {
 describe("scalePrizesToTicketPrice", () => {
   it("ticketPrice=100 時獎項金額不變", () => {
     const result = scalePrizesToTicketPrice("standard", 100);
-    expect(result.find((p) => p.label === "$100")?.amount).toBe("100");
-    expect(result.find((p) => p.label === "$500")?.amount).toBe("500");
+    expect(result.find((p) => p.amount === "100")).toBeTruthy();
+    expect(result.find((p) => p.amount === "500")).toBeTruthy();
   });
 
   it("ticketPrice=200 時金額加倍", () => {
@@ -126,10 +126,15 @@ describe("scalePrizesToTicketPrice", () => {
     expect(result.find((p) => p.amount === "250")).toBeTruthy();
   });
 
-  it("$0 的獎項 label 自動生成為「$0」，金額仍為 0", () => {
+  it("$0 的獎項 label 為空字串，金額仍為 0", () => {
     const result = scalePrizesToTicketPrice("standard", 200);
     const loseItem = result.find((p) => p.amount === "0");
-    expect(loseItem?.label).toBe("$0");
+    expect(loseItem?.label).toBe("");
+  });
+
+  it("所有 label 皆為空字串（由 PrizeEditor auto-label 接管）", () => {
+    const result = scalePrizesToTicketPrice("standard", 100);
+    expect(result.every((p) => p.label === "")).toBe(true);
   });
 
   it("回傳新陣列（不可變）", () => {

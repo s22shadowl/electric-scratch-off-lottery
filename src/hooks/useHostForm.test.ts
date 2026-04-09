@@ -265,8 +265,8 @@ describe("useHostForm", () => {
     const { result } = renderHook(() => useHostForm(BASE));
     act(() => result.current.setDifficultyPreset("generous"));
     expect(result.current.form.difficultyPreset).toBe("generous");
-    // generous 模板下不中獎的 label 應為「$0」（autoLabel 自動生成）
-    expect(result.current.form.prizes.some((p) => p.label === "$0")).toBe(
+    // label 為空字串（由 PrizeEditor auto-label 接管顯示）
+    expect(result.current.form.prizes.every((p) => p.label === "")).toBe(
       true,
     );
   });
