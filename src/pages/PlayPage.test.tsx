@@ -188,4 +188,59 @@ describe("PlayPage", () => {
     expect(screen.queryByTestId("splash-overlay")).not.toBeInTheDocument();
     expect(screen.getByTestId("results-page")).toBeInTheDocument();
   });
+
+  it("scratching 多張時應渲染右側未刮卡堆", async () => {
+    const encoded = encodeConfig(config);
+    renderWithRoute(`?config=${encoded}`);
+    await waitFor(() => {
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
+    });
+    const cards = useGameStore.getState().cards;
+    await act(async () => {
+      useGameStore.getState().selectCard(cards[0]!.id);
+      useGameStore.getState().selectCard(cards[1]!.id);
+      useGameStore.getState().selectCard(cards[2]!.id);
+      useGameStore.getState().startScratching();
+    });
+    // 第 1 張：左邊 0 張已刮，右邊 2 張未刮
+    const upcoming = screen.getAllByTestId(/^upcoming-card-/);
+    expect(upcoming).toHaveLength(2);
+    expect(screen.queryByTestId(/^done-card-/)).not.toBeInTheDocument();
+  });
+
+  it("scratching 時頁面 header 應隱藏", async () => {
+    const encoded = encodeConfig(config);
+    renderWithRoute(`?config=${encoded}`);
+    await waitFor(() => {
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
+    });
+    const cards = useGameStore.getState().cards;
+    await act(async () => {
+      useGameStore.getState().selectCard(cards[0]!.id);
+      useGameStore.getState().startScratching();
+    });
+    expect(
+      screen.queryByRole("heading", { name: "年終抽獎活動" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("scratching 右側未刮卡片在當前卡未完成時不可點擊（有遮罩）", async () => {
+    const encoded = encodeConfig(config);
+    renderWithRoute(`?config=${encoded}`);
+    await waitFor(() => {
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
+    });
+    const cards = useGameStore.getState().cards;
+    await act(async () => {
+      useGameStore.getState().selectCard(cards[0]!.id);
+      useGameStore.getState().selectCard(cards[1]!.id);
+      useGameStore.getState().startScratching();
+    });
+    const upcoming = screen.getByTestId(`upcoming-card-${cards[1]!.id}`);
+    // 點擊不應改變 currentScratchIndex
+    await act(async () => {
+      fireEvent.click(upcoming);
+    });
+    expect(useGameStore.getState().currentScratchIndex).toBe(0);
+  });
 });
