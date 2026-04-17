@@ -61,14 +61,16 @@ function ScratchingView() {
             <div
               key={id}
               data-testid={`done-card-${id}`}
-              className="absolute left-0 w-[60px] h-[80%] rounded-lg bg-red-900/80 border border-yellow-700/40"
+              className="absolute left-0 w-[44px] h-[70%] rounded-lg border-2 border-yellow-600/50"
               style={{
                 zIndex: i,
+                marginLeft: i * 4,
                 transform: `translateY(${offset.offsetY}px) rotate(${offset.rotation}deg)`,
-                marginLeft: i * 3,
+                background:
+                  "repeating-linear-gradient(45deg, #7f1d1d, #7f1d1d 4px, #991b1b 4px, #991b1b 8px)",
               }}
             >
-              <div className="absolute inset-0 rounded-lg bg-black/30" />
+              <div className="absolute inset-0 rounded-lg bg-black/25" />
             </div>
           );
         })}
@@ -87,26 +89,28 @@ function ScratchingView() {
               key={id}
               data-testid={`upcoming-card-${id}`}
               className={[
-                "absolute right-0 w-[60px] h-[80%] rounded-lg bg-red-900/80 border",
+                "absolute right-0 w-[44px] h-[70%] rounded-lg border-2",
                 isNext
-                  ? "border-yellow-400/70 cursor-pointer"
-                  : "border-yellow-700/40",
+                  ? "border-yellow-400/80 cursor-pointer"
+                  : "border-yellow-600/50",
               ].join(" ")}
               style={{
                 zIndex: upcomingIds.length - i,
+                marginRight: i * 4,
                 transform: `translateY(${offset.offsetY}px) rotate(${offset.rotation}deg)`,
-                marginRight: i * 3,
+                background:
+                  "repeating-linear-gradient(45deg, #7f1d1d, #7f1d1d 4px, #991b1b 4px, #991b1b 8px)",
                 ...(isNext
                   ? {
                       boxShadow:
-                        "0 0 12px 2px rgba(250,204,21,0.4), 0 0 4px 1px rgba(250,204,21,0.2)",
+                        "0 0 14px 3px rgba(250,204,21,0.5), 0 0 6px 2px rgba(250,204,21,0.3)",
                     }
                   : {}),
               }}
               onClick={isNext ? nextCard : undefined}
             >
               {!isNext && (
-                <div className="absolute inset-0 rounded-lg bg-black/30" />
+                <div className="absolute inset-0 rounded-lg bg-black/25" />
               )}
             </div>
           );
