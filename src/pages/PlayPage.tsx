@@ -108,6 +108,9 @@ function ScratchingView() {
                   : {}),
               }}
               onClick={isNext ? nextCard : undefined}
+              {...(isNext
+                ? { role: "button", "aria-label": "下一張卡片" }
+                : { "aria-hidden": true })}
             >
               {!isNext && (
                 <div className="absolute inset-0 rounded-lg bg-black/25" />

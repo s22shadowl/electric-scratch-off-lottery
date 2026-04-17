@@ -7,7 +7,7 @@ import {
   fireEvent,
 } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { useGameStore } from "@/stores/gameStore";
+import { useGameStore, REVEAL_THRESHOLD } from "@/stores/gameStore";
 import { encodeConfig } from "@/utils/config-codec";
 import PlayPage from "./PlayPage";
 import type { GameConfig } from "@/types";
@@ -32,6 +32,15 @@ const config: GameConfig = {
 };
 
 const totalCardCount = config.cardTypes.reduce((s, ct) => s + ct.count, 0);
+
+function completeCard(cardId: string) {
+  const card = useGameStore.getState().cards.find((c) => c.id === cardId)!;
+  for (const zone of card.zones) {
+    for (const cell of zone.cells) {
+      useGameStore.getState().updateCellProgress(cardId, cell.id, REVEAL_THRESHOLD);
+    }
+  }
+}
 
 const renderWithRoute = (search: string) =>
   render(
@@ -242,5 +251,53 @@ describe("PlayPage", () => {
       fireEvent.click(upcoming);
     });
     expect(useGameStore.getState().currentScratchIndex).toBe(0);
+  });
+
+  it("scratching 卡片完成後右側卡堆可點擊並前進到下一張", async () => {
+    const encoded = encodeConfig(config);
+    renderWithRoute(`?config=${encoded}`);
+    await waitFor(() => {
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
+    });
+    const cards = useGameStore.getState().cards;
+    await act(async () => {
+      useGameStore.getState().selectCard(cards[0]!.id);
+      useGameStore.getState().selectCard(cards[1]!.id);
+      useGameStore.getState().startScratching();
+    });
+    // 完成當前卡片
+    await act(async () => {
+      completeCard(cards[0]!.id);
+    });
+    const upcoming = screen.getByTestId(`upcoming-card-${cards[1]!.id}`);
+    await act(async () => {
+      fireEvent.click(upcoming);
+    });
+    expect(useGameStore.getState().currentScratchIndex).toBe(1);
+  });
+
+  it("scratching 前進後左側應出現已刮卡堆", async () => {
+    const encoded = encodeConfig(config);
+    renderWithRoute(`?config=${encoded}`);
+    await waitFor(() => {
+      expect(useGameStore.getState().cards).toHaveLength(totalCardCount);
+    });
+    const cards = useGameStore.getState().cards;
+    await act(async () => {
+      useGameStore.getState().selectCard(cards[0]!.id);
+      useGameStore.getState().selectCard(cards[1]!.id);
+      useGameStore.getState().selectCard(cards[2]!.id);
+      useGameStore.getState().startScratching();
+    });
+    // 完成第 1 張並前進
+    await act(async () => {
+      completeCard(cards[0]!.id);
+      useGameStore.getState().nextCard();
+    });
+    // 第 2 張：左邊 1 張已刮，右邊 1 張未刮
+    expect(screen.getByTestId(`done-card-${cards[0]!.id}`)).toBeInTheDocument();
+    expect(
+      screen.getByTestId(`upcoming-card-${cards[2]!.id}`),
+    ).toBeInTheDocument();
   });
 });
