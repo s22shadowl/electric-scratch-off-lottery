@@ -6,6 +6,7 @@ import CardPile from "@/components/play/CardPile";
 import ScratchCard from "@/components/play/ScratchCard";
 import ResultsPage from "@/components/play/ResultsPage";
 import SplashOverlay from "@/components/play/SplashOverlay";
+import { cardStackOffset } from "@/utils/card-stack-offset";
 import type { GameConfig } from "@/types";
 
 function ScratchingView() {
@@ -18,6 +19,7 @@ function ScratchingView() {
   const currentCardId = selectedCardIds[currentScratchIndex];
   const currentCard = cards.find((c) => c.id === currentCardId);
   const isCurrentCompleted = currentCard?.status === "completed";
+
   const totalInvested = selectedCardIds.reduce((sum, id) => {
     const card = cards.find((c) => c.id === id);
     const ct = card ? config.cardTypes[card.cardTypeIndex] : undefined;
@@ -33,24 +35,87 @@ function ScratchingView() {
 
   if (!currentCardId) return null;
 
+  const doneIds = selectedCardIds.slice(0, currentScratchIndex);
+  const upcomingIds = selectedCardIds.slice(currentScratchIndex + 1);
+
   return (
-    <section className="py-6 px-3">
+    <section className="flex flex-col items-center min-h-[calc(100vh-2rem)] py-3 px-2">
       {/* 進度列（多張才顯示） */}
       {selectedCardIds.length > 1 && (
         <div
           data-testid="scratch-progress"
-          className="text-center mb-4 text-sm text-yellow-200"
+          className="text-center mb-2 text-sm text-yellow-200"
         >
           <span>第 {currentScratchIndex + 1}/{selectedCardIds.length} 張</span>
           <span> · 投入 ${totalInvested}</span>
           <span> · 累計中獎 ${totalWon}</span>
         </div>
       )}
-      <div className="flex justify-center">
-        <ScratchCard cardId={currentCardId} />
+
+      {/* 卡堆區 */}
+      <div className="relative flex items-center justify-center flex-1 w-full">
+        {/* 左側已刮完堆疊 */}
+        {doneIds.map((id, i) => {
+          const offset = cardStackOffset(id);
+          return (
+            <div
+              key={id}
+              data-testid={`done-card-${id}`}
+              className="absolute left-0 w-[60px] h-[80%] rounded-lg bg-red-900/80 border border-yellow-700/40"
+              style={{
+                zIndex: i,
+                transform: `translateY(${offset.offsetY}px) rotate(${offset.rotation}deg)`,
+                marginLeft: i * 3,
+              }}
+            >
+              <div className="absolute inset-0 rounded-lg bg-black/30" />
+            </div>
+          );
+        })}
+
+        {/* 當前卡片 */}
+        <div className="relative z-10">
+          <ScratchCard cardId={currentCardId} />
+        </div>
+
+        {/* 右側未刮堆疊 */}
+        {upcomingIds.map((id, i) => {
+          const offset = cardStackOffset(id);
+          const isNext = i === 0 && isCurrentCompleted;
+          return (
+            <div
+              key={id}
+              data-testid={`upcoming-card-${id}`}
+              className={[
+                "absolute right-0 w-[60px] h-[80%] rounded-lg bg-red-900/80 border",
+                isNext
+                  ? "border-yellow-400/70 cursor-pointer"
+                  : "border-yellow-700/40",
+              ].join(" ")}
+              style={{
+                zIndex: upcomingIds.length - i,
+                transform: `translateY(${offset.offsetY}px) rotate(${offset.rotation}deg)`,
+                marginRight: i * 3,
+                ...(isNext
+                  ? {
+                      boxShadow:
+                        "0 0 12px 2px rgba(250,204,21,0.4), 0 0 4px 1px rgba(250,204,21,0.2)",
+                    }
+                  : {}),
+              }}
+              onClick={isNext ? nextCard : undefined}
+            >
+              {!isNext && (
+                <div className="absolute inset-0 rounded-lg bg-black/30" />
+              )}
+            </div>
+          );
+        })}
       </div>
-      {isCurrentCompleted && selectedCardIds.length > 1 && (
-        <div className="text-center mt-4">
+
+      {/* 底部操作區 */}
+      <div className="text-center mt-2 pb-4">
+        {isCurrentCompleted && selectedCardIds.length > 1 && (
           <button
             data-testid="next-card-btn"
             onClick={nextCard}
@@ -60,8 +125,8 @@ function ScratchingView() {
               ? "下一張 →"
               : "查看結果 →"}
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 }
@@ -134,12 +199,14 @@ export default function PlayPage() {
       data-testid="play-page"
       className="min-h-screen bg-gradient-to-br from-red-800 to-red-950 text-white"
     >
-      {/* 頁首 */}
-      <header className="text-center pt-6 pb-2">
-        <h1 className="text-2xl font-black text-yellow-400 drop-shadow-lg tracking-wide font-serif">
-          {config.sessionTitle}
-        </h1>
-      </header>
+      {/* 頁首（scratching 時隱藏，讓卡片佔滿空間） */}
+      {phase !== "scratching" && (
+        <header className="text-center pt-6 pb-2">
+          <h1 className="text-2xl font-black text-yellow-400 drop-shadow-lg tracking-wide font-serif">
+            {config.sessionTitle}
+          </h1>
+        </header>
+      )}
 
       {/* 階段視圖 */}
       {phase === "pile" && <CardPile />}
